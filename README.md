@@ -1,6 +1,6 @@
 # multi-agent
 
-multi-agent-coding skill and MCP server design notes.
+multi-agent-coding skill and MCP server design notes for Codex, Cursor, Claude Code, OpenClaw, Hermes, and VS Code.
 
 ## multi-agent-coding skill
 
@@ -27,8 +27,19 @@ agents/openai.yaml
 templates/
 checklists/
 examples/
+docs/clients.md
+docs/mcp-format.md
 ```
 
+## Client support
+
+This repository is designed around a portable coordination contract:
+
+- `SKILL.md` and bundled templates for Codex/OpenClaw-style skill usage.
+- `docs/clients.md` for Codex, Cursor, Claude Code, OpenClaw, Hermes, and VS Code adapter behavior.
+- `docs/mcp-format.md` for the optional MCP coordination backend.
+
+The shared contract is task cards, result reports, role permissions, skill-use approvals, review findings, scope audits, and final delivery format. Each client can implement agent spawning and execution differently.
 ## Usage
 
 Install or copy this folder into a Codex skills directory, then invoke it explicitly:

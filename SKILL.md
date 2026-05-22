@@ -1,6 +1,6 @@
-﻿---
+---
 name: multi-agent-coding
-description: Prompt-guided multi-agent coordination for coding tasks. Use when Codex should coordinate multiple specialist agents or role-based passes for complex software work, including multi-module research, scoped implementation, parallel review, bug investigation, refactoring, verification, or when the user asks to use multiple agents, subagents, workers, reviewers, planners, parallel agents, or skills such as review skills across multiple agents. Also use to decide when not to spawn agents, to define worker task cards, allowed paths, reviewer-only workflows, skill-use permissions, and final integration rules.
+description: Prompt-guided multi-agent coordination for coding tasks across Codex, Cursor, Claude Code, OpenClaw, Hermes, and VS Code. Use when an agent client should coordinate multiple specialist agents or role-based passes for complex software work, including multi-module research, scoped implementation, parallel review, bug investigation, refactoring, verification, or when the user asks to use multiple agents, subagents, workers, reviewers, planners, parallel agents, or skills such as review skills across multiple agents. Also use to define task cards, allowed paths, client adapters, MCP-backed state, reviewer-only workflows, skill-use permissions, and final integration rules.
 ---
 
 # multi-agent-coding
@@ -17,6 +17,20 @@ Use this skill to coordinate coding work with controlled specialist roles. This 
 - Require Worker outputs to return to the main agent for diff audit before final delivery.
 - Do not store secrets, tokens, credential values, or large private code excerpts in task reports.
 
+## Cross-Client Support
+
+Support Codex, Cursor, Claude Code, OpenClaw, Hermes, and VS Code by keeping the shared protocol independent of any one client runtime. Treat task cards, result reports, role permissions, skill-use approvals, review findings, scope audits, and final delivery format as the portable contract.
+
+Use client-specific adapters for execution details:
+
+- Codex: use this folder as a Codex skill and use native subagents when available.
+- Cursor: translate core rules into project rules and use MCP for state if configured.
+- Claude Code: translate core rules into `CLAUDE.md`/commands and use MCP tools when configured.
+- OpenClaw: package as an OpenClaw-compatible skill and map roles to sessions.
+- Hermes: use the protocol as a task-card and role-routing contract; prefer MCP for state.
+- VS Code: use workspace instructions plus MCP/client extensions where available.
+
+When MCP is available, use it for task state, approvals, findings, and audits. When MCP is unavailable, fall back to the bundled templates and checklists.
 ## Trigger Handling
 
 If the user explicitly asks for multiple agents, parallel agents, subagents, workers, reviewers, planners, or multi-agent review, enter this skill. If the task is small, use the Quick Path and explain that additional agents are unnecessary.
