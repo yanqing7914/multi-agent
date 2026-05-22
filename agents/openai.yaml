@@ -1,0 +1,7 @@
+﻿interface:
+  display_name: "Multi-Agent Coding"
+  short_description: "Coordinate scoped coding agents and reviews."
+  brand_color: "#2563EB"
+  default_prompt: "Use $multi-agent-coding to coordinate this coding task with scoped roles, review, and verification."
+policy:
+  allow_implicit_invocation: true
