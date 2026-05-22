@@ -1,0 +1,12 @@
+﻿task: Add vehicle favorite feature
+mode: implement
+modules:
+  - backend
+  - frontend
+  - tests
+reviewers:
+  - correctness
+  - security
+skills:
+  reviewer:
+    - ssrd

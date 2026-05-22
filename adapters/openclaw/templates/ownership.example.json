@@ -1,0 +1,12 @@
+﻿{
+  "tasks": [
+    {
+      "task_id": "T003",
+      "session_name": "worker-backend",
+      "role": "Worker",
+      "allowed_paths": ["server/src/**", "server/tests/**"],
+      "blocked_paths": [".env", ".env.*", ".npmrc", "~/.ssh/**", "**/*.pem", "**/*.key"],
+      "status": "pending"
+    }
+  ]
+}
