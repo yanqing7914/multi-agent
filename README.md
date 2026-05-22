@@ -1,4 +1,8 @@
-﻿# multi-agent-coding
+# multi-agent
+
+multi-agent-coding skill and MCP server design notes.
+
+## multi-agent-coding skill
 
 A prompt-guided Codex skill for coordinating multi-agent coding work with scoped roles, task cards, review passes, verification, and final delivery rules.
 
