@@ -2,6 +2,7 @@
 
 [![version](https://img.shields.io/badge/version-0.1.0-blue)](CHANGELOG.md)
 [![python](https://img.shields.io/badge/python-%3E%3D3.10-3776AB?logo=python&logoColor=white)](pyproject.toml)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 面向 Codex、Cursor、Claude Code、OpenClaw、Hermes、VS Code 的多 Agent 协作协议、Skill 与 MCP 设计。
 鏈粨搴撳綋鍓嶅寘鍚涓€鐗?`multi-agent-coding` Skill锛屼互鍙婂悗缁?MCP/IDE 鎻掍欢鐨勬帴鍙ｈ鏍兼枃妗ｃ€傚畠鐨勭洰鏍囦笉鏄仛涓€涓け鎺х殑 agent swarm锛岃€屾槸璁╁涓?agent 鍦ㄥ鏉傚伐绋嬩换鍔′腑鎸夆€滀换鍔″崱銆佹潈闄愯竟鐣屻€佽瘎瀹°€侀獙璇併€佹渶缁堥泦鎴愨€濈殑鏂瑰紡鍗忎綔銆?
