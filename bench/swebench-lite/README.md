@@ -75,7 +75,8 @@ Aggregate: `bench/swebench-lite/results/aggregate-score.json`
 
 | Timestamp (UTC) | Runtime | Cases | Pass rate | Artifact | Notes |
 | --- | --- | ---: | ---: | --- | --- |
-| 2026-05-26T02:14:11Z | codex | 1 (`api-pagination`) | 0.0 | `bench/swebench-lite/results/score-20260526-021411.json` | Launcher returned a timeout after extracting worker JSON/Markdown; recorded as failed. |
+| 2026-05-26T02:48:48Z | codex | 1 (`api-pagination`) | 1.0 | `bench/swebench-lite/results/score-20260526-024848.json` | Regression pass after fixing outcome detection: complete JSON/Markdown reports are accepted even if diagnostic text mentions `timeout`; live-run changed paths are normalized to workspace-relative paths before audit. |
+| 2026-05-26T02:14:11Z | codex | 1 (`api-pagination`) | 0.0 | `bench/swebench-lite/results/score-20260526-021411.json` | Legacy failed run: launcher outcome detection misclassified a completed Codex report as `timeout` because it scanned the whole transcript before validating result artifacts. |
 | 2026-05-26T02:26:57Z | cursor | 1 (`date-parse`) | 0.0 | `bench/swebench-lite/results/score-20260526-022657.json` | Launcher spawn OK (`launch_cursor_worker.sh` tmux); harness did not wait for agent; pytest failed (3/4 tests). |
 | 2026-05-26T02:27:44Z | cursor | 1 (`hash-collision`) | 0.0 | `bench/swebench-lite/results/score-20260526-022744.json` | Retry after duplicate `cursor-T002` session; spawn OK, pytest failed (1/3 tests). First attempt: `score-20260526-022704.json` (`launcher failed`). |
 

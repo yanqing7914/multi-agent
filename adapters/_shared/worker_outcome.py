@@ -139,26 +139,29 @@ def evaluate_worker_outcome(
     if not log_text and result_md.exists():
         log_text = result_md.read_text(encoding="utf-8", errors="replace")
 
-    log_error = map_runtime_log_to_normalized(log_text, runtime)
-    if log_error:
+    def log_error_result() -> tuple[bool, str | None, dict] | None:
+        log_error = map_runtime_log_to_normalized(log_text, runtime)
+        if not log_error:
+            return None
         details["log_error_mode"] = log_error
         details["normalized_error"] = normalize_error_code(log_error)
         return False, log_error, details
 
     if not result_md.is_file():
-        return False, "missing_result_markdown", details
+        return log_error_result() or (False, "missing_result_markdown", details)
 
     md_size = result_md.stat().st_size
     details["result_markdown_bytes"] = md_size
     if md_size < min_md_bytes:
-        return False, "result_markdown_too_small", details
+        return log_error_result() or (False, "result_markdown_too_small", details)
 
     if require_json_file:
         if not result_json.is_file():
-            return False, "missing_result_json", details
+            return log_error_result() or (False, "missing_result_json", details)
     elif not result_json.is_file() and not json_extracted:
-        return False, "missing_result_json", details
+        return log_error_result() or (False, "missing_result_json", details)
 
+    # A complete result report wins over incidental error words in the transcript.
     return True, None, details
 
 
@@ -217,6 +220,26 @@ def run_outcome_fixture_checks() -> list[str]:
             errors.append(f"codex_missing_json: expected missing_result_json, got ok={ok} err={err}")
     finally:
         stub_md.unlink(missing_ok=True)
+
+    success_md = fixtures / "_selfcheck_success.md"
+    success_json = fixtures / "_selfcheck_success.json"
+    success_md.write_text("completed normally; command history mentioned timeout diagnostics\n", encoding="utf-8")
+    success_json.write_text(json.dumps({"task_id": "T001", "role": "Worker"}), encoding="utf-8")
+    try:
+        ok, err, _ = evaluate_worker_outcome(
+            pipeline_returncode=0,
+            result_md=success_md,
+            result_json=success_json,
+            json_extracted=False,
+            log_text=success_md.read_text(encoding="utf-8"),
+            require_json_file=True,
+            runtime="codex",
+        )
+        if not ok or err:
+            errors.append(f"codex_success_with_timeout_word: expected ok, got ok={ok} err={err}")
+    finally:
+        success_md.unlink(missing_ok=True)
+        success_json.unlink(missing_ok=True)
 
     return errors
 

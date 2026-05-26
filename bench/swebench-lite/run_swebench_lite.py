@@ -32,6 +32,25 @@ def run_cmd(cmd: list[str], cwd: Path | None = None, env: dict | None = None) ->
     return subprocess.run(cmd, cwd=str(cwd) if cwd else None, env=env, capture_output=True, text=True, check=False)
 
 
+def workspace_relative_paths(paths: list[str], workspace: Path) -> list[str]:
+    normalized: list[str] = []
+    workspace_resolved = workspace.resolve()
+    for item in paths:
+        value = str(item).replace("\\", "/").strip()
+        if not value:
+            continue
+        try:
+            candidate = Path(value)
+            if candidate.is_absolute():
+                value = str(candidate.resolve().relative_to(workspace_resolved)).replace("\\", "/")
+        except (OSError, ValueError):
+            pass
+        while value.startswith("./"):
+            value = value[2:]
+        normalized.append(value)
+    return list(dict.fromkeys(normalized))
+
+
 def discover_cases() -> list[Path]:
     cases: list[Path] = []
     if not CASES_DIR.is_dir():
@@ -312,7 +331,11 @@ def run_case(case_dir: Path, runtime: str, tmp_root: Path, persist: bool = True)
     worker_json = next(state_dir.glob("results/T*-worker-*.json"), None)
     if worker_json:
         data = json.loads(worker_json.read_text(encoding="utf-8"))
-        changed = data.get("files_changed") or []
+        changed = workspace_relative_paths(data.get("files_changed") or [], workspace)
+        files_changed = changed
+        if data.get("files_changed") != changed:
+            data["files_changed"] = changed
+            worker_json.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
         (state_dir / "changed-files.txt").write_text("\n".join(changed) + ("\n" if changed else ""), encoding="utf-8")
 
     sync = run_cmd([sys.executable, str(UPDATE_STATUS), "--state-dir", str(state_dir), "--sync"], cwd=REPO_ROOT)

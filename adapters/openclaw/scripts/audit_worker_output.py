@@ -85,6 +85,20 @@ def matches(path: str, patterns: list[str]) -> bool:
     return False
 
 
+def workspace_relative(path: str, workspace_root: str | None) -> str:
+    normalized = normalize(path)
+    if not workspace_root:
+        return normalized
+    try:
+        candidate = Path(normalized)
+        if not candidate.is_absolute():
+            return normalized
+        rel = candidate.resolve().relative_to(Path(workspace_root).resolve())
+        return normalize(str(rel))
+    except (OSError, ValueError):
+        return normalized
+
+
 def load_changed_files(path: Path | None) -> list[str]:
     if not path or not path.exists():
         return []
@@ -253,7 +267,7 @@ def audit(ownership: dict, result_changes: dict[str, dict], global_changed: list
     touched_by_path: dict[str, list[str]] = {}
 
     for task_id, result in result_changes.items():
-        files = result["files"]
+        files = list(dict.fromkeys(workspace_relative(item, expected_workspace) for item in result["files"]))
         task = task_by_id.get(task_id)
         if not task:
             warnings.append({"task_id": task_id, "reason": "Result has no matching ownership task"})
@@ -345,6 +359,7 @@ def audit(ownership: dict, result_changes: dict[str, dict], global_changed: list
                 violations.append({"task_id": task_id, "path": file_path, "reason": "Outside allowed_paths"})
 
     if global_changed:
+        global_changed = list(dict.fromkeys(workspace_relative(item, expected_workspace) for item in global_changed))
         for file_path in global_changed:
             blocked_union = SECRET_PATTERNS + [
                 pattern
