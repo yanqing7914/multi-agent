@@ -1,4 +1,4 @@
-﻿.codex-multi-agent*/
+.codex-multi-agent*/
 # 例外：跨 IDE 接力 demo 的产物作为公开凭证保留在仓库里
 !.codex-multi-agent-relay/
 .venv/
@@ -12,3 +12,6 @@ bench/swebench-lite/results/*
 !bench/swebench-lite/results/README.md
 *.vsix
 ide/extensions/*/out/
+
+!.codex-multi-agent-relay/**
+multi_agent_coding.egg-info/

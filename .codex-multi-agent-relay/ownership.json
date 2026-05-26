@@ -18,7 +18,7 @@
       ],
       "result_report_md": ".codex-multi-agent-relay/results/R001-worker-echo.md",
       "result_report_json": ".codex-multi-agent-relay/results/R001-worker-echo.json",
-      "status": "pending"
+      "status": "completed"
     },
     {
       "task_id": "R002-reviewer-echo",
@@ -34,7 +34,7 @@
       ],
       "result_report_md": ".codex-multi-agent-relay/results/R002-reviewer-echo.md",
       "result_report_json": ".codex-multi-agent-relay/results/R002-reviewer-echo.json",
-      "status": "pending"
+      "status": "completed"
     }
   ]
 }

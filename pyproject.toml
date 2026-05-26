@@ -23,9 +23,9 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/gongchenhao/multi-agent-coding"
-Changelog = "https://github.com/gongchenhao/multi-agent-coding/blob/main/CHANGELOG.md"
-Documentation = "https://github.com/gongchenhao/multi-agent-coding/blob/main/README.md"
+Homepage = "https://github.com/yanqing7914/multi-agent"
+Changelog = "https://github.com/yanqing7914/multi-agent/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/yanqing7914/multi-agent/blob/main/README.md"
 
 [tool.setuptools]
 packages = []
