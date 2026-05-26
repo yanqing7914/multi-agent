@@ -1,6 +1,9 @@
 # multi-agent
 
-闈㈠悜 Codex銆丆ursor銆丆laude Code銆丱penClaw銆丠ermes銆乂S Code 鐨勫 Agent 鍗忎綔鍗忚銆丼kill 涓?MCP 璁捐銆?
+[![version](https://img.shields.io/badge/version-0.1.0-blue)](CHANGELOG.md)
+[![python](https://img.shields.io/badge/python-%3E%3D3.10-3776AB?logo=python&logoColor=white)](pyproject.toml)
+
+面向 Codex、Cursor、Claude Code、OpenClaw、Hermes、VS Code 的多 Agent 协作协议、Skill 与 MCP 设计。
 鏈粨搴撳綋鍓嶅寘鍚涓€鐗?`multi-agent-coding` Skill锛屼互鍙婂悗缁?MCP/IDE 鎻掍欢鐨勬帴鍙ｈ鏍兼枃妗ｃ€傚畠鐨勭洰鏍囦笉鏄仛涓€涓け鎺х殑 agent swarm锛岃€屾槸璁╁涓?agent 鍦ㄥ鏉傚伐绋嬩换鍔′腑鎸夆€滀换鍔″崱銆佹潈闄愯竟鐣屻€佽瘎瀹°€侀獙璇併€佹渶缁堥泦鎴愨€濈殑鏂瑰紡鍗忎綔銆?
 ## 椤圭洰瀹氫綅
 
@@ -34,7 +37,132 @@ templates/result-report.md       # 瀛?Agent 缁撴灉鎶ュ憡妯℃澘
 templates/final-delivery.md      # 鏈€缁堜氦浠樻ā鏉?checklists/                      # 鍚敤澶?Agent銆佺幆澧冦€佹潈闄愩€佸畨鍏ㄣ€丏iff 瀹¤妫€鏌ユ竻鍗?examples/                        # feature / bugfix / review 绀轰緥娴佺▼
 docs/clients.md                  # Codex/Cursor/Claude/OpenClaw/Hermes/VS Code 鏀寔妯″瀷
 docs/mcp-format.md               # MCP 宸ュ叿銆佽祫婧愩€丳rompt 鏍煎紡瑙勬牸
+adapters/openclaw/               # OpenClaw/Her standalone skill + scripts
 ```
+
+## OpenClaw Adapter (v1 Mission Control)
+
+For **OpenClaw/Her**, install only [`adapters/openclaw/`](adapters/openclaw/) as the skill `openclaw-multi-agent`. No MCP required.
+
+| File | Purpose |
+| --- | --- |
+| `SKILL.md` | Session workflow, gates, tool mapping |
+| `scripts/create_task_cards.py` | Task cards + `ownership.json` + `status.json` + `run-plan.json` |
+| `scripts/update_task_status.py` | Sync gates, update task status, summarize run |
+| `scripts/audit_worker_output.py` | Scope audit + optional audit JSON under `audits/` |
+| `scripts/run_local_demo.py` | Deterministic local demo + `--self-check` |
+| `QUICKSTART.md` | Fresh-checkout install and validation steps |
+| `examples/favorite-feature.yaml` | Sample multi-module task definition |
+
+**Local state** (gitignored): `.codex-multi-agent/` with `tasks/`, `results/`, `findings/`, `approvals/`, `audits/`, `status.json`.
+
+**Workflow gates:** Explorer → Worker → Reviewer → Verifier → scope audit → final delivery. Main runs explicit commands from each task card; scripts update state only.
+
+Quick start:
+
+```bash
+cd adapters/openclaw
+python3 scripts/validate_all.py
+# See adapters/openclaw/QUICKSTART.md for full Golden Path
+```
+
+Roadmap: [`docs/roadmap.md`](docs/roadmap.md) (v1 scripts → v2 MCP → v3 IDE panel). MCP contract: [`docs/mcp-format.md`](docs/mcp-format.md).
+
+OpenClaw 用户可直接安装 `adapters/openclaw/`，无需阅读整个根仓库。
+
+## Supported clients (v1 adapters)
+
+All four adapters share the OpenClaw mission-control core (`create_task_cards.py`, `update_task_status.py`, `audit_worker_output.py`, `verify_workspace.py`, `.codex-multi-agent/`). Each client folder is a **thin launch + docs layer** — no duplicated gate logic.
+
+| Client | Status | Notes |
+| --- | --- | --- |
+| OpenClaw / Her | **Production v1** ✅ | Reference implementation; full gate demo — [QUICKSTART](adapters/openclaw/QUICKSTART.md) |
+| Cursor | **Usable + real dogfood** ✅ | Requires `agent` + tmux; tmux mode is fire-and-forget — use `--foreground` to debug — [QUICKSTART](adapters/cursor/QUICKSTART.md) |
+| Codex | **Usable + real dogfood** ⚠ | Requires `codex` CLI + writable sandbox (`CODEX_SANDBOX`, default `workspace-write`) — [QUICKSTART](adapters/codex/QUICKSTART.md) |
+| Claude Code | **Contract validated** ⚠ | Local `claude --print` subject to quota/429; prefer ACP path in OpenClaw — [QUICKSTART](adapters/claude-code/QUICKSTART.md) |
+| Hermes / VS Code | **Docs + scaffolds** | Extension scaffolds under `ide/extensions/`; Hermes adapter planned |
+| MCP coordinator server (`multi-agent-coordinator`) | **v1 in** ✅ | Stdio MCP over `.codex-multi-agent/` — [README](mcp/multi-agent-coordinator/README.md) |
+| Mission-control task panel | **v1 in** ✅ | Local web UI — [README](ide/multi-agent-panel/README.md) |
+
+Launchers use `pipefail` + post-run checks (non-trivial result Markdown, JSON file or extracted sidecar). They exit non-zero and emit `"ok": false` when the external CLI fails or logs quota/error patterns — not when `tee` alone succeeds.
+
+**Cross-adapter launcher** (dependency-free):
+
+```bash
+python3 scripts/run_multi_agent.py --runtime cursor|codex|claude-code|openclaw --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+```
+
+**Project-wide validation:**
+
+```bash
+make validate
+# or
+python3 scripts/validate_all_adapters.py
+./scripts/ci_smoke.sh
+```
+
+**Run everything (full smoke suite):**
+
+```bash
+bash scripts/full_validate.sh
+```
+
+Runs all adapter self-checks, OpenClaw demo, both bench harnesses, MCP/IDE checks, tools, memory, and dogfood fixtures. Continues on failure and exits non-zero if any step failed.
+
+See [`docs/clients.md`](docs/clients.md) for the client matrix and [`docs/roadmap.md`](docs/roadmap.md) for v1 status and caveats.
+
+## Tools layer (P0)
+
+Dependency-free stdlib wrappers under [`tools/`](tools/) for Workers and Verifiers:
+
+| Tool | Purpose |
+| --- | --- |
+| `git_tool.py` | `git status`, `diff`, `--name-only` changed files |
+| `test_runner_tool.py` | Discover/run `pytest`, `npm test`, `pnpm test` |
+| `lint_tool.py` | Best-effort `ruff` / `flake8` / `eslint` / `prettier` / `mypy` / `pyright` / `golangci-lint` / `cargo clippy` / `rustfmt` |
+| `shell_tool.py` | Sandboxed shell with allowlist/denylist |
+| `repo_index_tool.py` | File listing + grep (`rg` or Python fallback) |
+
+Each tool exposes `--help`, JSON-in/JSON-out via stdin, and `--self-check`. Task cards declare `tools_used:`; audits warn on undeclared tool references.
+
+## Memory layer (P0)
+
+- [`MEMORY.md`](MEMORY.md) — append-only project decisions (no secrets)
+- [`AGENTS.md`](AGENTS.md) — repo-wide role conventions
+- [`adapters/openclaw/scripts/memory_log.py`](adapters/openclaw/scripts/memory_log.py) — `--append`, `--from-run` (wired into `--summarize`)
+
+Latest `MEMORY.md` tail is injected into task card `context` at generation time.
+
+## Local benchmark (P1)
+
+[`bench/`](bench/) — lightweight SWE-style cases (not upstream SWE-bench). Self-check:
+
+```bash
+python3 bench/run_bench.py --self-check --dry-runtime
+python3 bench/swebench-lite/run_swebench_lite.py --self-check
+```
+
+See [`bench/swebench-lite/README.md`](bench/swebench-lite/README.md) for SWE-bench Lite-shaped multi-file cases.
+
+## MCP enhancements (P1)
+
+- `list_framework_tools` MCP tool mirrors `tools/` entries
+- `record_finding` entries (`source: mcp`) merge with reviewer sync — not clobbered
+- Per-client MCP config snippets: [`mcp/multi-agent-coordinator/clients/`](mcp/multi-agent-coordinator/clients/)
+
+## Examples
+
+- Feature / bugfix / review flows: [`examples/`](examples/)
+- **Case study (FizzBuzz, all gates green):** [`examples/case-study-fizzbuzz/`](examples/case-study-fizzbuzz/)
+- **Case study (multi-file Flask-shaped CLI):** [`examples/case-study-flask-cli/`](examples/case-study-flask-cli/)
+
+## IDE extension scaffolds (Phase 1)
+
+Not published — starting points for embedding the task panel:
+
+- [`ide/extensions/vscode/`](ide/extensions/vscode/) — VS Code webview → local panel HTTP
+- [`ide/extensions/cursor/`](ide/extensions/cursor/) — Cursor-flavored variant
+- [`ide/extensions/hermes/`](ide/extensions/hermes/) — future Hermes adapter notes
 
 ## 瑙﹀彂鏉′欢
 

@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "multi-agent-coding"
+version = "0.1.0"
+description = "多 Agent 编码协作框架：任务卡、权限边界、审计门控与跨客户端适配器"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "龚晨昊" }]
+license = { text = "Unknown" }
+keywords = ["multi-agent", "codex", "cursor", "openclaw", "mcp"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/gongchenhao/multi-agent-coding"
+Changelog = "https://github.com/gongchenhao/multi-agent-coding/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/gongchenhao/multi-agent-coding/blob/main/README.md"
+
+[tool.setuptools]
+packages = []
+
+[tool.setuptools.package-data]
+"*" = ["*.md", "*.yaml", "*.json"]
