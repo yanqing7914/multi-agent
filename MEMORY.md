@@ -16,6 +16,7 @@ Append-only log of multi-agent decisions and run outcomes. Safe defaults:
 - `[2026-05-25T12:00:00+00:00] run 20260525T064400Z: FizzBuzz case study | gates: verify_complete=passed | audit=passed | findings=0`
 - `[2026-05-25T12:05:00+00:00] decision: Workers must list tools_used in result reports (mirrors files_read).`
 - `[2026-05-25T12:10:00+00:00] decision: MCP record_finding entries merge with reviewer sync; never clobber source=mcp findings.`
+- `[2026-05-26T12:00:00+00:00] chore: removed stale local dogfood state dirs (`.codex-multi-agent-*`); revalidated `run_local_demo.py --keep` then cleared disk — CI does not track these paths.`
 
 Detailed per-run notes live under `.codex-multi-agent/memory/run-<id>.md`.
 - [2026-05-25T13:39:30.003218+00:00] run 20260525T133928Z: Dogfood OpenClaw adapter v1 mission control | gates: explorers_complete=passed, workers_complete=passed, review_complete=failed, verify_complete=passed, scope_audit=pending, final_delivery=pending | audit=pending | findings=1
@@ -41,3 +42,4 @@ Detailed per-run notes live under `.codex-multi-agent/memory/run-<id>.md`.
 - [2026-05-26T00:30:43.024579+00:00] run 20260526T003041Z: Dogfood OpenClaw adapter v1 mission control | gates: explorers_complete=passed, workers_complete=passed, review_complete=failed, verify_complete=passed, scope_audit=pending, final_delivery=pending | audit=pending | findings=1
 - [2026-05-26T00:33:20.202659+00:00] run 20260526T003317Z: Dogfood OpenClaw adapter v1 mission control | gates: explorers_complete=passed, workers_complete=passed, review_complete=failed, verify_complete=passed, scope_audit=pending, final_delivery=pending | audit=pending | findings=1
 - [2026-05-26T00:58:43.640937+00:00] run 20260526T005842Z: Dogfood OpenClaw adapter v1 mission control | gates: explorers_complete=passed, workers_complete=passed, review_complete=failed, verify_complete=passed, scope_audit=pending, final_delivery=pending | audit=pending | findings=1
+- [2026-05-26T01:34:34.571322+00:00] run 20260526T013425Z: Dogfood OpenClaw adapter v1 mission control | gates: explorers_complete=passed, workers_complete=passed, review_complete=passed, verify_complete=passed, scope_audit=pending, final_delivery=pending | audit=pending | findings=1
