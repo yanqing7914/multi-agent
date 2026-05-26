@@ -1,0 +1,20 @@
+{
+  "runtime": "codex",
+  "aggregate": {
+    "cases": 1,
+    "passed": 0,
+    "aggregate_pass_rate": 0.0,
+    "per_case": {
+      "api-pagination": 0.0
+    }
+  },
+  "results": [
+    {
+      "case": "api-pagination",
+      "ok": false,
+      "error": "launcher failed",
+      "output": "tion/.codex-multi-agent/results/T002-worker-repo.md\",\n  \"result_json\": \"/tmp/swebench-lite-run-le8nqvcw/api-pagination/.codex-multi-agent/results/T002-worker-repo.json\",\n  \"json_extracted\": true,\n  \"returncode\": 0,\n  \"worktree_hint\": \"For parallel Workers, use separate git worktrees and CODEX_WORKTREE env per worker.\",\n  \"pipeline_returncode\": 0,\n  \"result_markdown_exists\": true,\n  \"result_json_exists\": true,\n  \"log_error_mode\": \"timeout\",\n  \"normalized_error\": \"timeout\",\n  \"error\": \"timeout\"\n}\n"
+    }
+  ],
+  "archived_at": "2026-05-26T02:14:11.041962+00:00"
+}
