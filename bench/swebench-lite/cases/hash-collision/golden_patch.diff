@@ -1,0 +1,27 @@
+--- a/repo/hash/bucket.py
++++ b/repo/hash/bucket.py
+@@ -14,8 +14,9 @@
+         self._entries.append((key, value))
+ 
+     def get(self, key: str) -> str | None:
+-        # BUG: only inspects the first entry in the bucket
+-        if self._entries and self._entries[0][0] == key:
+-            return self._entries[0][1]
++        for existing_key, value in self._entries:
++            if existing_key == key:
++                return value
+         return None
+ 
+     def keys(self) -> list[str]:
+--- a/repo/hash/table.py
++++ b/repo/hash/table.py
+@@ -11,8 +11,7 @@
+         self.buckets = [Bucket() for _ in range(size)]
+ 
+     def _index(self, key: str) -> int:
+-        # BUG: uses built-in hash() which is salted per process
+-        return hash(key) % self.size
++        return stable_hash(key) % self.size
+ 
+     def set(self, key: str, value: str) -> None:
+         idx = self._index(key)

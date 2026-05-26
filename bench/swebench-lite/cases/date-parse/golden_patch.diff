@@ -1,0 +1,27 @@
+--- a/repo/dates/formats.py
++++ b/repo/dates/formats.py
+@@ -3,4 +3,5 @@
+ SUPPORTED_FORMATS = [
+     "%m/%d/%Y",
+-    # BUG: ISO format missing
++    "%Y-%m-%d",
+ ]
+--- a/repo/dates/parser.py
++++ b/repo/dates/parser.py
+@@ -12,5 +12,4 @@
+             return datetime.strptime(text.strip(), fmt)
+         except ValueError:
+             continue
+-    # BUG: returns None instead of raising
+-    return None  # type: ignore[return-value]
++    raise ValueError(f"unsupported date format: {text!r}")
+--- a/repo/dates/utils.py
++++ b/repo/dates/utils.py
+@@ -7,6 +7,6 @@
+ def to_utc(dt: datetime) -> datetime:
+     """Normalize datetimes to UTC."""
+-    # BUG: naive datetimes pass through unchanged
+     if dt.tzinfo is None:
+-        return dt
++        return dt.replace(tzinfo=timezone.utc)
+     return dt.astimezone(timezone.utc)
