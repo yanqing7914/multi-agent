@@ -24,5 +24,9 @@ jobs:
         run: python3 scripts/validate_all_adapters.py
       - name: Validate OpenClaw scripts
         run: python3 adapters/openclaw/scripts/validate_all.py
+      - name: Bench self-check
+        run: python3 bench/run_bench.py --self-check --dry-runtime
+      - name: SWE-bench Lite self-check
+        run: python3 bench/swebench-lite/run_swebench_lite.py --self-check
       - name: OpenClaw local demo self-check
         run: python3 adapters/openclaw/scripts/run_local_demo.py --out /tmp/openclaw-demo-ci --keep
