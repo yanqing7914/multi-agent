@@ -115,4 +115,36 @@ Configure the MCP server in your Codex MCP settings using the same `command` / `
 python3 mcp/multi-agent-coordinator/scripts/self_check.py
 ```
 
+## 客户端接入
+
+Copy-paste JSON snippets (replace placeholders, then merge into your IDE MCP config):
+
+| Client | Snippet file |
+| --- | --- |
+| Claude Code (`~/.config/claude/mcp.json` or desktop config) | [`clients/claude-code-mcp.json`](clients/claude-code-mcp.json) |
+| Cursor (`~/.cursor/mcp.json` or **Settings → MCP**) | [`clients/cursor-mcp.json`](clients/cursor-mcp.json) |
+| Codex CLI / Gemini-style stdio MCP | [`clients/codex-mcp.json`](clients/codex-mcp.json) |
+
+**Placeholders**
+
+- `{REPO_ROOT}` — absolute path to this `multi-agent-coding` checkout
+- `{WORKSPACE_ROOT}` — absolute path to the project you are dogfooding (where `.codex-multi-agent/` lives)
+
+**Smoke test (no IDE required)**
+
+```bash
+export REPO_ROOT="$(pwd)"
+export WORKSPACE_ROOT="$(pwd)"
+python3 mcp/multi-agent-coordinator/scripts/self_check.py
+```
+
+**Smoke test (Cursor / any MCP client)**
+
+1. Paste `clients/cursor-mcp.json` into `.cursor/mcp.json` with real paths.
+2. Restart Cursor MCP (or reload window).
+3. Invoke tool `list_tasks` with `{}` or `{"workspace": "<your workspace>"}`.
+4. Expect JSON listing tasks from `ownership.json` (empty list if state dir is fresh).
+
+Local agent verification in this batch used `self_check.py` only (IDE MCP attach not available in CI/WSL headless). The stdio server responds to `tools/list` and `tools/call` for `list_tasks` per `scripts/self_check.py`.
+
 See also [`docs/mcp-format.md`](../../docs/mcp-format.md) and [`docs/roadmap.md`](../../docs/roadmap.md).

@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "multi-agent-coordinator": {
+      "command": "python3",
+      "args": [
+        "{REPO_ROOT}/mcp/multi-agent-coordinator/server.py",
+        "--state-dir",
+        "{WORKSPACE_ROOT}/.codex-multi-agent"
+      ],
+      "env": {
+        "WORKSPACE": "{WORKSPACE_ROOT}"
+      }
+    }
+  }
+}
