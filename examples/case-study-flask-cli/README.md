@@ -47,6 +47,20 @@ A live Codex worker run was captured at `examples/case-study-flask-cli/.runs/cod
 
 Result: Codex reported the `/version` work was already present, ran `pytest -q tests/test_routes.py` successfully (`3 passed`), wrote JSON + Markdown reports, and `audit_worker_output.py` passed with `ok: true`.
 
+## Real run — Claude Code via ACP
+
+A live Claude Code worker run (via ACP, no Anthropic API quota consumed) was captured at `examples/case-study-flask-cli/.runs/claude-code-real-20260526T020911Z/`. Because the `/version` task was already on `main`, the worker picked a structurally equivalent but **new** scope — add a `/ping` endpoint returning `{"pong": true}` plus a unit test — so the run produces an actual diff and exercises the full Worker contract end-to-end (preflight → scoped edits in `app/**` + `tests/**` → `pytest` 4 passed → result JSON/MD → `audit_worker_output.py` `ok: true`). This closes the roadmap gap "Claude Code 本地真 dogfood 全闭环" for the ACP path.
+
+| Artifact | Location |
+| --- | --- |
+| Worker task card | `.runs/claude-code-real-20260526T020911Z/tasks/T100-worker-app.md` |
+| Worker JSON report | `.runs/claude-code-real-20260526T020911Z/results/T100-worker-app.json` |
+| Worker Markdown report | `.runs/claude-code-real-20260526T020911Z/results/T100-worker-app.md` |
+| Diff patch | `.runs/claude-code-real-20260526T020911Z/changes.patch` |
+| Ownership map | `.runs/claude-code-real-20260526T020911Z/ownership.json` |
+| Scope audit output | `.runs/claude-code-real-20260526T020911Z/audit-output.json` |
+| Latest written audit | `.runs/claude-code-real-20260526T020911Z/audits/latest.json` |
+
 ## Local verification (no agent)
 
 ```bash

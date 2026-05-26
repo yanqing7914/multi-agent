@@ -4,7 +4,7 @@ import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from .config import DEFAULT_HOST, DEFAULT_PORT
-from .routes import health_payload, index_payload, version_payload
+from .routes import health_payload, index_payload, ping_payload, version_payload
 
 
 class DemoHandler(BaseHTTPRequestHandler):
@@ -25,6 +25,9 @@ class DemoHandler(BaseHTTPRequestHandler):
             return
         if self.path == "/version":
             self._json(version_payload())
+            return
+        if self.path == "/ping":
+            self._json(ping_payload())
             return
         self._json({"error": "not found"}, status=404)
 

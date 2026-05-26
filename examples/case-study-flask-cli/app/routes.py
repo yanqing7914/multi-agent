@@ -17,3 +17,7 @@ def index_payload() -> dict:
 
 def version_payload() -> dict:
     return {"version": "0.1.0"}
+
+
+def ping_payload() -> dict:
+    return {"pong": True}

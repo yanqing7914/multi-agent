@@ -1,0 +1,57 @@
+diff --git a/examples/case-study-flask-cli/app/routes.py b/examples/case-study-flask-cli/app/routes.py
+index 163349b..069104d 100644
+--- a/examples/case-study-flask-cli/app/routes.py
++++ b/examples/case-study-flask-cli/app/routes.py
+@@ -17,3 +17,7 @@ def index_payload() -> dict:
+ 
+ def version_payload() -> dict:
+     return {"version": "0.1.0"}
++
++
++def ping_payload() -> dict:
++    return {"pong": True}
+diff --git a/examples/case-study-flask-cli/app/server.py b/examples/case-study-flask-cli/app/server.py
+index f5d48c8..3cdecbc 100644
+--- a/examples/case-study-flask-cli/app/server.py
++++ b/examples/case-study-flask-cli/app/server.py
+@@ -4,7 +4,7 @@ import json
+ from http.server import BaseHTTPRequestHandler, HTTPServer
+ 
+ from .config import DEFAULT_HOST, DEFAULT_PORT
+-from .routes import health_payload, index_payload, version_payload
++from .routes import health_payload, index_payload, ping_payload, version_payload
+ 
+ 
+ class DemoHandler(BaseHTTPRequestHandler):
+@@ -26,6 +26,9 @@ class DemoHandler(BaseHTTPRequestHandler):
+         if self.path == "/version":
+             self._json(version_payload())
+             return
++        if self.path == "/ping":
++            self._json(ping_payload())
++            return
+         self._json({"error": "not found"}, status=404)
+ 
+     def log_message(self, format: str, *args) -> None:  # noqa: A003
+diff --git a/examples/case-study-flask-cli/tests/test_routes.py b/examples/case-study-flask-cli/tests/test_routes.py
+index 789f44b..1aaa7f1 100644
+--- a/examples/case-study-flask-cli/tests/test_routes.py
++++ b/examples/case-study-flask-cli/tests/test_routes.py
+@@ -4,7 +4,7 @@ from pathlib import Path
+ APP = Path(__file__).resolve().parents[1] / "app"
+ sys.path.insert(0, str(APP.parent))
+ 
+-from app.routes import health_payload, index_payload, version_payload  # noqa: E402
++from app.routes import health_payload, index_payload, ping_payload, version_payload  # noqa: E402
+ 
+ 
+ def test_health_payload():
+@@ -20,3 +20,8 @@ def test_index_payload_mentions_service():
+ def test_version_payload():
+     data = version_payload()
+     assert data == {"version": "0.1.0"}
++
++
++def test_ping_payload():
++    data = ping_payload()
++    assert data == {"pong": True}
