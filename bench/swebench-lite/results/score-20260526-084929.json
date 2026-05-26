@@ -1,0 +1,20 @@
+{
+  "runtime": "codex",
+  "aggregate": {
+    "cases": 1,
+    "passed": 0,
+    "aggregate_pass_rate": 0.0,
+    "per_case": {
+      "hash-collision": 0.0
+    }
+  },
+  "results": [
+    {
+      "case": "hash-collision",
+      "ok": false,
+      "error": "launcher failed",
+      "output": "\ntimeout after 300s"
+    }
+  ],
+  "archived_at": "2026-05-26T08:49:29.561719+00:00"
+}

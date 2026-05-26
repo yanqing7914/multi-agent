@@ -1,0 +1,25 @@
+{
+  "runtime": "cursor",
+  "aggregate": {
+    "cases": 1,
+    "passed": 1,
+    "aggregate_pass_rate": 1.0,
+    "per_case": {
+      "date-parse": 1.0
+    }
+  },
+  "results": [
+    {
+      "case": "date-parse",
+      "ok": true,
+      "tests_ok": true,
+      "audit_ok": true,
+      "pass_rate": 1.0,
+      "pre_pass_rate": 0.0,
+      "test_output": "....                                                                     [100%]\n4 passed in 0.01s",
+      "score_path": "/mnt/c/Users/gongchenhao/Documents/Codex/2026-05-18/new-chat-3/multi-agent-coding/bench/swebench-lite/results/date-parse/score.json",
+      "state_dir": "/tmp/swebench-lite-run-9i3rb5sy/date-parse/.codex-multi-agent"
+    }
+  ],
+  "archived_at": "2026-05-26T08:52:14.149516+00:00"
+}

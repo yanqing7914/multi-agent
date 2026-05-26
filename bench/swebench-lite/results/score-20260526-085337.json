@@ -1,0 +1,25 @@
+{
+  "runtime": "cursor",
+  "aggregate": {
+    "cases": 1,
+    "passed": 1,
+    "aggregate_pass_rate": 1.0,
+    "per_case": {
+      "hash-collision": 1.0
+    }
+  },
+  "results": [
+    {
+      "case": "hash-collision",
+      "ok": true,
+      "tests_ok": true,
+      "audit_ok": true,
+      "pass_rate": 1.0,
+      "pre_pass_rate": 0.0,
+      "test_output": "...                                                                      [100%]\n3 passed in 0.01s",
+      "score_path": "/mnt/c/Users/gongchenhao/Documents/Codex/2026-05-18/new-chat-3/multi-agent-coding/bench/swebench-lite/results/hash-collision/score.json",
+      "state_dir": "/tmp/swebench-lite-run-r67kybdu/hash-collision/.codex-multi-agent"
+    }
+  ],
+  "archived_at": "2026-05-26T08:53:37.233688+00:00"
+}

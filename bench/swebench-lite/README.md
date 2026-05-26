@@ -73,6 +73,21 @@ Aggregate: `bench/swebench-lite/results/aggregate-score.json`
 
 ## Recent live runtime results
 
+### 2026-05-26 G2 full live run
+
+Each row is one real runtime x case invocation with a 300s launcher timeout. `First real pass` means this artifact is the first archived live run for that runtime/case that reached `ok: true`.
+
+| Timestamp (UTC) | Runtime | Case | Pass rate | Launcher status | First real pass | Artifact |
+| --- | --- | --- | ---: | --- | --- | --- |
+| 2026-05-26T08:39:46Z | codex | `api-pagination` | 0.0 | failed: launcher timeout after 300s | No; previous codex pass exists (`score-20260526-024848.json`) | `bench/swebench-lite/results/score-20260526-083946.json` |
+| 2026-05-26T08:44:37Z | codex | `date-parse` | 0.0 | failed: launcher timeout after 300s | No | `bench/swebench-lite/results/score-20260526-084437.json` |
+| 2026-05-26T08:49:29Z | codex | `hash-collision` | 0.0 | failed: launcher timeout after 300s | No | `bench/swebench-lite/results/score-20260526-084929.json` |
+| 2026-05-26T08:50:42Z | cursor | `api-pagination` | 1.0 | completed: foreground tmux wait + audit OK | Yes | `bench/swebench-lite/results/score-20260526-085042.json` |
+| 2026-05-26T08:52:14Z | cursor | `date-parse` | 1.0 | completed: foreground tmux wait + audit OK | Yes; earlier cursor live runs failed before launcher fix | `bench/swebench-lite/results/score-20260526-085214.json` |
+| 2026-05-26T08:53:37Z | cursor | `hash-collision` | 1.0 | completed: foreground tmux wait + audit OK | Yes; earlier cursor live runs failed before launcher fix | `bench/swebench-lite/results/score-20260526-085337.json` |
+
+### Earlier samples
+
 | Timestamp (UTC) | Runtime | Cases | Pass rate | Artifact | Notes |
 | --- | --- | ---: | ---: | --- | --- |
 | 2026-05-26T02:48:48Z | codex | 1 (`api-pagination`) | 1.0 | `bench/swebench-lite/results/score-20260526-024848.json` | Regression pass after fixing outcome detection: complete JSON/Markdown reports are accepted even if diagnostic text mentions `timeout`; live-run changed paths are normalized to workspace-relative paths before audit. |
