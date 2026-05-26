@@ -148,3 +148,13 @@ python3 mcp/multi-agent-coordinator/scripts/self_check.py
 Local agent verification in this batch used `self_check.py` only (IDE MCP attach not available in CI/WSL headless). The stdio server responds to `tools/list` and `tools/call` for `list_tasks` per `scripts/self_check.py`.
 
 See also [`docs/mcp-format.md`](../../docs/mcp-format.md) and [`docs/roadmap.md`](../../docs/roadmap.md).
+
+## Real MCP transcript
+
+项目第一次真实跨进程调 MCP server 的端到端证据（stdio + JSON-RPC，按 MCP 2024-11-05 spec）：
+
+- [`.test-runs/claude-code-stdio-real-20260526-161138/`](.test-runs/claude-code-stdio-real-20260526-161138/)
+  - `transcript.jsonl` — 19 帧 JSON-RPC（initialize / tools/list / list_tasks ×2 / create_task / record_result / record_finding / audit_scope / summarize_review）
+  - `README.md` — 中文说明：执行序列、观察、bug 记录
+- 驱动方：Claude Code (Opus 4.6) 通过 Python `subprocess` stdio 调用 `server.py`
+- 结果：14 个工具全部 dispatch 成功，server stderr 干净，无崩溃
