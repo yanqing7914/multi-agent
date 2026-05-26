@@ -1,0 +1,132 @@
+{
+  "task_id": "T001",
+  "session_name": "explorer-openclaw_adapter",
+  "role": "Explorer",
+  "status": "completed",
+  "summary": "Explored the OpenClaw adapter v1 mission-control flow across docs, templates, and core scripts. Confirmed openclaw_adapter path mapping, enforced preflight/workspace checks, anti-false-completion downgrades, and scope-audit freshness gates.",
+  "workspace_observed": "<repo>",
+  "required_paths_checked": [
+    "adapters/openclaw/**"
+  ],
+  "required_paths_missing": [],
+  "required_paths_verified": true,
+  "files_read": [
+    "adapters/openclaw/README.md",
+    "adapters/openclaw/QUICKSTART.md",
+    "adapters/openclaw/SKILL.md",
+    "adapters/openclaw/examples/dogfood-openclaw.yaml",
+    "adapters/openclaw/examples/favorite-feature.yaml",
+    "adapters/openclaw/templates/result-report.md",
+    "adapters/openclaw/templates/task-card.md",
+    "adapters/openclaw/scripts/_preflight.py",
+    "adapters/openclaw/scripts/audit_worker_output.py",
+    "adapters/openclaw/scripts/create_task_cards.py",
+    "adapters/openclaw/scripts/run_local_demo.py",
+    "adapters/openclaw/scripts/update_task_status.py",
+    "adapters/openclaw/scripts/validate_all.py",
+    "adapters/openclaw/scripts/verify_workspace.py"
+  ],
+  "files_changed": [],
+  "skills_used": [],
+  "commands_run": [
+    "cd <repo>",
+    "pwd",
+    "cd \"<repo>\" && pwd",
+    "/usr/bin/python3 \"<repo>/adapters/openclaw/scripts/verify_workspace.py\" --workspace-root \"<repo>\" --required-paths \"adapters/openclaw/**\"",
+    "find adapters/openclaw -maxdepth 4 -type f | sort",
+    "rg-driven file inspections under adapters/openclaw/**"
+  ],
+  "validation": [
+    {
+      "command": "/usr/bin/python3 <repo>/adapters/openclaw/scripts/verify_workspace.py --workspace-root <repo> --required-paths adapters/openclaw/**",
+      "result": "passed",
+      "notes": "verify_workspace reported [ok] adapters/openclaw/** and exit code 0"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1-module-map",
+      "severity": "info",
+      "evidence": [
+        "adapters/openclaw/scripts/create_task_cards.py:40",
+        "adapters/openclaw/scripts/create_task_cards.py:725"
+      ],
+      "detail": "The module alias openclaw_adapter is explicitly mapped to adapters/openclaw/** and self-check asserts this mapping."
+    },
+    {
+      "id": "F2-required-path-inheritance",
+      "severity": "info",
+      "evidence": [
+        "adapters/openclaw/scripts/create_task_cards.py:165",
+        "adapters/openclaw/scripts/create_task_cards.py:174",
+        "adapters/openclaw/scripts/create_task_cards.py:728"
+      ],
+      "detail": "Reviewer/Verifier tasks with allowed_paths=[**/*] inherit concrete required_paths from module-scoped tasks, preventing broad-path tasks from skipping focused evidence."
+    },
+    {
+      "id": "F3-preflight-enforcement",
+      "severity": "info",
+      "evidence": [
+        "adapters/openclaw/scripts/create_task_cards.py:184",
+        "adapters/openclaw/scripts/create_task_cards.py:239",
+        "adapters/openclaw/scripts/verify_workspace.py:44"
+      ],
+      "detail": "Generated cards include absolute preflight commands (cd + verify_workspace) and verify_workspace checks required path existence before work."
+    },
+    {
+      "id": "F4-false-completion-downgrade",
+      "severity": "info",
+      "evidence": [
+        "adapters/openclaw/scripts/_preflight.py:134",
+        "adapters/openclaw/scripts/_preflight.py:147",
+        "adapters/openclaw/scripts/_preflight.py:156",
+        "adapters/openclaw/scripts/update_task_status.py:346",
+        "adapters/openclaw/scripts/update_task_status.py:382"
+      ],
+      "detail": "sync logic downgrades reported completed tasks to blocked for workspace mismatch, required_paths_verified=false, required_paths_missing, or thin evidence (empty files_read for read roles)."
+    },
+    {
+      "id": "F5-missing-report-evidence-gate",
+      "severity": "info",
+      "evidence": [
+        "adapters/openclaw/scripts/_preflight.py:171",
+        "adapters/openclaw/scripts/update_task_status.py:357",
+        "adapters/openclaw/scripts/update_task_status.py:823"
+      ],
+      "detail": "A metadata-only completed status does not pass: missing JSON+MD result evidence is surfaced in preflight_issues and blocks gate progression."
+    },
+    {
+      "id": "F6-scope-audit-freshness",
+      "severity": "info",
+      "evidence": [
+        "adapters/openclaw/scripts/_preflight.py:229",
+        "adapters/openclaw/scripts/update_task_status.py:254",
+        "adapters/openclaw/scripts/update_task_status.py:535",
+        "adapters/openclaw/scripts/audit_worker_output.py:336"
+      ],
+      "detail": "Scope audit is considered stale when changed-files digest/mtime drifts; sync forces scope_audit back to pending and latest_audit.ok=false until audit is rerun."
+    },
+    {
+      "id": "F7-dogfood-scenario",
+      "severity": "info",
+      "evidence": [
+        "adapters/openclaw/examples/dogfood-openclaw.yaml:1",
+        "adapters/openclaw/examples/dogfood-openclaw.yaml:4",
+        "adapters/openclaw/scripts/run_local_demo.py:75"
+      ],
+      "detail": "The bundled dogfood task is specifically aimed at OpenClaw adapter v1 mission control and demo checks assert openclaw path ownership and gate behavior."
+    }
+  ],
+  "risks": [
+    {
+      "severity": "low",
+      "detail": "Gate integrity depends on Main consistently running update_task_status.py --sync after each wave; skipping sync can leave stale phase visibility."
+    },
+    {
+      "severity": "low",
+      "detail": "Audit freshness depends on regenerating changed-files.txt and rerunning audit_worker_output.py --write-audit after any diff change."
+    }
+  ],
+  "blockers": [],
+  "handoff_notes": "Research complete for worker-openclaw_adapter. Focus implementation and validation on adapters/openclaw/**; preserve preflight fields in all child reports. <task_complete task_id='T001' status='completed'>"
+}

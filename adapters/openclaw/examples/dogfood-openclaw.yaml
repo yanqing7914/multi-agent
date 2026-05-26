@@ -1,0 +1,11 @@
+task: Dogfood OpenClaw adapter v1 mission control
+mode: implement
+modules:
+  - openclaw_adapter
+reviewers:
+  - correctness
+runtime: subagent
+review_skill: ssrd
+skills:
+  reviewer:
+    - ssrd

@@ -1,0 +1,91 @@
+{
+  "task_id": "T002",
+  "session_name": "worker-openclaw_adapter",
+  "role": "Worker",
+  "status": "completed",
+  "summary": "Implemented OpenClaw mission-control evidence hardening for completed-task reports: completion now requires the task JSON result artifact (Markdown-only no longer passes), and update_task_status self-check now covers markdown-only completion as a regression test.",
+  "workspace_observed": "<repo>",
+  "required_paths_checked": [
+    "adapters/openclaw/**"
+  ],
+  "required_paths_missing": [],
+  "required_paths_verified": true,
+  "files_read": [
+    "adapters/openclaw/scripts/_preflight.py",
+    "adapters/openclaw/scripts/update_task_status.py",
+    "adapters/openclaw/scripts/audit_worker_output.py",
+    "adapters/openclaw/templates/result-report.md",
+    "adapters/openclaw/templates/ownership.example.json",
+    "adapters/openclaw/README.md",
+    "adapters/openclaw/SKILL.md",
+    "adapters/openclaw/scripts/create_task_cards.py",
+    "adapters/openclaw/scripts/run_local_demo.py",
+    "adapters/openclaw/scripts/validate_all.py",
+    "adapters/openclaw/scripts/verify_workspace.py",
+    "adapters/openclaw/examples/dogfood-openclaw.yaml",
+    ".codex-multi-agent-real-dogfood2/ownership.json",
+    ".codex-multi-agent-real-dogfood2/tasks/T002-worker-openclaw_adapter.md",
+    ".codex-multi-agent-real-dogfood2/results/T001-explorer-openclaw_adapter.json",
+    ".codex-multi-agent-real-dogfood2/results/T001-explorer-openclaw_adapter.md",
+    ".codex-multi-agent-real-dogfood2/results/T002-worker-openclaw_adapter.md"
+  ],
+  "files_changed": [
+    "adapters/openclaw/scripts/_preflight.py",
+    "adapters/openclaw/scripts/update_task_status.py"
+  ],
+  "skills_used": [],
+  "commands_run": [
+    "cd <repo>",
+    "pwd",
+    "cd \"<repo>\" && pwd",
+    "/usr/bin/python3 <repo>/adapters/openclaw/scripts/verify_workspace.py --workspace-root <repo> --required-paths adapters/openclaw/**",
+    "rg --files adapters/openclaw",
+    "rg -n \"openclaw_adapter|T002|TODO|worker-openclaw_adapter|mission control\" adapters/openclaw",
+    "/usr/bin/python3 adapters/openclaw/scripts/validate_all.py",
+    "cat .codex-multi-agent-real-dogfood2/ownership.json",
+    "cat .codex-multi-agent-real-dogfood2/results/T001-explorer-openclaw_adapter.md",
+    "cat .codex-multi-agent-real-dogfood2/results/T001-explorer-openclaw_adapter.json",
+    "cat .codex-multi-agent-real-dogfood2/tasks/T002-worker-openclaw_adapter.md",
+    "/usr/bin/python3 adapters/openclaw/scripts/update_task_status.py --state-dir .codex-multi-agent-real-dogfood2 --sync",
+    "sed/rg inspections for adapters/openclaw/scripts/_preflight.py and adapters/openclaw/scripts/update_task_status.py",
+    "/usr/bin/python3 adapters/openclaw/scripts/update_task_status.py --self-check",
+    "/usr/bin/python3 adapters/openclaw/scripts/validate_all.py"
+  ],
+  "validation": [
+    {
+      "command": "/usr/bin/python3 <repo>/adapters/openclaw/scripts/verify_workspace.py --workspace-root <repo> --required-paths adapters/openclaw/**",
+      "result": "passed",
+      "notes": "Required path check returned [ok] adapters/openclaw/**"
+    },
+    {
+      "command": "/usr/bin/python3 adapters/openclaw/scripts/update_task_status.py --self-check",
+      "result": "passed",
+      "notes": "Self-check passed after JSON-evidence gate update and md-only regression test addition"
+    },
+    {
+      "command": "/usr/bin/python3 adapters/openclaw/scripts/validate_all.py",
+      "result": "passed",
+      "notes": "All adapter validations passed"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "info",
+      "title": "Completion gate accepted markdown-only evidence",
+      "detail": "sync_status previously allowed completed tasks to pass gates when only Markdown report existed; JSON result artifact was not strictly required."
+    },
+    {
+      "severity": "info",
+      "title": "Gate now requires JSON result report",
+      "detail": "_preflight.missing_result_report_reason now flags markdown-only completion as missing_result_report_json; sync_status marks that task blocked and surfaces a preflight issue."
+    }
+  ],
+  "risks": [
+    {
+      "severity": "low",
+      "detail": "Older historical runs that only produced Markdown reports will now be blocked until JSON companion reports are provided."
+    }
+  ],
+  "blockers": [],
+  "handoff_notes": "Worker implementation complete for openclaw_adapter scope. Wrote required JSON+Markdown reports and validated adapter scripts. <task_complete task_id='T002' status='completed'>"
+}

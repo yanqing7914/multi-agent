@@ -1,0 +1,14 @@
+task: Add vehicle favorite feature
+mode: implement
+runtime: codex
+modules:
+  - backend
+  - frontend
+  - tests
+reviewers:
+  - correctness
+  - security
+review_skill: ssrd
+skills:
+  reviewer:
+    - ssrd

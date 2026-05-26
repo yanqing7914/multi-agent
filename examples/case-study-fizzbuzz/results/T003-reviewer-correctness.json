@@ -1,0 +1,93 @@
+{
+  "task_id": "T003",
+  "session_name": "reviewer-correctness",
+  "role": "Reviewer",
+  "status": "completed",
+  "summary": "Reviewed OpenClaw v1 mission-control correctness with focus on preflight gating and status synchronization. Found two P1 issues: one causes sync crashes on malformed reviewer JSON; one allows invalid status strings to be treated as completed and can incorrectly pass gates.",
+  "workspace_observed": "<repo>",
+  "required_paths_checked": [
+    "adapters/openclaw/**"
+  ],
+  "required_paths_missing": [],
+  "required_paths_verified": true,
+  "files_read": [
+    "adapters/openclaw/templates/result-report.md",
+    "adapters/openclaw/scripts/_preflight.py",
+    "adapters/openclaw/scripts/create_task_cards.py",
+    "adapters/openclaw/scripts/update_task_status.py",
+    "adapters/openclaw/scripts/audit_worker_output.py",
+    "adapters/openclaw/scripts/verify_workspace.py",
+    "adapters/openclaw/scripts/validate_all.py",
+    "adapters/openclaw/examples/dogfood-openclaw.yaml"
+  ],
+  "files_changed": [],
+  "skills_used": [],
+  "commands_run": [
+    "cd <repo>",
+    "pwd",
+    "/usr/bin/python3 adapters/openclaw/scripts/verify_workspace.py --workspace-root <repo> --required-paths adapters/openclaw/**",
+    "rg --files adapters/openclaw",
+    "git status --short",
+    "rg -n \"mission control|mission_control|MissionControl|dogfood|openclaw\" .",
+    "nl -ba adapters/openclaw/scripts/_preflight.py",
+    "nl -ba adapters/openclaw/scripts/create_task_cards.py",
+    "nl -ba adapters/openclaw/scripts/update_task_status.py",
+    "nl -ba adapters/openclaw/scripts/audit_worker_output.py",
+    "nl -ba adapters/openclaw/scripts/verify_workspace.py",
+    "nl -ba adapters/openclaw/scripts/validate_all.py",
+    "/usr/bin/python3 adapters/openclaw/scripts/validate_all.py",
+    "repro: malformed reviewer JSON causes update_task_status.py --sync traceback",
+    "repro: status='completed | blocked | failed' is coerced to completed and passes gate"
+  ],
+  "validation": [
+    {
+      "command": "/usr/bin/python3 adapters/openclaw/scripts/verify_workspace.py --workspace-root <repo> --required-paths adapters/openclaw/**",
+      "result": "passed",
+      "notes": "required path present"
+    },
+    {
+      "command": "/usr/bin/python3 adapters/openclaw/scripts/validate_all.py",
+      "result": "passed",
+      "notes": "all bundled self-checks pass"
+    },
+    {
+      "command": "python repro for malformed JSON + --sync",
+      "result": "failed",
+      "notes": "update_task_status.py exits 1 with JSONDecodeError from collect_findings(), no status.json written"
+    },
+    {
+      "command": "python repro for invalid status token",
+      "result": "failed",
+      "notes": "status 'completed | blocked | failed' is treated as completed and review gate passes without preflight issue"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "P1",
+      "title": "Malformed reviewer JSON crashes status sync",
+      "evidence": [
+        "adapters/openclaw/scripts/update_task_status.py:308 reads reviewer JSON via read_json() without JSONDecodeError handling inside collect_findings()",
+        "adapters/openclaw/scripts/update_task_status.py:919 only catches FileNotFoundError in --sync path, so decode errors crash the process",
+        "Repro: malformed T003 reviewer JSON returns code 1 with traceback and status.json is not generated"
+      ],
+      "impact": "A single malformed reviewer report can halt mission-control synchronization and block all gate progression.",
+      "recommendation": "Handle JSONDecodeError in collect_findings() (skip file with warning metadata) and keep sync_status resilient."
+    },
+    {
+      "severity": "P1",
+      "title": "Invalid status strings are coerced to completed, enabling false gate pass",
+      "evidence": [
+        "adapters/openclaw/scripts/update_task_status.py:131-133 converts any non-empty invalid status string to 'completed'",
+        "Repro: JSON status value 'completed | blocked | failed' yields task_status=completed, gate=passed, preflight_issues=[]"
+      ],
+      "impact": "Template leftovers or malformed status values can be accepted as completion, causing false-positive gate transitions.",
+      "recommendation": "Treat invalid status tokens as blocked/failed validation (or pending), not completed; require exact enum match."
+    }
+  ],
+  "risks": [
+    "Self-check suite currently does not include malformed reviewer JSON in results_dir or invalid status-token coercion cases."
+  ],
+  "blockers": [],
+  "handoff_notes": "Requested review skill 'ssrd' is not available in this runtime's installed skills list; completed manual code review plus reproductions instead.",
+  "completion_signal": "<task_complete task_id='T003' status='completed'>"
+}

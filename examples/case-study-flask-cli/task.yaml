@@ -1,0 +1,10 @@
+task: "Add /version endpoint to flask-cli demo, with payload {version: '0.1.0'} and tests"
+mode: implement
+runtime: codex
+reviewers:
+  - correctness
+modules:
+  - name: app
+    paths:
+      - app/**
+      - tests/**

@@ -1,0 +1,21 @@
+{
+  "name": "multi-agent-panel-cursor",
+  "displayName": "Multi-Agent Panel for Cursor (Phase 1)",
+  "description": "Cursor-flavored scaffold: webview to ide/multi-agent-panel (local dev only).",
+  "version": "0.1.0",
+  "publisher": "local-dev",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onCommand:multiAgentCursor.openPanel"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "multiAgentCursor.openPanel",
+        "title": "Cursor: Open Multi-Agent Panel"
+      }
+    ]
+  }
+}

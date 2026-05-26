@@ -1,0 +1,28 @@
+{
+  "name": "multi-agent-panel-vscode",
+  "displayName": "Multi-Agent Panel (Phase 1)",
+  "description": "Phase 1 scaffold: loads ide/multi-agent-panel HTTP endpoint inside a VS Code webview.",
+  "version": "0.1.0",
+  "publisher": "local-dev",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onCommand:multiAgent.openPanel"],
+  "main": "./out/extension.js",
+  "scripts": {
+    "compile": "echo 'Scaffold only — run tsc after installing @types/vscode locally'"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "multiAgent.openPanel",
+        "title": "Open Multi-Agent Panel"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0"
+  }
+}

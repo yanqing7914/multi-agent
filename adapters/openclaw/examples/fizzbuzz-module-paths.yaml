@@ -1,0 +1,10 @@
+task: Implement FizzBuzz with tests
+mode: implement
+modules:
+  - name: fizzbuzz
+    paths:
+      - src/**
+      - tests/**
+reviewers:
+  - correctness
+runtime: acp

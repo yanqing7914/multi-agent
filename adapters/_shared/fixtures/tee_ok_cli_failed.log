@@ -1,0 +1,3 @@
+HTTP 429 Too Many Requests
+You have exceeded your budget for this billing period.
+The CLI exited but tee may still return 0 in a pipeline without pipefail.

@@ -1,11 +1,63 @@
 ﻿{
+  "schema_version": 1,
+  "generated_at": "2026-05-25T12:00:00+00:00",
+  "task": "Add vehicle favorite feature",
+  "state_dir": ".codex-multi-agent",
   "tasks": [
     {
-      "task_id": "T003",
+      "task_id": "T001",
+      "session_name": "explorer-backend",
+      "role": "Explorer",
+      "mode": "research",
+      "runtime": "subagent",
+      "write_permission": false,
+      "allowed_paths": ["server/**", "backend/**", "api/**"],
+      "required_paths": ["server/**", "backend/**", "api/**"],
+      "blocked_paths": [".env", ".env.*", "**/*.pem", "**/*.key"],
+      "result_report_json": ".codex-multi-agent/results/T001-explorer-backend.json",
+      "result_report_markdown": ".codex-multi-agent/results/T001-explorer-backend.md",
+      "status": "pending"
+    },
+    {
+      "task_id": "T002",
       "session_name": "worker-backend",
       "role": "Worker",
-      "allowed_paths": ["server/src/**", "server/tests/**"],
-      "blocked_paths": [".env", ".env.*", ".npmrc", "~/.ssh/**", "**/*.pem", "**/*.key"],
+      "mode": "implement",
+      "runtime": "acp",
+      "write_permission": true,
+      "allowed_paths": ["server/**", "backend/**", "api/**"],
+      "required_paths": ["server/**", "backend/**", "api/**"],
+      "blocked_paths": [".env", ".env.*", "**/*.pem", "**/*.key"],
+      "result_report_json": ".codex-multi-agent/results/T002-worker-backend.json",
+      "result_report_markdown": ".codex-multi-agent/results/T002-worker-backend.md",
+      "status": "pending"
+    },
+    {
+      "task_id": "T003",
+      "session_name": "reviewer-security",
+      "role": "Reviewer",
+      "mode": "review",
+      "runtime": "subagent",
+      "write_permission": false,
+      "allowed_paths": ["**/*"],
+      "required_paths": ["server/**", "backend/**", "api/**"],
+      "blocked_paths": [".env", ".env.*", "**/*.pem", "**/*.key"],
+      "result_report_json": ".codex-multi-agent/results/T003-reviewer-security.json",
+      "result_report_markdown": ".codex-multi-agent/results/T003-reviewer-security.md",
+      "status": "pending"
+    },
+    {
+      "task_id": "T004",
+      "session_name": "verifier",
+      "role": "Verifier",
+      "mode": "verify",
+      "runtime": "subagent",
+      "write_permission": false,
+      "allowed_paths": ["**/*"],
+      "required_paths": ["server/**", "backend/**", "api/**"],
+      "blocked_paths": [".env", ".env.*", "**/*.pem", "**/*.key"],
+      "result_report_json": ".codex-multi-agent/results/T004-verifier.json",
+      "result_report_markdown": ".codex-multi-agent/results/T004-verifier.md",
       "status": "pending"
     }
   ]

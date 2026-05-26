@@ -26,7 +26,7 @@ Use client-specific adapters for execution details:
 - Codex: use this folder as a Codex skill and use native subagents when available.
 - Cursor: translate core rules into project rules and use MCP for state if configured.
 - Claude Code: translate core rules into `CLAUDE.md`/commands and use MCP tools when configured.
-- OpenClaw: package as an OpenClaw-compatible skill and map roles to sessions.
+- OpenClaw: install `adapters/openclaw/` as the standalone skill `openclaw-multi-agent`; map roles to `sessions_spawn`, `sessions_send`, and `sessions_yield`; use the bundled scripts for task cards and scope audit.
 - Hermes: use the protocol as a task-card and role-routing contract; prefer MCP for state.
 - VS Code: use workspace instructions plus MCP/client extensions where available.
 
@@ -170,6 +170,15 @@ The main agent must audit worker results before final delivery:
 ## Final Delivery
 
 Include changed files, validation run, validation not run, review findings handled, residual risks, and concise follow-up options when relevant.
+
+## Client Adapters
+
+For OpenClaw/Her, use the standalone adapter instead of loading the whole repo:
+
+- `adapters/openclaw/SKILL.md`
+- `adapters/openclaw/README.md`
+- `adapters/openclaw/scripts/create_task_cards.py`
+- `adapters/openclaw/scripts/audit_worker_output.py`
 
 ## Bundled Resources
 

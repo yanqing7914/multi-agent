@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Agent Mission Control</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="run-header">
+    <div>
+      <h1 id="task-title">Loading…</h1>
+      <p class="meta">
+        <span id="run-id"></span> ·
+        Phase: <strong id="current-phase">—</strong> ·
+        Last sync: <span id="last-sync">—</span>
+      </p>
+    </div>
+    <div class="header-actions">
+      <label>Poll <input type="number" id="refresh-interval" min="2" max="120" value="5">s</label>
+      <button id="btn-refresh" type="button">Refresh now</button>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="panel" id="gates-panel">
+      <h2>Gate status</h2>
+      <div id="gates" class="badges"></div>
+    </section>
+
+    <section class="panel" id="tasks-panel">
+      <h2>Tasks</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Role</th>
+              <th>Session</th>
+              <th>Status</th>
+              <th>Reports</th>
+              <th>Preflight</th>
+            </tr>
+          </thead>
+          <tbody id="tasks-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" id="findings-panel">
+      <h2>Findings</h2>
+      <ul id="findings-list" class="findings"></ul>
+    </section>
+
+    <section class="panel" id="audit-panel">
+      <h2>Latest audit</h2>
+      <div id="audit-content" class="audit-box"></div>
+    </section>
+
+    <section class="panel" id="preflight-panel">
+      <h2>Preflight / workspace issues</h2>
+      <ul id="preflight-list"></ul>
+    </section>
+
+    <section class="panel full-width" id="summary-panel">
+      <h2>Final delivery summary preview</h2>
+      <pre id="summary-preview" class="summary"></pre>
+    </section>
+  </main>
+
+  <footer>
+    <p>Read-only by default. Write controls require <code>--write</code> on the server.</p>
+    <p id="write-status"></p>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

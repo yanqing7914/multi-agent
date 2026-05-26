@@ -16,14 +16,22 @@
 
 ```text
 .codex-multi-agent/
-  state.json
+  status.json
+  ownership.json
+  run-plan.json
   tasks/
   results/
   findings/
   approvals/
+  audits/
+  summary/
 ```
 
 The state directory is local-only by default. Do not commit it unless the user explicitly chooses to.
+
+**v1 (scripts):** OpenClaw adapter scripts read/write these paths directly. See [`docs/roadmap.md`](roadmap.md).
+
+**v2 (MCP):** Tools in this document map onto the same layout; `status.json` corresponds to aggregated task/gate state exposed via `list_tasks` and `update_task_status`.
 
 ## Core tools
 

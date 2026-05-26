@@ -7,6 +7,8 @@ modules:
 reviewers:
   - correctness
   - security
+runtime: acp
+review_skill: ssrd
 skills:
   reviewer:
     - ssrd
