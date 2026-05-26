@@ -10,6 +10,7 @@ import shlex
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 SHARED = Path(__file__).resolve().parent.parent.parent / "_shared"
@@ -24,13 +25,107 @@ from bridge import (  # noqa: E402
 )
 from worker_outcome import evaluate_worker_outcome, shell_with_pipefail  # noqa: E402
 
+COMPLETED_STATUSES = {"completed", "blocked"}
+FOREGROUND_TIMEOUT_SECONDS = 300
+
+
+def _run_id() -> str:
+    raw = os.environ.get("RUN_ID") or time.strftime("%Y%m%d%H%M%S")
+    safe = "".join(ch if ch.isalnum() or ch in {"-", "_"} else "-" for ch in raw).strip("-")
+    return f"{safe}-{os.getpid()}" if safe else str(os.getpid())
+
+
+def _is_completed_report(result_json: Path) -> bool:
+    if not result_json.is_file():
+        return False
+    try:
+        payload = json.loads(result_json.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    return payload.get("status") in COMPLETED_STATUSES
+
+
+def _capture_tmux(session: str) -> str:
+    proc = subprocess.run(
+        ["tmux", "capture-pane", "-p", "-S", "-2000", "-t", session],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return proc.stdout or proc.stderr or ""
+
+
+def _write_timeout_marker(state_dir: Path, task_id: str, session: str) -> Path:
+    marker = state_dir / "results" / f"{task_id}-cursor-launcher-timeout.txt"
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text(
+        "\n".join(
+            [
+                "Cursor launcher timed out waiting for worker result JSON.",
+                f"tmux_session: {session}",
+                "",
+                "--- tmux capture-pane ---",
+                _capture_tmux(session).rstrip(),
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    return marker
+
+
+def _ensure_markdown_companion(result_md: Path, result_json: Path) -> bool:
+    if result_md.is_file() and result_md.stat().st_size >= 64:
+        return False
+    try:
+        payload = json.loads(result_json.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    status = payload.get("status")
+    if status not in COMPLETED_STATUSES:
+        return False
+    files_changed = payload.get("files_changed") or []
+    tools_used = payload.get("tools_used") or []
+    lines = [
+        f"task_id: {payload.get('task_id', 'unknown')}",
+        "role: Worker",
+        f"status: {status}",
+        f"summary: {payload.get('summary', 'Cursor worker wrote JSON result only')}",
+        "",
+        "launcher_note: Cursor CLI did not leave a Markdown companion; generated from completed JSON.",
+        "",
+        "tools_used:",
+        *[f"  - {item}" for item in tools_used],
+        "",
+        "files_changed:",
+        *[f"  - {item}" for item in files_changed],
+    ]
+    result_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return True
+
+
+def _wait_for_completed_report(result_md: Path, result_json: Path, timeout_seconds: int) -> bool:
+    deadline = time.monotonic() + timeout_seconds
+    delay = 1.0
+    while time.monotonic() < deadline:
+        if _is_completed_report(result_json):
+            return True
+        if result_md.exists():
+            log_text = result_md.read_text(encoding="utf-8", errors="replace")
+            try_extract_json_from_log(log_text, result_json)
+            if _is_completed_report(result_json):
+                return True
+        time.sleep(delay)
+        delay = min(delay * 1.5, 10.0)
+    return False
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--task-card", required=True, help="Path to .codex-multi-agent/tasks/*.md")
     parser.add_argument("--state-dir", help="Mission-control dir (default: parent of tasks/)")
     parser.add_argument("--session", help="tmux session name override")
-    parser.add_argument("--foreground", action="store_true", help="Run agent in foreground (no tmux)")
+    parser.add_argument("--foreground", action="store_true", help="Wait for tmux worker result before returning")
     args = parser.parse_args()
 
     task_card_path = Path(args.task_card).expanduser().resolve()
@@ -51,22 +146,60 @@ def main() -> int:
     prompt = build_worker_prompt(task_card_path, card, workspace_root)
     result_md = Path(card.get("result_markdown_path") or state_dir / "results" / f"{task_card_path.stem}.md")
     result_json = Path(card.get("result_json_path") or result_md.with_suffix(".json"))
+    launcher_log = result_md.with_name(f"{result_md.stem}-cursor-launcher.log")
     result_md.parent.mkdir(parents=True, exist_ok=True)
 
     task_id = card.get("task_id", task_card_path.stem.split("-")[0])
-    session = args.session or f"cursor-{task_id}"
+    session = args.session or f"cursor-{task_id}-{_run_id()}"
 
     if args.foreground:
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False, suffix=".md") as tmp:
+            tmp.write(prompt)
+            prompt_file = tmp.name
         shell = shell_with_pipefail(
             f"cd {shlex.quote(str(workspace_root))} && "
-            f"agent -p {shlex.quote(prompt)} --force --trust --output-format text "
-            f"2>&1 | tee {shlex.quote(str(result_md))}"
+            f"agent -p {shlex.quote(Path(prompt_file).read_text(encoding='utf-8'))} "
+            f"--force --trust --output-format text 2>&1 | tee {shlex.quote(str(launcher_log))}"
         )
-        proc = subprocess.run(["bash", "-lc", shell], check=False)
-        log_text = result_md.read_text(encoding="utf-8") if result_md.exists() else ""
+        tmux_cmd = ["tmux", "new-session", "-d", "-s", session, "bash", "-lc", shell]
+        proc = subprocess.run(tmux_cmd, capture_output=True, text=True, check=False)
+        os.unlink(prompt_file)
+        if proc.returncode != 0:
+            print(
+                json.dumps(
+                    {
+                        "ok": False,
+                        "stage": "tmux",
+                        "stderr": (proc.stderr or proc.stdout or "").strip(),
+                        "hint": "Install tmux and ensure `agent` CLI is on PATH",
+                    },
+                    indent=2,
+                )
+            )
+            return proc.returncode or 1
+        completed = _wait_for_completed_report(result_md, result_json, FOREGROUND_TIMEOUT_SECONDS)
+        if not completed:
+            marker = _write_timeout_marker(state_dir, str(task_id), session)
+            print(
+                json.dumps(
+                    {
+                        "ok": False,
+                        "runtime": "cursor",
+                        "mode": "tmux-foreground",
+                        "stage": "timeout",
+                        "tmux_session": session,
+                        "timeout_seconds": FOREGROUND_TIMEOUT_SECONDS,
+                        "timeout_marker": str(marker),
+                    },
+                    indent=2,
+                )
+            )
+            return 124
+        markdown_companion_generated = _ensure_markdown_companion(result_md, result_json)
+        log_text = launcher_log.read_text(encoding="utf-8") if launcher_log.exists() else ""
         extracted = try_extract_json_from_log(log_text, result_json)
         ok, error, outcome_details = evaluate_worker_outcome(
-            pipeline_returncode=proc.returncode,
+            pipeline_returncode=0,
             result_md=result_md,
             result_json=result_json,
             json_extracted=extracted,
@@ -76,12 +209,15 @@ def main() -> int:
         payload = {
             "ok": ok,
             "runtime": "cursor",
-            "mode": "foreground",
+            "mode": "tmux-foreground",
+            "tmux_session": session,
             "workspace_root": str(workspace_root),
             "result_markdown": str(result_md),
             "result_json": str(result_json),
+            "launcher_log": str(launcher_log),
             "json_extracted": extracted,
-            "returncode": proc.returncode,
+            "markdown_companion_generated": markdown_companion_generated,
+            "returncode": 0,
             **outcome_details,
         }
         if error:
@@ -96,7 +232,7 @@ def main() -> int:
     shell = shell_with_pipefail(
         f"cd {shlex.quote(str(workspace_root))} && "
         f"agent -p {shlex.quote(open(prompt_file, encoding='utf-8').read())} "
-        f"--force --trust --output-format text 2>&1 | tee {shlex.quote(str(result_md))}"
+        f"--force --trust --output-format text 2>&1 | tee {shlex.quote(str(launcher_log))}"
     )
     tmux_cmd = ["tmux", "new-session", "-d", "-s", session, "bash", "-lc", shell]
     proc = subprocess.run(tmux_cmd, capture_output=True, text=True, check=False)
@@ -125,6 +261,7 @@ def main() -> int:
         "task_card": str(task_card_path),
         "result_markdown": str(result_md),
         "result_json": str(result_json),
+        "launcher_log": str(launcher_log),
         "attach": f"tmux attach -t {session}",
         "caveat": (
             "tmux mode returns after spawn only; Main must poll result files and run "

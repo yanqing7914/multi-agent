@@ -28,8 +28,29 @@ AUDIT = REPO_ROOT / "adapters" / "openclaw" / "scripts" / "audit_worker_output.p
 RUN_MULTI = REPO_ROOT / "scripts" / "run_multi_agent.py"
 
 
-def run_cmd(cmd: list[str], cwd: Path | None = None, env: dict | None = None) -> subprocess.CompletedProcess:
-    return subprocess.run(cmd, cwd=str(cwd) if cwd else None, env=env, capture_output=True, text=True, check=False)
+def run_cmd(
+    cmd: list[str],
+    cwd: Path | None = None,
+    env: dict | None = None,
+    timeout: int | None = None,
+) -> subprocess.CompletedProcess:
+    try:
+        return subprocess.run(
+            cmd,
+            cwd=str(cwd) if cwd else None,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        return subprocess.CompletedProcess(
+            cmd,
+            124,
+            stdout=(exc.stdout or "") if isinstance(exc.stdout, str) else "",
+            stderr=((exc.stderr or "") if isinstance(exc.stderr, str) else "") + f"\ntimeout after {timeout}s",
+        )
 
 
 def workspace_relative_paths(paths: list[str], workspace: Path) -> list[str]:
@@ -305,19 +326,19 @@ def run_case(case_dir: Path, runtime: str, tmp_root: Path, persist: bool = True)
         runtime_arg = runtime
         if runtime == "claude":
             runtime_arg = "claude-code"
-        proc = run_cmd(
-            [
-                sys.executable,
-                str(RUN_MULTI),
-                "--runtime",
-                runtime_arg,
-                "--task-card",
-                str(card),
-                "--state-dir",
-                str(state_dir),
-            ],
-            cwd=REPO_ROOT,
-        )
+        cmd = [
+            sys.executable,
+            str(RUN_MULTI),
+            "--runtime",
+            runtime_arg,
+            "--task-card",
+            str(card),
+            "--state-dir",
+            str(state_dir),
+        ]
+        if runtime == "cursor":
+            cmd.append("--foreground")
+        proc = run_cmd(cmd, cwd=REPO_ROOT, timeout=300)
         if proc.returncode != 0:
             return {
                 "case": case_name,
