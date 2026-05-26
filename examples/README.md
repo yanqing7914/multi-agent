@@ -30,6 +30,15 @@
 | **关键产物** | `app/` 与 `tests/` 源码、`task.yaml` 任务定义、运行后填充的 `cards/`、`results/`、`summary/` |
 | **详情** | [case-study-flask-cli/README.md](case-study-flask-cli/README.md) |
 
+### [case-study-gh-issue-typo](case-study-gh-issue-typo/)
+
+| 项 | 内容 |
+| --- | --- |
+| **场景** | 模拟真实 GitHub issue（docstring 拼写 `retrun` → `return`）：跨 issue → Explorer → Worker → Reviewer → Verifier 的 OSS 修复流程。 |
+| **角色** | Explorer、Worker、Reviewer、Verifier |
+| **关键产物** | `mock-issue.md`、`mock-pr.md`、`before.py` / `after.py`、`cards/`、`summary/run-summary.md` |
+| **详情** | [case-study-gh-issue-typo/README.md](case-study-gh-issue-typo/README.md) |
+
 ## 相关链接
 
 - OpenClaw 适配器：[adapters/openclaw/README.md](../adapters/openclaw/README.md)
