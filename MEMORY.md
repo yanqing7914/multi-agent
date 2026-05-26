@@ -1,5 +1,10 @@
 # Project Memory
 
+> **Historical note (2026-05-26):** Entries before 2026-05-26 that show `review_complete=failed` from
+> `run_local_demo.py` dogfood runs are expected noise. Those runs inject intentional negative reviewer
+> sessions (`reviewer-false-demo` / `reviewer-thin-demo`, tasks T998/T999). New `--summarize` output
+> excludes those sessions from MEMORY gate summaries; you can ignore the older lines below.
+
 Append-only log of multi-agent decisions and run outcomes. Safe defaults:
 
 - Do **not** store secrets, credentials, tokens, or `.env` contents.

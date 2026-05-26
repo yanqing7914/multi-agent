@@ -640,7 +640,17 @@ def summarize_run(state_dir: Path, out_path: Path | None) -> dict:
         import subprocess
 
         proc = subprocess.run(
-            [sys.executable, str(memory_script), "--state-dir", str(state_dir), "--from-run"],
+            [
+                sys.executable,
+                str(memory_script),
+                "--state-dir",
+                str(state_dir),
+                "--from-run",
+                "--exclude-session",
+                "reviewer-false-demo",
+                "--exclude-session",
+                "reviewer-thin-demo",
+            ],
             capture_output=True,
             text=True,
             check=False,
