@@ -1,0 +1,20 @@
+{
+  "runtime": "cursor",
+  "aggregate": {
+    "cases": 1,
+    "passed": 0,
+    "aggregate_pass_rate": 0.0,
+    "per_case": {
+      "hash-collision": 0.0
+    }
+  },
+  "results": [
+    {
+      "case": "hash-collision",
+      "ok": false,
+      "error": "launcher failed",
+      "output": "{\n  \"ok\": false,\n  \"stage\": \"tmux\",\n  \"stderr\": \"duplicate session: cursor-T002\",\n  \"hint\": \"Install tmux and ensure `agent` CLI is on PATH\"\n}\n"
+    }
+  ],
+  "archived_at": "2026-05-26T02:27:04.219510+00:00"
+}

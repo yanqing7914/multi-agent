@@ -1,0 +1,25 @@
+{
+  "runtime": "cursor",
+  "aggregate": {
+    "cases": 1,
+    "passed": 0,
+    "aggregate_pass_rate": 0.0,
+    "per_case": {
+      "date-parse": 0.0
+    }
+  },
+  "results": [
+    {
+      "case": "date-parse",
+      "ok": false,
+      "tests_ok": false,
+      "audit_ok": true,
+      "pass_rate": 0.0,
+      "pre_pass_rate": 0.0,
+      "test_output": "utc\n\ntests/test_date_parse.py:36: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_date_parse.py::test_parse_iso_date - AttributeError: 'NoneT...\nFAILED tests/test_date_parse.py::test_invalid_date_raises - AssertionError: e...\nFAILED tests/test_date_parse.py::test_naive_to_utc - assert None == datetime....\n3 failed, 1 passed in 0.05s",
+      "score_path": "/mnt/c/Users/gongchenhao/Documents/Codex/2026-05-18/new-chat-3/multi-agent-coding/bench/swebench-lite/results/date-parse/score.json",
+      "state_dir": "/tmp/swebench-lite-run-8uq3vmeh/date-parse/.codex-multi-agent"
+    }
+  ],
+  "archived_at": "2026-05-26T02:26:57.077778+00:00"
+}

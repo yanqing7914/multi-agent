@@ -1,0 +1,25 @@
+{
+  "runtime": "cursor",
+  "aggregate": {
+    "cases": 1,
+    "passed": 0,
+    "aggregate_pass_rate": 0.0,
+    "per_case": {
+      "hash-collision": 0.0
+    }
+  },
+  "results": [
+    {
+      "case": "hash-collision",
+      "ok": false,
+      "tests_ok": false,
+      "audit_ok": true,
+      "pass_rate": 0.0,
+      "pre_pass_rate": 0.0,
+      "test_output": "\"D\"\nE       AssertionError: assert None == 'D'\nE        +  where None = get('delta')\nE        +    where get = <hash.table.HashTable object at 0x78bbbdf92900>.get\n\ntests/test_hash_collision.py:16: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_hash_collision.py::test_collision_chain_retrieves_both_values\n1 failed, 2 passed in 0.02s",
+      "score_path": "/mnt/c/Users/gongchenhao/Documents/Codex/2026-05-18/new-chat-3/multi-agent-coding/bench/swebench-lite/results/hash-collision/score.json",
+      "state_dir": "/tmp/swebench-lite-run-ku1mbzf4/hash-collision/.codex-multi-agent"
+    }
+  ],
+  "archived_at": "2026-05-26T02:27:44.009745+00:00"
+}

@@ -41,3 +41,11 @@ python3 bench/swebench-lite/run_swebench_lite.py --runtime dry-runtime
 ```
 
 预期：终端 JSON 含 `"score_archive": "bench/swebench-lite/results/score-....json"`，且本目录出现新的 `score-*.json`。
+
+## Live runtime samples（cursor，2026-05-26）
+
+| Timestamp (UTC) | Runtime | Case | Pass rate | Artifact | Launcher |
+| --- | --- | --- | ---: | --- | --- |
+| 2026-05-26T02:26:57Z | cursor | `date-parse` | 0.0 | `score-20260526-022657.json` | spawn OK (tmux); tests failed |
+| 2026-05-26T02:27:04Z | cursor | `hash-collision` | 0.0 | `score-20260526-022704.json` | failed (`duplicate session: cursor-T002`) |
+| 2026-05-26T02:27:44Z | cursor | `hash-collision` | 0.0 | `score-20260526-022744.json` | spawn OK (retry); tests failed |
