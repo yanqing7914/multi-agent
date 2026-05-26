@@ -1,4 +1,6 @@
 ﻿.codex-multi-agent*/
+# 例外：跨 IDE 接力 demo 的产物作为公开凭证保留在仓库里
+!.codex-multi-agent-relay/
 .venv/
 node_modules/
 .DS_Store

@@ -2,9 +2,16 @@
 
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import parse_qs, urlparse
 
 from .config import DEFAULT_HOST, DEFAULT_PORT
-from .routes import health_payload, index_payload, ping_payload, version_payload
+from .routes import (
+    echo_payload,
+    health_payload,
+    index_payload,
+    ping_payload,
+    version_payload,
+)
 
 
 class DemoHandler(BaseHTTPRequestHandler):
@@ -17,17 +24,29 @@ class DemoHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self) -> None:  # noqa: N802
-        if self.path in {"/", "/index"}:
+        parsed = urlparse(self.path)
+        path = parsed.path
+
+        if path in {"/", "/index"}:
             self._json(index_payload())
             return
-        if self.path == "/health":
+        if path == "/health":
             self._json(health_payload())
             return
-        if self.path == "/version":
+        if path == "/version":
             self._json(version_payload())
             return
-        if self.path == "/ping":
+        if path == "/ping":
             self._json(ping_payload())
+            return
+        if path == "/echo":
+            qs = parse_qs(parsed.query)
+            if "msg" in qs:
+                values = qs["msg"]
+                msg = values[0] if values else ""
+            else:
+                msg = ""
+            self._json(echo_payload(msg))
             return
         self._json({"error": "not found"}, status=404)
 

@@ -76,7 +76,28 @@ python3 -m app.cli run --help
 - HTTP server test is manual (`python3 -m app.cli run`); automated tests cover route payloads only.
 - `cards/`, `results/`, `summary/` start empty — populated when you run the workflow.
 
+## Cross-IDE relay (2026-05-26)
+
+第一次真实的「跨 IDE 接力」：同一个任务卡 + 同一份 ownership 在三家 IDE 间流转，
+schema 一致、gate 全通。
+
+| Step | Runtime | 角色 | 产物 |
+| --- | --- | --- | --- |
+| 1 | OpenClaw Main | Mission control | `../../.codex-multi-agent-relay/{ownership,run-plan}.json` |
+| 2 | Cursor (PTY/tmux) | Worker R001 — 实现 `/echo` | `../../.codex-multi-agent-relay/results/R001-worker-echo.{json,md}` |
+| 3 | Claude Code (ACP) | Reviewer R002 — 评审 + 5 finding | `../../.codex-multi-agent-relay/results/R002-reviewer-echo.{json,md}` |
+| 4 | OpenClaw Main | scope_audit + final delivery | `../../.codex-multi-agent-relay/audits/latest.json` (ok=true) |
+
+完整 run summary：[`../../.codex-multi-agent-relay/summary/run-summary.md`](../../.codex-multi-agent-relay/summary/run-summary.md)
+
+**Worker Cursor 真改了 3 个文件**（routes.py / server.py / test_routes.py），加了 `/echo?msg=...` 端点 + 3 个单元测试，pytest 7/7 通过。
+**Reviewer Claude Code 真读了代码**，找出 5 个 finding（2 P2 / 3 P3），verdict=`approved_with_findings`。
+**OpenClaw Main audit 真过 gate**，violations=0, conflicts=0, warnings=0。
+
+这是项目「跨 IDE 协作契约」目标的端到端证据。
+
 ## Related
 
 - Single-module case study: [`../case-study-fizzbuzz/`](../case-study-fizzbuzz/)
+- Cross-IDE relay artifacts: [`../../.codex-multi-agent-relay/`](../../.codex-multi-agent-relay/)
 - Bench harness: [`../../bench/swebench-lite/`](../../bench/swebench-lite/)

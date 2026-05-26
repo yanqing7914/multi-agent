@@ -21,3 +21,7 @@ def version_payload() -> dict:
 
 def ping_payload() -> dict:
     return {"pong": True}
+
+
+def echo_payload(msg: str) -> dict:
+    return {"echo": msg}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "scenario": "跨 IDE 接力 demo：Cursor Worker → Claude Code Reviewer → OpenClaw Main Audit",
+  "workspace_root": "/mnt/c/Users/gongchenhao/Documents/Codex/2026-05-18/new-chat-3/multi-agent-coding",
+  "gates": [
+    "workers_complete",
+    "review_complete",
+    "scope_audit",
+    "final_delivery"
+  ],
+  "sequence": [
+    { "step": "1.worker.cursor", "task_id": "R001-worker-echo", "runtime": "cursor" },
+    { "step": "2.reviewer.claude-code", "task_id": "R002-reviewer-echo", "runtime": "claude-code" },
+    { "step": "3.audit.openclaw-main", "tool": "audit_worker_output.py" },
+    { "step": "4.final.openclaw-main", "tool": "manual integration + git commit" }
+  ]
+}

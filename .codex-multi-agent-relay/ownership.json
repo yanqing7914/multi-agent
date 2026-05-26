@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "workspace_root": "/mnt/c/Users/gongchenhao/Documents/Codex/2026-05-18/new-chat-3/multi-agent-coding",
+  "tasks": [
+    {
+      "task_id": "R001-worker-echo",
+      "role": "Worker",
+      "owner_runtime": "cursor",
+      "title": "实现 /echo?msg=... 端点",
+      "allowed_paths": [
+        "examples/case-study-flask-cli/app/**",
+        "examples/case-study-flask-cli/tests/**"
+      ],
+      "required_paths": [
+        "examples/case-study-flask-cli/app/routes.py",
+        "examples/case-study-flask-cli/app/server.py",
+        "examples/case-study-flask-cli/tests/test_routes.py"
+      ],
+      "result_report_md": ".codex-multi-agent-relay/results/R001-worker-echo.md",
+      "result_report_json": ".codex-multi-agent-relay/results/R001-worker-echo.json",
+      "status": "pending"
+    },
+    {
+      "task_id": "R002-reviewer-echo",
+      "role": "Reviewer",
+      "owner_runtime": "claude-code",
+      "title": "评审 /echo 实现：契约、安全、测试覆盖",
+      "allowed_paths": [],
+      "required_paths": [
+        "examples/case-study-flask-cli/app/routes.py",
+        "examples/case-study-flask-cli/app/server.py",
+        "examples/case-study-flask-cli/tests/test_routes.py",
+        ".codex-multi-agent-relay/results/R001-worker-echo.json"
+      ],
+      "result_report_md": ".codex-multi-agent-relay/results/R002-reviewer-echo.md",
+      "result_report_json": ".codex-multi-agent-relay/results/R002-reviewer-echo.json",
+      "status": "pending"
+    }
+  ]
+}
