@@ -23,6 +23,16 @@ MCP          = 任务、状态、finding、审批和审计的工具后端
 IDE Panel    = 图形化任务面板、Prompt 生成器和本地集成入口
 ```
 
+## 直接下载 Skill 压缩包
+
+如果只想安装 skill，不需要 clone 整个仓库，可以直接下载：
+
+| 压缩包 | 适用场景 |
+| --- | --- |
+| [`openclaw-multi-agent-skill-v0.1.0.zip`](https://github.com/yanqing7914/multi-agent/raw/main/dist/openclaw-multi-agent-skill-v0.1.0.zip) | OpenClaw / Her 专用，推荐 OpenClaw 用户下载这个 |
+| [`multi-agent-coding-skill-v0.1.0.zip`](https://github.com/yanqing7914/multi-agent/raw/main/dist/multi-agent-coding-skill-v0.1.0.zip) | 通用 Codex/OpenClaw 风格 skill 包 |
+
+安装方式：下载 zip，解压后把顶层目录放进对应 agent 的 skills 目录中。
 ## 推荐入口
 
 | 你是谁 | 推荐入口 |
