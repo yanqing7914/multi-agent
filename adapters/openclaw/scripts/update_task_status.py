@@ -1249,6 +1249,47 @@ def run_self_check() -> int:
         if "Workspace / Preflight Issues" not in summary_text:
             errors.append("summary missing Workspace / Preflight Issues section")
 
+        manual_bypass_state = Path(tmp) / "manual-completion-bypass"
+        manual_bypass_state.mkdir()
+        manual_results = manual_bypass_state / "results"
+        manual_results.mkdir()
+        manual_workspace = Path(tmp) / "manual-bypass-ws"
+        manual_workspace.mkdir()
+        manual_ownership = {
+            "schema_version": 1,
+            "task": "manual completion without result report (P1 regression)",
+            "workspace_root": str(manual_workspace),
+            "tasks": [
+                {
+                    "task_id": "T001",
+                    "session_name": "explorer-no-report",
+                    "role": "Explorer",
+                    "mode": "research",
+                    "runtime": "subagent",
+                    "write_permission": False,
+                    "allowed_paths": ["**/*"],
+                    "blocked_paths": [".env"],
+                    "result_report_json": str(manual_results / "T001-explorer-no-report.json"),
+                    "result_report_markdown": str(manual_results / "T001-explorer-no-report.md"),
+                    "status": "pending",
+                }
+            ],
+        }
+        write_json(manual_bypass_state / "ownership.json", manual_ownership)
+        write_json(
+            manual_bypass_state / "status.json",
+            {"run_id": "MANUALP1", "gates": {}, "tasks": {}, "latest_audit": {}},
+        )
+        manual_updated = update_task(manual_bypass_state, "T001", "completed", None)
+        manual_status = manual_updated["tasks"]["T001"]["status"]
+        if manual_status != "blocked":
+            errors.append(
+                f"manual --status completed without result JSON must sync as blocked, got {manual_status!r}"
+            )
+        manual_preflight = manual_updated.get("preflight_issues", [])
+        if not any(issue.get("missing_result_report") for issue in manual_preflight):
+            errors.append("manual completion bypass must surface missing_result_report in preflight_issues")
+
     if errors:
         print(json.dumps({"ok": False, "errors": errors}, indent=2))
         return 1
