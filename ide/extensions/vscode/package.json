@@ -3,7 +3,24 @@
   "displayName": "Multi-Agent Panel (Phase 1)",
   "description": "Phase 1 scaffold: loads ide/multi-agent-panel HTTP endpoint inside a VS Code webview.",
   "version": "0.1.0",
-  "publisher": "local-dev",
+  "publisher": "<PUBLISHER_TBD>",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yanqing7914/multi-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yanqing7914/multi-agent/issues"
+  },
+  "homepage": "https://github.com/yanqing7914/multi-agent",
+  "keywords": [
+    "multi-agent",
+    "coordination",
+    "task-cards",
+    "openclaw",
+    "mcp"
+  ],
   "engines": {
     "vscode": "^1.85.0"
   },
