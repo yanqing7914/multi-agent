@@ -25,4 +25,4 @@
 - Task board commands bound to MCP tools
 - Publish workflow / marketplace listing
 
-See [`../../multi-agent-panel/README.md`](../../multi-agent-panel/README.md).
+See `ide/multi-agent-panel/README.md` from the repository root.

@@ -15,4 +15,4 @@ Cursor-compatible VS Code extension skeleton that embeds the local mission-contr
 
 **Not published** — complete TypeScript compile + signing before any marketplace submission.
 
-See [`../../multi-agent-panel/README.md`](../../multi-agent-panel/README.md) and [`../vscode/README.md`](../vscode/README.md).
+See `ide/multi-agent-panel/README.md` and `ide/extensions/vscode/README.md` from the repository root.

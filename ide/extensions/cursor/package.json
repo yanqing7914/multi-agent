@@ -7,9 +7,18 @@
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["Other"],
-  "activationEvents": ["onCommand:multiAgentCursor.openPanel"],
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:multiAgentCursor.openPanel"
+  ],
   "main": "./out/extension.js",
+  "scripts": {
+    "compile": "tsc -p .",
+    "check": "tsc --noEmit -p .",
+    "package": "vsce package --no-dependencies"
+  },
   "contributes": {
     "commands": [
       {
@@ -17,5 +26,11 @@
         "title": "Cursor: Open Multi-Agent Panel"
       }
     ]
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.2",
+    "typescript": "^5.4.0"
   }
 }

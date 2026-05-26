@@ -24,6 +24,7 @@ run_step "run_bench" python3 bench/run_bench.py --self-check --dry-runtime
 run_step "swebench_lite" python3 bench/swebench-lite/run_swebench_lite.py --self-check
 run_step "mcp_self_check" python3 mcp/self_check.py
 run_step "ide_self_check" python3 ide/self_check.py
+run_step "ide_extension_build_check" bash ide/extensions/scripts/build_check.sh
 run_step "git_tool" python3 tools/git_tool.py --self-check
 run_step "test_runner_tool" python3 tools/test_runner_tool.py --self-check
 run_step "lint_tool" python3 tools/lint_tool.py --self-check
