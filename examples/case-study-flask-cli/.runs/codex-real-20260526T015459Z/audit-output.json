@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "violations": [],
+  "conflicts": [],
+  "warnings": [],
+  "summary": {
+    "workers": 1,
+    "results_found": 1,
+    "global_changed_files": 0
+  },
+  "main_next_steps": [
+    "Scope audit passed. Main may proceed to Reviewer/Verifier gates or final delivery.",
+    "Run: python adapters/openclaw/scripts/update_task_status.py --state-dir .codex-multi-agent --sync"
+  ],
+  "gate": {
+    "id": "scope_audit",
+    "status": "passed",
+    "blocks": null
+  },
+  "audit_path": "examples/case-study-flask-cli/.runs/codex-real-20260526T015459Z/audits/audit-20260526T020910Z.json",
+  "latest_audit_path": "examples/case-study-flask-cli/.runs/codex-real-20260526T015459Z/audits/latest.json"
+}

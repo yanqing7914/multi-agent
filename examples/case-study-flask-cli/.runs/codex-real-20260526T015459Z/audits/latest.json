@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-26T02:09:10.548957+00:00",
+  "changed_files_path": "/mnt/c/Users/gongchenhao/Documents/Codex/2026-05-18/new-chat-3/multi-agent-coding/examples/case-study-flask-cli/.runs/codex-real-20260526T015459Z/changed-files.txt",
+  "changed_files_mtime": 1779761267.221782,
+  "changed_files_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "changed_files_count": 0,
+  "ok": true,
+  "violations": [],
+  "conflicts": [],
+  "warnings": [],
+  "summary": {
+    "workers": 1,
+    "results_found": 1,
+    "global_changed_files": 0
+  },
+  "main_next_steps": [
+    "Scope audit passed. Main may proceed to Reviewer/Verifier gates or final delivery.",
+    "Run: python adapters/openclaw/scripts/update_task_status.py --state-dir .codex-multi-agent --sync"
+  ],
+  "gate": {
+    "id": "scope_audit",
+    "status": "passed",
+    "blocks": null
+  }
+}

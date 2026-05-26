@@ -32,6 +32,21 @@ python3 adapters/openclaw/scripts/create_task_cards.py \
 
 Gates should progress through Explorer → Worker → Reviewer → Verifier when all roles complete with valid JSON reports.
 
+
+## Real Codex run captured
+
+A live Codex worker run was captured at `examples/case-study-flask-cli/.runs/codex-real-20260526T015459Z/`.
+
+| Artifact | Location |
+| --- | --- |
+| Worker task card copy | `examples/case-study-flask-cli/.runs/codex-real-20260526T015459Z/tasks/T002-worker-app.md` |
+| Worker JSON report | `examples/case-study-flask-cli/.runs/codex-real-20260526T015459Z/results/T002-worker-app.json` |
+| Worker Markdown report | `examples/case-study-flask-cli/.runs/codex-real-20260526T015459Z/results/T002-worker-app.md` |
+| Scope audit output | `examples/case-study-flask-cli/.runs/codex-real-20260526T015459Z/audit-output.json` |
+| Latest written audit | `examples/case-study-flask-cli/.runs/codex-real-20260526T015459Z/audits/latest.json` |
+
+Result: Codex reported the `/version` work was already present, ran `pytest -q tests/test_routes.py` successfully (`3 passed`), wrote JSON + Markdown reports, and `audit_worker_output.py` passed with `ok: true`.
+
 ## Local verification (no agent)
 
 ```bash
