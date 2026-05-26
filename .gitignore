@@ -1,6 +1,9 @@
-﻿.codex-multi-agent/
+﻿.codex-multi-agent*/
+.venv/
 .DS_Store
 Thumbs.db
 __pycache__/
 *.pyc
 .tmp-openclaw-test/
+bench/swebench-lite/results/*
+!bench/swebench-lite/results/README.md
