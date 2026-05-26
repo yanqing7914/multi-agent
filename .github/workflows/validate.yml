@@ -1,0 +1,24 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Python version
+        run: python -V
+      - name: Validate all adapters
+        run: python3 scripts/validate_all_adapters.py
+      - name: Validate OpenClaw scripts
+        run: python3 adapters/openclaw/scripts/validate_all.py
+      - name: OpenClaw local demo self-check
+        run: python3 adapters/openclaw/scripts/run_local_demo.py --out /tmp/openclaw-demo-ci --keep
