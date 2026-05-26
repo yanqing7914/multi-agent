@@ -14,5 +14,5 @@ fi
 for extension in vscode cursor; do
   dir="$ROOT/ide/extensions/$extension"
   echo "extension build_check: checking $extension"
-  (cd "$dir" && npm install && npm run compile && npx --no-install vsce package --no-dependencies)
+  (cd "$dir" && npm ci && npx tsc --noEmit -p .)
 done

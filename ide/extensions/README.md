@@ -8,7 +8,7 @@ This directory contains local-only VS Code-compatible extension scaffolds for op
 ide/extensions/scripts/build_check.sh
 ```
 
-The script exits successfully with a skip message when `node` or `npm` is unavailable. When Node tooling is present, it runs `npm install`, `npm run compile`, and `npx --no-install vsce package --no-dependencies` for both `vscode` and `cursor`.
+The script exits successfully with a skip message when `node` or `npm` is unavailable. When Node tooling is present, it runs `npm ci` and `npx tsc --noEmit -p .` for both `vscode` and `cursor`.
 
 ## Build one extension manually
 
