@@ -2,6 +2,23 @@
 
 本文件遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.1.1] - 2026-05-28
+
+### Added
+
+- `BENCHMARKS.md`：汇总 SWE-bench Lite-shaped 历史归档，区分 latest/best runtime 结果。
+- `bench/swebench-lite/results/latest-summary.json`：机器可读最新跑分摘要。
+- v0.1.1 skill 下载包：`openclaw-multi-agent-skill-v0.1.1.zip` 与 `multi-agent-coding-skill-v0.1.1.zip`。
+
+### Changed
+
+- `run_swebench_lite.py` 新增 `--timeout` 与 `SWEBENCH_LITE_TIMEOUT`；Codex live run 默认 timeout 从 300s 提升到 900s。
+- README 下载链接更新到 v0.1.1 release assets。
+
+### Fixed
+
+- 明确 Codex 最新 0/3 跑分的直接原因是 launcher timeout；保留早期 Codex `api-pagination` 成功样本作为对照。
+- 清理 v0.1.0 文档/metadata 的历史不一致问题。
 ## [0.1.0] - 2026-05-26
 
 ### Added
@@ -27,7 +44,8 @@
 
 ### Notes
 
-- 许可证尚未在仓库中声明；使用前请与维护者确认。
+- 许可证：MIT。
 - Hermes / VS Code 扩展仍为文档与脚手架阶段；实时 LLM bench 运行需各客户端 CLI 与配额。
 
-[0.1.0]: https://github.com/gongchenhao/multi-agent-coding/releases/tag/v0.1.0
+[0.1.1]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.1
+[0.1.0]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.0

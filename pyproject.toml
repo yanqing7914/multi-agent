@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "multi-agent-coding"
-version = "0.1.0"
+version = "0.1.1"
 description = "多 Agent 编码协作框架：任务卡、权限边界、审计门控与跨客户端适配器"
 readme = "README.md"
 requires-python = ">=3.10"

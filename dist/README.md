@@ -5,7 +5,9 @@
 | Package | 用途 | Size | SHA256 |
 | --- | --- | ---: | --- |
 | [multi-agent-coding-skill-v0.1.0.zip](multi-agent-coding-skill-v0.1.0.zip) | 通用 multi-agent-coding skill | 28184 | `7c510ab357be51ec24c505e0c437c497988d42d98443d964e7092d42c9471a8e` |
+| [multi-agent-coding-skill-v0.1.1.zip](multi-agent-coding-skill-v0.1.1.zip) | 通用 multi-agent-coding skill | 31566 | `9b4f0d1e4d0237d6f7740ff43429af9d9af1d641a2faf5e182c73368351ae4b8` |
 | [openclaw-multi-agent-skill-v0.1.0.zip](openclaw-multi-agent-skill-v0.1.0.zip) | OpenClaw/Her 专用 skill | 61978 | `06b2f3214d91a84ec5d291ee5540b597e185bf4e51f16ca6dd34beb38f0967a8` |
+| [openclaw-multi-agent-skill-v0.1.1.zip](openclaw-multi-agent-skill-v0.1.1.zip) | OpenClaw/Her 专用 skill | 61978 | `06b2f3214d91a84ec5d291ee5540b597e185bf4e51f16ca6dd34beb38f0967a8` |
 
 ## 安装方式
 

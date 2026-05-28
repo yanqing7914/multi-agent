@@ -100,3 +100,16 @@ Each row is one real runtime x case invocation with a 300s launcher timeout. `Fi
 Wired into `scripts/validate_all_adapters.py` as `swebench-lite` (dry `--self-check` only).
 
 See also: [`bench/README.md`](../README.md), [`docs/roadmap.md`](../../docs/roadmap.md).
+
+## Machine-readable latest summary
+
+- Root summary: [`../../BENCHMARKS.md`](../../BENCHMARKS.md)
+- Machine-readable summary: [`results/latest-summary.json`](results/latest-summary.json)
+
+Codex live runs now support a longer timeout:
+
+```bash
+python3 bench/swebench-lite/run_swebench_lite.py --runtime codex --timeout 900
+# or
+SWEBENCH_LITE_TIMEOUT=900 python3 bench/swebench-lite/run_swebench_lite.py --runtime codex
+```

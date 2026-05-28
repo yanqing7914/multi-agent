@@ -1,6 +1,6 @@
 # multi-agent
 
-[![version](https://img.shields.io/badge/version-0.1.0-blue)](CHANGELOG.md)
+[![version](https://img.shields.io/badge/version-0.1.1-blue)](CHANGELOG.md)
 [![python](https://img.shields.io/badge/python-%3E%3D3.10-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -29,8 +29,8 @@ IDE Panel    = 图形化任务面板、Prompt 生成器和本地集成入口
 
 | 压缩包 | 适用场景 |
 | --- | --- |
-| [`openclaw-multi-agent-skill-v0.1.0.zip`](https://github.com/yanqing7914/multi-agent/raw/main/dist/openclaw-multi-agent-skill-v0.1.0.zip) | OpenClaw / Her 专用，推荐 OpenClaw 用户下载这个 |
-| [`multi-agent-coding-skill-v0.1.0.zip`](https://github.com/yanqing7914/multi-agent/raw/main/dist/multi-agent-coding-skill-v0.1.0.zip) | 通用 Codex/OpenClaw 风格 skill 包 |
+| [`openclaw-multi-agent-skill-v0.1.1.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.1/openclaw-multi-agent-skill-v0.1.1.zip) | OpenClaw / Her 专用，推荐 OpenClaw 用户下载这个 |
+| [`multi-agent-coding-skill-v0.1.1.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.1/multi-agent-coding-skill-v0.1.1.zip) | 通用 Codex/OpenClaw 风格 skill 包 |
 
 安装方式：下载 zip，解压后把顶层目录放进对应 agent 的 skills 目录中。
 ## 推荐入口
@@ -44,6 +44,7 @@ IDE Panel    = 图形化任务面板、Prompt 生成器和本地集成入口
 | 想看跨 IDE 真实接力证据 | [`.codex-multi-agent-relay/summary/run-summary.md`](.codex-multi-agent-relay/summary/run-summary.md) |
 | 想看 MCP 协议 | [`mcp/multi-agent-coordinator/README.md`](mcp/multi-agent-coordinator/README.md) |
 | 想看路线图 | [`docs/roadmap.md`](docs/roadmap.md) |
+| 想看最新跑分摘要 | [BENCHMARKS.md](BENCHMARKS.md) |
 
 ## 当前能力概览
 

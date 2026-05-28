@@ -295,7 +295,7 @@ def write_case_artifacts(case_name: str, workspace: Path, state_dir: Path, score
     return out_dir
 
 
-def run_case(case_dir: Path, runtime: str, tmp_root: Path, persist: bool = True) -> dict:
+def run_case(case_dir: Path, runtime: str, tmp_root: Path, *, persist: bool = True, runtime_timeout: int = 300) -> dict:
     case_name = case_dir.name
     workspace = setup_workspace(case_dir, tmp_root)
 
@@ -338,13 +338,14 @@ def run_case(case_dir: Path, runtime: str, tmp_root: Path, persist: bool = True)
         ]
         if runtime == "cursor":
             cmd.append("--foreground")
-        proc = run_cmd(cmd, cwd=REPO_ROOT, timeout=300)
+        proc = run_cmd(cmd, cwd=REPO_ROOT, timeout=runtime_timeout)
         if proc.returncode != 0:
             return {
                 "case": case_name,
                 "ok": False,
                 "error": "launcher failed",
-                "output": (proc.stdout or proc.stderr)[-500:],
+                "output": ((proc.stdout or "") + (proc.stderr or ""))[-1000:],
+                "runtime_timeout": runtime_timeout,
             }
 
     post_ok, post_output, post_rate = run_pytest(workspace)
@@ -440,7 +441,7 @@ def run_self_check(runtime: str = "dry") -> int:
         errors.append(f"expected >= 3 swebench-lite cases, found {len(cases)}")
 
     with tempfile.TemporaryDirectory(prefix="swebench-lite-selfcheck-") as tmp:
-        results = [run_case(case, runtime, Path(tmp), persist=False) for case in cases]
+        results = [run_case(case, runtime, Path(tmp), persist=False, runtime_timeout=300) for case in cases]
         for item in results:
             if not item.get("ok"):
                 errors.append(f"{item.get('case')}: {item.get('error') or item}")
@@ -483,6 +484,12 @@ def main() -> int:
     parser.add_argument("--case", help="Run a single case directory name")
     parser.add_argument("--self-check", action="store_true")
     parser.add_argument("--no-persist", action="store_true", help="Skip writing bench/swebench-lite/results/")
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=None,
+        help="Live runtime launcher timeout in seconds. Defaults: codex=900, others=300. Env: SWEBENCH_LITE_TIMEOUT.",
+    )
     args = parser.parse_args()
 
     runtime = "dry" if args.runtime == "dry-runtime" else args.runtime
@@ -496,15 +503,18 @@ def main() -> int:
             print(json.dumps({"ok": False, "error": f"case not found: {args.case}"}))
             return 1
 
+    timeout_default = 900 if runtime == "codex" else 300
+    runtime_timeout = args.timeout or int(os.environ.get("SWEBENCH_LITE_TIMEOUT", timeout_default))
+
     with tempfile.TemporaryDirectory(prefix="swebench-lite-run-") as tmp:
-        results = [run_case(case, runtime, Path(tmp), persist=not args.no_persist) for case in cases]
+        results = [run_case(case, runtime, Path(tmp), persist=not args.no_persist, runtime_timeout=runtime_timeout) for case in cases]
 
     agg = aggregate_score(results)
     (RESULTS_ROOT / "aggregate-score.json").write_text(json.dumps(agg, indent=2) + "\n", encoding="utf-8")
-    archive_payload = {"runtime": runtime, "aggregate": agg, "results": results, "archived_at": datetime.now(timezone.utc).isoformat()}
+    archive_payload = {"runtime": runtime, "runtime_timeout": runtime_timeout, "aggregate": agg, "results": results, "archived_at": datetime.now(timezone.utc).isoformat()}
     archived = archive_score_snapshot(archive_payload, no_archive=args.no_archive)
     ok = all(item.get("ok") for item in results)
-    output = {"ok": ok, "runtime": runtime, "aggregate": agg, "results": results}
+    output = {"ok": ok, "runtime": runtime, "runtime_timeout": runtime_timeout, "aggregate": agg, "results": results}
     if archived:
         output["score_archive"] = str(archived)
     print(json.dumps(output, indent=2))

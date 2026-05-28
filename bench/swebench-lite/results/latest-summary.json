@@ -1,0 +1,228 @@
+{
+  "generated_from": [
+    "bench/swebench-lite/results/score-20260526-003502.json",
+    "bench/swebench-lite/results/score-20260526-021411.json",
+    "bench/swebench-lite/results/score-20260526-022657.json",
+    "bench/swebench-lite/results/score-20260526-022704.json",
+    "bench/swebench-lite/results/score-20260526-022744.json",
+    "bench/swebench-lite/results/score-20260526-023536.json",
+    "bench/swebench-lite/results/score-20260526-024848.json",
+    "bench/swebench-lite/results/score-20260526-082548.json",
+    "bench/swebench-lite/results/score-20260526-082850.json",
+    "bench/swebench-lite/results/score-20260526-083251.json",
+    "bench/swebench-lite/results/score-20260526-083946.json",
+    "bench/swebench-lite/results/score-20260526-084437.json",
+    "bench/swebench-lite/results/score-20260526-084929.json",
+    "bench/swebench-lite/results/score-20260526-085042.json",
+    "bench/swebench-lite/results/score-20260526-085214.json",
+    "bench/swebench-lite/results/score-20260526-085337.json"
+  ],
+  "latest_by_runtime_case": {
+    "codex/api-pagination": {
+      "artifact": "bench/swebench-lite/results/score-20260526-083946.json",
+      "archived_at": "2026-05-26T08:39:46.138255+00:00",
+      "runtime": "codex",
+      "case": "api-pagination",
+      "ok": false,
+      "pass_rate": 0.0,
+      "error": "launcher failed",
+      "output": "timeout after 300s",
+      "runtime_timeout": 300
+    },
+    "codex/date-parse": {
+      "artifact": "bench/swebench-lite/results/score-20260526-084437.json",
+      "archived_at": "2026-05-26T08:44:37.199476+00:00",
+      "runtime": "codex",
+      "case": "date-parse",
+      "ok": false,
+      "pass_rate": 0.0,
+      "error": "launcher failed",
+      "output": "timeout after 300s",
+      "runtime_timeout": 300
+    },
+    "codex/hash-collision": {
+      "artifact": "bench/swebench-lite/results/score-20260526-084929.json",
+      "archived_at": "2026-05-26T08:49:29.561719+00:00",
+      "runtime": "codex",
+      "case": "hash-collision",
+      "ok": false,
+      "pass_rate": 0.0,
+      "error": "launcher failed",
+      "output": "timeout after 300s",
+      "runtime_timeout": 300
+    },
+    "cursor/api-pagination": {
+      "artifact": "bench/swebench-lite/results/score-20260526-085042.json",
+      "archived_at": "2026-05-26T08:50:42.502952+00:00",
+      "runtime": "cursor",
+      "case": "api-pagination",
+      "ok": true,
+      "pass_rate": 1.0,
+      "error": null,
+      "output": "",
+      "runtime_timeout": null
+    },
+    "cursor/date-parse": {
+      "artifact": "bench/swebench-lite/results/score-20260526-085214.json",
+      "archived_at": "2026-05-26T08:52:14.149516+00:00",
+      "runtime": "cursor",
+      "case": "date-parse",
+      "ok": true,
+      "pass_rate": 1.0,
+      "error": null,
+      "output": "",
+      "runtime_timeout": null
+    },
+    "cursor/hash-collision": {
+      "artifact": "bench/swebench-lite/results/score-20260526-085337.json",
+      "archived_at": "2026-05-26T08:53:37.233688+00:00",
+      "runtime": "cursor",
+      "case": "hash-collision",
+      "ok": true,
+      "pass_rate": 1.0,
+      "error": null,
+      "output": "",
+      "runtime_timeout": null
+    },
+    "dry/api-pagination": {
+      "artifact": "bench/swebench-lite/results/score-20260526-003502.json",
+      "archived_at": "2026-05-26T00:35:02.618398+00:00",
+      "runtime": "dry",
+      "case": "api-pagination",
+      "ok": true,
+      "pass_rate": 1.0,
+      "error": null,
+      "output": "",
+      "runtime_timeout": null
+    },
+    "dry/date-parse": {
+      "artifact": "bench/swebench-lite/results/score-20260526-003502.json",
+      "archived_at": "2026-05-26T00:35:02.618398+00:00",
+      "runtime": "dry",
+      "case": "date-parse",
+      "ok": true,
+      "pass_rate": 1.0,
+      "error": null,
+      "output": "",
+      "runtime_timeout": null
+    },
+    "dry/hash-collision": {
+      "artifact": "bench/swebench-lite/results/score-20260526-003502.json",
+      "archived_at": "2026-05-26T00:35:02.618398+00:00",
+      "runtime": "dry",
+      "case": "hash-collision",
+      "ok": true,
+      "pass_rate": 1.0,
+      "error": null,
+      "output": "",
+      "runtime_timeout": null
+    }
+  },
+  "best_by_runtime_case": {
+    "codex/api-pagination": {
+      "artifact": "bench/swebench-lite/results/score-20260526-024848.json",
+      "archived_at": "2026-05-26T02:48:48.642141+00:00",
+      "runtime": "codex",
+      "case": "api-pagination",
+      "ok": true,
+      "pass_rate": 1.0,
+      "error": null,
+      "output": "",
+      "runtime_timeout": null
+    },
+    "codex/date-parse": {
+      "artifact": "bench/swebench-lite/results/score-20260526-084437.json",
+      "archived_at": "2026-05-26T08:44:37.199476+00:00",
+      "runtime": "codex",
+      "case": "date-parse",
+      "ok": false,
+      "pass_rate": 0.0,
+      "error": "launcher failed",
+      "output": "timeout after 300s",
+      "runtime_timeout": 300
+    },
+    "codex/hash-collision": {
+      "artifact": "bench/swebench-lite/results/score-20260526-084929.json",
+      "archived_at": "2026-05-26T08:49:29.561719+00:00",
+      "runtime": "codex",
+      "case": "hash-collision",
+      "ok": false,
+      "pass_rate": 0.0,
+      "error": "launcher failed",
+      "output": "timeout after 300s",
+      "runtime_timeout": 300
+    },
+    "cursor/api-pagination": {
+      "artifact": "bench/swebench-lite/results/score-20260526-085042.json",
+      "archived_at": "2026-05-26T08:50:42.502952+00:00",
+      "runtime": "cursor",
+      "case": "api-pagination",
+      "ok": true,
+      "pass_rate": 1.0,
+      "error": null,
+      "output": "",
+      "runtime_timeout": null
+    },
+    "cursor/date-parse": {
+      "artifact": "bench/swebench-lite/results/score-20260526-085214.json",
+      "archived_at": "2026-05-26T08:52:14.149516+00:00",
+      "runtime": "cursor",
+      "case": "date-parse",
+      "ok": true,
+      "pass_rate": 1.0,
+      "error": null,
+      "output": "",
+      "runtime_timeout": null
+    },
+    "cursor/hash-collision": {
+      "artifact": "bench/swebench-lite/results/score-20260526-085337.json",
+      "archived_at": "2026-05-26T08:53:37.233688+00:00",
+      "runtime": "cursor",
+      "case": "hash-collision",
+      "ok": true,
+      "pass_rate": 1.0,
+      "error": null,
+      "output": "",
+      "runtime_timeout": null
+    },
+    "dry/api-pagination": {
+      "artifact": "bench/swebench-lite/results/score-20260526-003502.json",
+      "archived_at": "2026-05-26T00:35:02.618398+00:00",
+      "runtime": "dry",
+      "case": "api-pagination",
+      "ok": true,
+      "pass_rate": 1.0,
+      "error": null,
+      "output": "",
+      "runtime_timeout": null
+    },
+    "dry/date-parse": {
+      "artifact": "bench/swebench-lite/results/score-20260526-003502.json",
+      "archived_at": "2026-05-26T00:35:02.618398+00:00",
+      "runtime": "dry",
+      "case": "date-parse",
+      "ok": true,
+      "pass_rate": 1.0,
+      "error": null,
+      "output": "",
+      "runtime_timeout": null
+    },
+    "dry/hash-collision": {
+      "artifact": "bench/swebench-lite/results/score-20260526-003502.json",
+      "archived_at": "2026-05-26T00:35:02.618398+00:00",
+      "runtime": "dry",
+      "case": "hash-collision",
+      "ok": true,
+      "pass_rate": 1.0,
+      "error": null,
+      "output": "",
+      "runtime_timeout": null
+    }
+  },
+  "current_takeaways": [
+    "Cursor latest full live run passed all three cases (3/3).",
+    "Codex latest full live run failed all three cases due launcher timeout after 300s.",
+    "Codex has an earlier api-pagination success, so the current failure is timeout/runtime stability, not a universal harness failure.",
+    "run_swebench_lite.py now supports --timeout and defaults Codex live runs to 900s for future reruns."
+  ]
+}
