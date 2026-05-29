@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -34,6 +35,41 @@ FIXES = {
 
 def run_cmd(cmd: list[str], cwd: Path | None = None, env: dict | None = None) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, cwd=str(cwd) if cwd else None, env=env, capture_output=True, text=True, check=False)
+
+
+def has_pytest() -> bool:
+    return importlib.util.find_spec("pytest") is not None
+
+
+def run_stdlib_tests(workspace: Path) -> tuple[bool, str]:
+    runner = r"""
+import importlib.util
+import traceback
+from pathlib import Path
+
+failures = []
+for path in sorted(Path("tests").glob("test_*.py")):
+    spec = importlib.util.spec_from_file_location(path.stem, path)
+    module = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(module)
+        for name in sorted(dir(module)):
+            if name.startswith("test_") and callable(getattr(module, name)):
+                try:
+                    getattr(module, name)()
+                except Exception:
+                    failures.append(f"{path}:{name}\n{traceback.format_exc()}")
+    except Exception:
+        failures.append(f"{path}:module\n{traceback.format_exc()}")
+if failures:
+    print("\n\n".join(failures))
+    raise SystemExit(1)
+print("stdlib test runner passed")
+"""
+    env = {**os.environ, "PYTHONPATH": str(workspace)}
+    proc = run_cmd([sys.executable, "-c", runner], cwd=workspace, env=env)
+    output = (proc.stdout or "") + (proc.stderr or "")
+    return proc.returncode == 0, output.strip()
 
 
 def discover_cases() -> list[Path]:
@@ -154,6 +190,8 @@ def write_worker_result(state_dir: Path, card_path: Path, workspace: Path, files
 
 
 def run_tests(workspace: Path) -> tuple[bool, str]:
+    if not has_pytest():
+        return run_stdlib_tests(workspace)
     env = {**os.environ, "PYTHONPATH": str(workspace)}
     proc = run_cmd([sys.executable, "-m", "pytest", "tests", "-q"], cwd=workspace, env=env)
     output = (proc.stdout or "") + (proc.stderr or "")

@@ -37,16 +37,23 @@ def _walk_files(repo_root: Path, glob_pattern: str | None = None) -> list[str]:
     return sorted(files)
 
 
-def list_files(repo_root: Path, glob_pattern: str | None = None, allowed_paths: list[str] | None = None) -> dict:
-    if which("rg") and glob_pattern:
-        proc = subprocess.run(
-            ["rg", "--files", "-g", glob_pattern],
+def _run_rg(args: list[str], repo_root: Path) -> subprocess.CompletedProcess | None:
+    try:
+        return subprocess.run(
+            ["rg", *args],
             cwd=str(repo_root),
             capture_output=True,
             text=True,
             check=False,
         )
-        if proc.returncode in (0, 1):
+    except OSError:
+        return None
+
+
+def list_files(repo_root: Path, glob_pattern: str | None = None, allowed_paths: list[str] | None = None) -> dict:
+    if which("rg") and glob_pattern:
+        proc = _run_rg(["--files", "-g", glob_pattern], repo_root)
+        if proc and proc.returncode in (0, 1):
             files = [normalize_path(line) for line in proc.stdout.splitlines() if line.strip()]
         else:
             files = _walk_files(repo_root, glob_pattern)
@@ -64,8 +71,8 @@ def grep_files(repo_root: Path, pattern: str, glob_pattern: str | None = None, a
         cmd = ["rg", "-n", pattern, "."]
         if glob_pattern:
             cmd.extend(["-g", glob_pattern])
-        proc = subprocess.run(cmd, cwd=str(repo_root), capture_output=True, text=True, check=False)
-        if proc.returncode in (0, 1):
+        proc = _run_rg(cmd[1:], repo_root)
+        if proc and proc.returncode in (0, 1):
             matches = []
             for line in proc.stdout.splitlines():
                 if not line.strip():

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -51,6 +52,42 @@ def run_cmd(
             stdout=(exc.stdout or "") if isinstance(exc.stdout, str) else "",
             stderr=((exc.stderr or "") if isinstance(exc.stderr, str) else "") + f"\ntimeout after {timeout}s",
         )
+
+
+def has_pytest() -> bool:
+    return importlib.util.find_spec("pytest") is not None
+
+
+def run_stdlib_tests(workspace: Path) -> tuple[bool, str, float]:
+    runner = r"""
+import importlib.util
+import traceback
+from pathlib import Path
+
+failures = []
+for path in sorted(Path("tests").glob("test_*.py")):
+    spec = importlib.util.spec_from_file_location(path.stem, path)
+    module = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(module)
+        for name in sorted(dir(module)):
+            if name.startswith("test_") and callable(getattr(module, name)):
+                try:
+                    getattr(module, name)()
+                except Exception:
+                    failures.append(f"{path}:{name}\n{traceback.format_exc()}")
+    except Exception:
+        failures.append(f"{path}:module\n{traceback.format_exc()}")
+if failures:
+    print("\n\n".join(failures))
+    raise SystemExit(1)
+print("stdlib test runner passed")
+"""
+    env = {**os.environ, "PYTHONPATH": str(workspace / "repo")}
+    proc = run_cmd([sys.executable, "-c", runner], cwd=workspace, env=env)
+    output = (proc.stdout or "") + (proc.stderr or "")
+    passed = proc.returncode == 0
+    return passed, output.strip(), 1.0 if passed else 0.0
 
 
 def workspace_relative_paths(paths: list[str], workspace: Path) -> list[str]:
@@ -161,6 +198,8 @@ def setup_workspace(case_dir: Path, dest: Path) -> Path:
 
 
 def run_pytest(workspace: Path) -> tuple[bool, str, float]:
+    if not has_pytest():
+        return run_stdlib_tests(workspace)
     env = {**os.environ, "PYTHONPATH": str(workspace / "repo")}
     proc = run_cmd([sys.executable, "-m", "pytest", "tests", "-q"], cwd=workspace, env=env)
     output = (proc.stdout or "") + (proc.stderr or "")

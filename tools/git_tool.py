@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from _tool_base import (
@@ -95,6 +96,16 @@ def invoke(payload: dict) -> dict:
 def run_self_check() -> int:
     errors: list[str] = []
     repo_root = Path(__file__).resolve().parent.parent
+    repo_check, _, _ = run_git(["rev-parse", "--is-inside-work-tree"], repo_root)
+    temp_dir: tempfile.TemporaryDirectory | None = None
+    if repo_check != 0:
+        temp_dir = tempfile.TemporaryDirectory(prefix="git-tool-selfcheck-")
+        repo_root = Path(temp_dir.name)
+        init_code, _, init_stderr = run_git(["init"], repo_root)
+        if init_code != 0:
+            emit_json({"ok": False, "errors": [f"git init failed: {init_stderr.strip()}"]})
+            temp_dir.cleanup()
+            return 1
     status = git_status(repo_root)
     if not status.get("ok"):
         errors.append(f"git status failed: {status.get('error')}")
@@ -111,8 +122,12 @@ def run_self_check() -> int:
 
     if errors:
         emit_json({"ok": False, "errors": errors})
+        if temp_dir:
+            temp_dir.cleanup()
         return 1
     emit_json({"ok": True, "message": "git_tool self-check passed"})
+    if temp_dir:
+        temp_dir.cleanup()
     return 0
 
 
