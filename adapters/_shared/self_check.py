@@ -69,7 +69,7 @@ def run_adapter_self_check(
             errors.append(err)
 
     launcher = adapter_root / "scripts" / launcher_name
-    err = check_file(launcher, executable=True)
+    err = check_file(launcher)
     if err:
         errors.append(err)
 

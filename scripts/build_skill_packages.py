@@ -95,7 +95,8 @@ def zip_dir(source: Path, zip_path: Path) -> None:
                 continue
             info = zipfile.ZipInfo(file.relative_to(source.parent).as_posix())
             info.date_time = (2026, 1, 1, 0, 0, 0)
-            info.external_attr = 0o644 << 16
+            mode = 0o755 if file.suffix == ".sh" else 0o644
+            info.external_attr = mode << 16
             archive.writestr(info, file.read_bytes(), compress_type=zipfile.ZIP_DEFLATED)
 
 
@@ -176,9 +177,9 @@ def build_client(stage: Path, version: str, client: str) -> Path:
             root / "agents" / "openai.yaml",
             """interface:
   display_name: "Codex Multi-Agent"
-  short_description: "Arrange Codex Desktop workers or launch Codex CLI workers."
+  short_description: "Use native Codex Desktop subagents, with handoff or CLI workers as fallbacks."
   brand_color: "#2563EB"
-  default_prompt: "Use $codex-multi-agent to coordinate this coding task with Codex Desktop or CLI workers, scoped paths, review, and verification."
+  default_prompt: "Use $codex-multi-agent to coordinate this coding task with native Codex Desktop subagents, scoped paths, review, verification, and audit."
 policy:
   allow_implicit_invocation: true
 """,

@@ -35,6 +35,23 @@ if __name__ == "__main__":
             )
         )
         raise SystemExit(1)
+    native_script = adapter_root / "scripts" / "prepare_native_subagent.py"
+    if not native_script.is_file():
+        print(json.dumps({"ok": False, "error": "prepare_native_subagent.py missing"}, indent=2))
+        raise SystemExit(1)
+    proc = subprocess.run([sys.executable, str(native_script), "--self-check"], capture_output=True, text=True, check=False)
+    if proc.returncode != 0:
+        print(
+            json.dumps(
+                {
+                    "ok": False,
+                    "error": "native subagent self-check failed",
+                    "output": (proc.stderr or proc.stdout or "").strip(),
+                },
+                indent=2,
+            )
+        )
+        raise SystemExit(1)
     from worker_outcome import evaluate_worker_outcome  # noqa: E402
 
     fixtures = SHARED / "fixtures"
@@ -54,5 +71,16 @@ if __name__ == "__main__":
             raise SystemExit(1)
     finally:
         stub_md.unlink(missing_ok=True)
-    print(json.dumps({"ok": True, "adapter": "codex", "outcome_fixtures": "pass", "desktop_handoff": "pass"}, indent=2))
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "adapter": "codex",
+                "outcome_fixtures": "pass",
+                "desktop_handoff": "pass",
+                "native_subagent": "pass",
+            },
+            indent=2,
+        )
+    )
     raise SystemExit(0)

@@ -68,6 +68,8 @@ def parse_task_card(path: Path) -> dict:
         "tools_used": _parse_list_block(text, "tools_used"),
         "required_paths": _parse_list_block(text, "required_paths"),
         "allowed_paths": _parse_list_block(text, "allowed_paths"),
+        "may_use_skills": _parse_list_block(text, "may_use_skills"),
+        "may_spawn_sessions": _parse_scalar(text, "may_spawn_sessions"),
         "dependencies": _parse_list_block(text, "dependencies"),
         "execution_guidance": _parse_list_block(text, "execution_guidance"),
         "result_report_paths": result_report_paths,

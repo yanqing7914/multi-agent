@@ -27,6 +27,8 @@ BENCH_RUNTIME_CHOICES: tuple[str, ...] = (
 LAUNCHER_RUNTIME_CHOICES: tuple[str, ...] = (
     "openclaw",
     "cursor",
+    "codex-native",
+    "codex-desktop",
     "codex",
     "claude-code",
 )

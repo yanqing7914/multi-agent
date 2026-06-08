@@ -1,6 +1,18 @@
-# Changelog
+﻿# Changelog
 
 本文件遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
+
+## [0.1.3] - 2026-06-08
+
+### Added
+
+- Codex Desktop native subagent mode via `--runtime codex-native`.
+- `adapters/codex/scripts/prepare_native_subagent.py` to produce spawn-ready task-card prompts for native Desktop subagents.
+
+### Changed
+
+- Codex adapter is now native-subagent-first, with Desktop handoff and `codex exec` as fallbacks.
+- Codex docs now explain skill routing for review skills such as `ssrd` inside spawned Reviewers.
 
 ## [0.1.2] - 2026-06-08
 
@@ -61,6 +73,7 @@
 - 许可证：MIT。
 - Hermes / VS Code 扩展仍为文档与脚手架阶段；实时 LLM bench 运行需各客户端 CLI 与配额。
 
+[0.1.3]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.3
 [0.1.2]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.2
 [0.1.1]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.1
 [0.1.0]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.0

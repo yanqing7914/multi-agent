@@ -25,7 +25,7 @@ If the user asks to install this skill from GitHub, read `docs/agent-install.md`
 
 Use client-specific adapters for execution details:
 
-- Codex: use this folder as a Codex skill and use native subagents when available.
+- Codex: use `adapters/codex/` as the client adapter; prefer native Desktop subagents when available, then Desktop handoff, then `codex exec`.
 - Cursor: translate core rules into project rules and use MCP for state if configured.
 - Claude Code: translate core rules into `CLAUDE.md`/commands and use MCP tools when configured.
 - OpenClaw: install `adapters/openclaw/` as the standalone skill `openclaw-multi-agent`; map roles to `sessions_spawn`, `sessions_send`, and `sessions_yield`; use the bundled scripts for task cards and scope audit.

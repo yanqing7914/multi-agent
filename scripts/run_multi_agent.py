@@ -15,9 +15,16 @@ RUNTIMES = {
     "openclaw": REPO_ROOT / "adapters" / "openclaw" / "README.md",
     "cursor": REPO_ROOT / "adapters" / "cursor" / "scripts" / "launch_cursor_worker.sh",
     "codex": REPO_ROOT / "adapters" / "codex" / "scripts" / "launch_codex_worker.sh",
+    "codex-native": REPO_ROOT / "adapters" / "codex" / "scripts" / "prepare_native_subagent.sh",
     "codex-desktop": REPO_ROOT / "adapters" / "codex" / "scripts" / "prepare_desktop_worker.sh",
     "claude-code": REPO_ROOT / "adapters" / "claude-code" / "scripts" / "launch_claude_worker.sh",
 }
+
+
+def launcher_cmd(launcher: Path, args: list[str]) -> list[str]:
+    if launcher.suffix == ".sh":
+        return ["bash", str(launcher), *args]
+    return [str(launcher), *args]
 
 
 def main() -> int:
@@ -60,11 +67,12 @@ def main() -> int:
         return 0
 
     launcher = RUNTIMES[args.runtime]
-    cmd = [str(launcher), "--task-card", str(task_card)]
+    launcher_args = ["--task-card", str(task_card)]
     if args.state_dir:
-        cmd.extend(["--state-dir", str(Path(args.state_dir).expanduser().resolve())])
+        launcher_args.extend(["--state-dir", str(Path(args.state_dir).expanduser().resolve())])
     if args.runtime == "claude-code":
-        cmd.extend(["--mode", args.mode])
+        launcher_args.extend(["--mode", args.mode])
+    cmd = launcher_cmd(launcher, launcher_args)
     if args.runtime == "cursor" and args.foreground:
         cmd = [
             sys.executable,
