@@ -21,6 +21,8 @@ Use this skill to coordinate coding work with controlled specialist roles. This 
 
 Support Codex, Cursor, Claude Code, OpenClaw, Hermes, and VS Code by keeping the shared protocol independent of any one client runtime. Treat task cards, result reports, role permissions, skill-use approvals, review findings, scope audits, and final delivery format as the portable contract.
 
+If the user asks to install this skill from GitHub, read `docs/agent-install.md` first and choose the client-specific package. Use `codex-multi-agent-skill-*` for Codex, `cursor-multi-agent-pack-*` for Cursor, `claude-code-multi-agent-pack-*` for Claude Code, and `openclaw-multi-agent-skill-*` for OpenClaw/Her. The generic `multi-agent-coding-skill-*` package is protocol guidance only.
+
 Use client-specific adapters for execution details:
 
 - Codex: use this folder as a Codex skill and use native subagents when available.

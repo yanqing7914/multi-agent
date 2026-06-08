@@ -2,6 +2,19 @@
 
 本文件遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.1.2] - 2026-06-08
+
+### Added
+
+- `docs/agent-install.md`：面向 AI agent 的安装入口，支持用户直接发送 GitHub 链接并要求安装 skill。
+- `scripts/build_skill_packages.py`：生成 Codex、Cursor、Claude Code、OpenClaw 与通用协议包。
+- v0.1.2 客户端专用包：`codex-multi-agent-skill`、`cursor-multi-agent-pack`、`claude-code-multi-agent-pack`。
+
+### Changed
+
+- README 下载区改为客户端矩阵，明确 Codex / Cursor / Claude Code / OpenClaw 的不同安装动作。
+- 根 `SKILL.md` 增加安装分流说明，避免 agent 只安装通用协议包却缺少 launcher 依赖。
+
 ## [0.1.1] - 2026-05-28
 
 ### Added
@@ -47,5 +60,6 @@
 - 许可证：MIT。
 - Hermes / VS Code 扩展仍为文档与脚手架阶段；实时 LLM bench 运行需各客户端 CLI 与配额。
 
+[0.1.2]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.2
 [0.1.1]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.1
 [0.1.0]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.0
