@@ -19,7 +19,19 @@ python3 /path/to/multi-agent-coding/adapters/codex/scripts/codex_self_check.py
 python3 /path/to/multi-agent-coding/scripts/validate_all_adapters.py
 ```
 
-## 3. Launch a worker
+## 3a. Arrange a Codex Desktop worker
+
+Use this path when the user only has Codex Desktop App:
+
+```bash
+python3 /path/to/multi-agent-coding/scripts/run_multi_agent.py \
+  --runtime codex-desktop \
+  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+```
+
+Open the returned `prompt_path` in a new Codex Desktop session or task. The Worker must write both result reports before claiming completion.
+
+## 3b. Launch a Codex CLI worker
 
 Ensure Codex CLI is authenticated (user environment — not stored in repo).
 

@@ -15,6 +15,7 @@ RUNTIMES = {
     "openclaw": REPO_ROOT / "adapters" / "openclaw" / "README.md",
     "cursor": REPO_ROOT / "adapters" / "cursor" / "scripts" / "launch_cursor_worker.sh",
     "codex": REPO_ROOT / "adapters" / "codex" / "scripts" / "launch_codex_worker.sh",
+    "codex-desktop": REPO_ROOT / "adapters" / "codex" / "scripts" / "prepare_desktop_worker.sh",
     "claude-code": REPO_ROOT / "adapters" / "claude-code" / "scripts" / "launch_claude_worker.sh",
 }
 

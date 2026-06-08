@@ -29,7 +29,7 @@ IDE Panel    = 图形化任务面板、Prompt 生成器和本地集成入口
 
 | 压缩包 | 适用场景 |
 | --- | --- |
-| [`codex-multi-agent-skill-v0.1.2.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.2/codex-multi-agent-skill-v0.1.2.zip) | Codex 专用，解压到 `~/.codex/skills/codex-multi-agent` |
+| [`codex-multi-agent-skill-v0.1.2.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.2/codex-multi-agent-skill-v0.1.2.zip) | Codex 专用，支持 Desktop handoff；有 CLI 时可自动 `codex exec` |
 | [`cursor-multi-agent-pack-v0.1.2.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.2/cursor-multi-agent-pack-v0.1.2.zip) | Cursor 专用，包含 `cursor-rules.md` 与 `.cursor/rules/` |
 | [`claude-code-multi-agent-pack-v0.1.2.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.2/claude-code-multi-agent-pack-v0.1.2.zip) | Claude Code 专用，包含 `CLAUDE.md` 与本地/ACP launcher |
 | [`openclaw-multi-agent-skill-v0.1.2.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.2/openclaw-multi-agent-skill-v0.1.2.zip) | OpenClaw / Her 专用，推荐 OpenClaw 用户下载这个 |

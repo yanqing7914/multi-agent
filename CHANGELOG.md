@@ -9,6 +9,7 @@
 - `docs/agent-install.md`：面向 AI agent 的安装入口，支持用户直接发送 GitHub 链接并要求安装 skill。
 - `scripts/build_skill_packages.py`：生成 Codex、Cursor、Claude Code、OpenClaw 与通用协议包。
 - v0.1.2 客户端专用包：`codex-multi-agent-skill`、`cursor-multi-agent-pack`、`claude-code-multi-agent-pack`。
+- Codex Desktop handoff：无 Codex CLI 时可生成 Worker prompt，由 Desktop Main 安排 Worker 会话写回 result report。
 
 ### Changed
 

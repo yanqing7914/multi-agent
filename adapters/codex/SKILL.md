@@ -1,6 +1,6 @@
 ---
 name: codex-multi-agent
-description: Codex-specific thin adapter for multi-agent coding. Use when Codex Main should delegate scoped Explorer/Worker/Reviewer/Verifier roles via `codex exec`, with OpenClaw mission-control state, preflight gates, and result-report contracts. Do not use for trivial single-agent coding without task cards.
+description: Codex-specific thin adapter for multi-agent coding. Use when Codex Main should delegate scoped Explorer/Worker/Reviewer/Verifier roles via Codex Desktop handoff or `codex exec`, with OpenClaw mission-control state, preflight gates, and result-report contracts. Do not use for trivial single-agent coding without task cards.
 ---
 
 # codex-multi-agent
@@ -13,7 +13,7 @@ Use when:
 
 - you are coordinating from **Codex** as Main Agent (this repo as a skill)
 - the task needs multi-role collaboration with path ownership
-- workers should run via **`codex exec`** (default model `gpt-5.3-codex`, overridable)
+- workers should run via **Codex Desktop handoff** or **`codex exec`** (default model `gpt-5.3-codex`, overridable)
 - you want the same `.codex-multi-agent/` contract as OpenClaw v1
 
 Do **not** use when:
@@ -25,9 +25,18 @@ Do **not** use when:
 
 | Role | Codex mechanism |
 | --- | --- |
-| Main | Codex session with `$multi-agent-coding` — runs mission-control scripts |
-| Explorer / Reviewer / Verifier | `codex exec` with read-only task card |
-| Worker | `launch_codex_worker.sh --task-card ...` |
+| Main | Codex Desktop session with `$codex-multi-agent` or Codex CLI Main |
+| Explorer / Reviewer / Verifier | Desktop handoff prompt or `codex exec` with read-only task card |
+| Worker | Desktop handoff prompt or `launch_codex_worker.sh --task-card ...` |
+
+## Choose Execution Mode
+
+| Mode | Use when | Command |
+| --- | --- | --- |
+| Desktop handoff | User only has Codex Desktop App or wants Main to manually arrange Workers | `python3 scripts/run_multi_agent.py --runtime codex-desktop --task-card ...` |
+| CLI auto-run | User has Codex CLI installed and wants scripts to launch Workers automatically | `python3 scripts/run_multi_agent.py --runtime codex --task-card ...` |
+
+Desktop handoff creates `.codex-multi-agent/desktop-workers/*.prompt.md`. Main opens each prompt in a new Codex Desktop session or task, requires the Worker to write the listed JSON/Markdown result reports, then runs gate sync and audit.
 
 ## Golden Path
 
@@ -47,7 +56,17 @@ python3 /path/to/multi-agent-coding/adapters/openclaw/scripts/update_task_status
   --state-dir .codex-multi-agent --sync
 ```
 
-3. **Launch worker** (preflight enforced; non-zero exit on failure):
+3a. **Arrange Desktop Worker** (no Codex CLI required):
+
+```bash
+python3 /path/to/multi-agent-coding/scripts/run_multi_agent.py \
+  --runtime codex-desktop \
+  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+```
+
+Open the returned `prompt_path` in a new Codex Desktop session or task. The Worker must write both result reports listed in the prompt.
+
+3b. **Launch CLI worker** (Codex CLI required; preflight enforced; non-zero exit on failure):
 
 ```bash
 python3 /path/to/multi-agent-coding/scripts/run_multi_agent.py \

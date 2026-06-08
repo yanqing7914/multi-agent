@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -17,6 +18,23 @@ if __name__ == "__main__":
     code = run_adapter_self_check(adapter_root, "codex", "launch_codex_worker.sh", ["QUICKSTART.md"])
     if code != 0:
         raise SystemExit(code)
+    desktop_script = adapter_root / "scripts" / "prepare_desktop_worker.py"
+    if not desktop_script.is_file():
+        print(json.dumps({"ok": False, "error": "prepare_desktop_worker.py missing"}, indent=2))
+        raise SystemExit(1)
+    proc = subprocess.run([sys.executable, str(desktop_script), "--self-check"], capture_output=True, text=True, check=False)
+    if proc.returncode != 0:
+        print(
+            json.dumps(
+                {
+                    "ok": False,
+                    "error": "desktop handoff self-check failed",
+                    "output": (proc.stderr or proc.stdout or "").strip(),
+                },
+                indent=2,
+            )
+        )
+        raise SystemExit(1)
     from worker_outcome import evaluate_worker_outcome  # noqa: E402
 
     fixtures = SHARED / "fixtures"
@@ -36,5 +54,5 @@ if __name__ == "__main__":
             raise SystemExit(1)
     finally:
         stub_md.unlink(missing_ok=True)
-    print(json.dumps({"ok": True, "adapter": "codex", "outcome_fixtures": "pass"}, indent=2))
+    print(json.dumps({"ok": True, "adapter": "codex", "outcome_fixtures": "pass", "desktop_handoff": "pass"}, indent=2))
     raise SystemExit(0)

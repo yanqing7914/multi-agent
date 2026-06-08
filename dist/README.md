@@ -6,11 +6,11 @@
 
 | Package | 用途 | Size | SHA256 |
 | --- | --- | ---: | --- |
-| [codex-multi-agent-skill-v0.1.2.zip](codex-multi-agent-skill-v0.1.2.zip) | Codex 专用 skill，包含 Codex adapter 与 launcher 依赖 | 84898 | `392acab80ba4b66f55294a36679105aa9cd8cbf812ce5aae1c65f013ea525417` |
-| [cursor-multi-agent-pack-v0.1.2.zip](cursor-multi-agent-pack-v0.1.2.zip) | Cursor 专用 pack，包含 Cursor rules 与 launcher 依赖 | 88371 | `2df5d8c5b2098681d2dcfd6d0cd24c9a3b718d2dcee4c877f8d9dc34a8b8a0a4` |
-| [claude-code-multi-agent-pack-v0.1.2.zip](claude-code-multi-agent-pack-v0.1.2.zip) | Claude Code 专用 pack，包含 `CLAUDE.md` 与 launcher 依赖 | 87352 | `2af959104e69c52c8a353e58c33a661b07d5cb0baeba0dadd202aae5e351169e` |
+| [codex-multi-agent-skill-v0.1.2.zip](codex-multi-agent-skill-v0.1.2.zip) | Codex 专用 skill，支持 Desktop handoff 和 Codex CLI auto-run | 89897 | `57b54f08c8f12e5aedf3c93479577734c408e59049025fae9814eec69bdcc9b6` |
+| [cursor-multi-agent-pack-v0.1.2.zip](cursor-multi-agent-pack-v0.1.2.zip) | Cursor 专用 pack，包含 Cursor rules 与 launcher 依赖 | 88578 | `01e9a3dd1cf89b154b059acf3e65d0d3a8bde514f0d1f77deb62e0f7f657ccd0` |
+| [claude-code-multi-agent-pack-v0.1.2.zip](claude-code-multi-agent-pack-v0.1.2.zip) | Claude Code 专用 pack，包含 `CLAUDE.md` 与 launcher 依赖 | 87559 | `e5105c1332b145e07be31095b7b0a21b44529b637744017a15036fcaad69385e` |
 | [openclaw-multi-agent-skill-v0.1.2.zip](openclaw-multi-agent-skill-v0.1.2.zip) | OpenClaw/Her 专用 skill，包含 mission-control scripts | 61978 | `7041807a77367f83c037225f2db100ab45f25f04d77662a211a35f7e23bf6a3f` |
-| [multi-agent-coding-skill-v0.1.2.zip](multi-agent-coding-skill-v0.1.2.zip) | 通用协议包，只包含 skill 规则、模板和清单 | 33379 | `b15ed04e48629465423fdc702f824fb5f12103b0f52ad831cf8437954901d46d` |
+| [multi-agent-coding-skill-v0.1.2.zip](multi-agent-coding-skill-v0.1.2.zip) | 通用协议包，只包含 skill 规则、模板和清单 | 33657 | `46ed88db2e9f9de242524dc897993898514afd6c2f551bc8cae84cae054e5a50` |
 
 ## Older Packages
 

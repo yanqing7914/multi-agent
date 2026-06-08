@@ -176,9 +176,9 @@ def build_client(stage: Path, version: str, client: str) -> Path:
             root / "agents" / "openai.yaml",
             """interface:
   display_name: "Codex Multi-Agent"
-  short_description: "Launch scoped Codex workers with mission-control gates."
+  short_description: "Arrange Codex Desktop workers or launch Codex CLI workers."
   brand_color: "#2563EB"
-  default_prompt: "Use $codex-multi-agent to coordinate this coding task with Codex workers, scoped paths, review, and verification."
+  default_prompt: "Use $codex-multi-agent to coordinate this coding task with Codex Desktop or CLI workers, scoped paths, review, and verification."
 policy:
   allow_implicit_invocation: true
 """,

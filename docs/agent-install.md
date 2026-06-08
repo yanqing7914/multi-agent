@@ -8,7 +8,7 @@ Repository: `https://github.com/yanqing7914/multi-agent`
 
 | Client | Download | Install action |
 | --- | --- | --- |
-| Codex | `codex-multi-agent-skill-v0.1.2.zip` | Extract the top-level `codex-multi-agent/` folder into the user's Codex skills directory. |
+| Codex | `codex-multi-agent-skill-v0.1.2.zip` | Extract `codex-multi-agent/` into the user's Codex skills directory. Works with Codex Desktop handoff; Codex CLI is optional for auto-run. |
 | OpenClaw / Her | `openclaw-multi-agent-skill-v0.1.2.zip` | Extract the top-level `openclaw-multi-agent/` folder into the OpenClaw skills directory. |
 | Cursor | `cursor-multi-agent-pack-v0.1.2.zip` | Extract anywhere stable, then add `cursor-rules.md` or `.cursor/rules/multi-agent-coding.mdc` to the target workspace rules. |
 | Claude Code | `claude-code-multi-agent-pack-v0.1.2.zip` | Extract anywhere stable, then use the bundled `CLAUDE.md` as project instructions or merge it into the target project's `CLAUDE.md`. |
@@ -26,6 +26,16 @@ Repository: `https://github.com/yanqing7914/multi-agent`
 
 4. Restart Codex.
 5. Use `$codex-multi-agent` for client-specific execution, or `$multi-agent-coding` for protocol-only guidance.
+
+Codex Desktop users can arrange Workers without Codex CLI:
+
+```bash
+python3 ~/.codex/skills/codex-multi-agent/scripts/run_multi_agent.py \
+  --runtime codex-desktop \
+  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+```
+
+Open the returned `prompt_path` in a new Codex Desktop session or task. If Codex CLI is installed, use `--runtime codex` instead for automatic `codex exec` worker launch.
 
 ## Cursor Install
 

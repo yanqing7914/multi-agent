@@ -6,11 +6,34 @@ Thin Codex layer over [`adapters/openclaw/`](../openclaw/) mission-control scrip
 
 ## Install
 
-1. Install this repo as a Codex skill (root `SKILL.md` + `adapters/codex/SKILL.md`).
-2. Ensure **`codex`** CLI is installed and authenticated (user-managed; no API keys in scripts).
-3. Generate `.codex-multi-agent/` with `create_task_cards.py`.
+1. Install `codex-multi-agent-skill-*.zip` into the Codex skills directory.
+2. Generate `.codex-multi-agent/` with `create_task_cards.py`.
+3. Choose Desktop handoff (no Codex CLI) or CLI auto-run (`codex exec`).
 
-## Usage
+## Usage: Codex Desktop App
+
+```bash
+python3 /path/to/multi-agent-coding/scripts/run_multi_agent.py \
+  --runtime codex-desktop \
+  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+```
+
+This writes `.codex-multi-agent/desktop-workers/*.prompt.md`. Open each prompt in a new Codex Desktop session or task. The Worker writes the JSON/Markdown reports listed in the prompt; Main then runs sync and audit.
+
+Expected output:
+
+```json
+{
+  "ok": true,
+  "runtime": "codex-desktop",
+  "mode": "desktop-handoff",
+  "prompt_path": ".../.codex-multi-agent/desktop-workers/T002-worker-backend.prompt.md",
+  "result_json": ".../.codex-multi-agent/results/T002-worker-backend.json",
+  "result_markdown": ".../.codex-multi-agent/results/T002-worker-backend.md"
+}
+```
+
+## Usage: Codex CLI
 
 ```bash
 python3 /path/to/multi-agent-coding/scripts/run_multi_agent.py \
@@ -18,7 +41,7 @@ python3 /path/to/multi-agent-coding/scripts/run_multi_agent.py \
   --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-Direct launcher:
+Direct CLI launcher:
 
 ```bash
 /path/to/multi-agent-coding/adapters/codex/scripts/launch_codex_worker.sh \
@@ -77,6 +100,7 @@ python3 adapters/codex/scripts/codex_self_check.py
 
 ## What works today
 
+- Codex Desktop handoff prompts for users without Codex CLI
 - Preflight gate before `codex exec`
 - Same result-report contract as OpenClaw v1
 - OpenClaw gate sync / audit when Main runs shared scripts
@@ -85,6 +109,7 @@ python3 adapters/codex/scripts/codex_self_check.py
 ## Limitations
 
 - Does not manage Codex auth or worktree lifecycle automatically.
+- Desktop handoff does not automatically create a second Desktop session; Main/user opens the generated prompt in a new task.
 - `codex exec` flags may vary by CLI version — override with `CODEX_BIN` if needed.
 - Requires **result JSON file on disk** after run (not log extraction alone).
-- No native Codex subagent orchestration beyond prompt-guided Main.
+- CLI mode requires Codex CLI; Desktop handoff does not.
