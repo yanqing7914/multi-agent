@@ -1,99 +1,118 @@
 ﻿# Agent Install Guide
 
-This page is written for AI agents. If a user gives you this GitHub repository and says "install this skill", choose the package that matches your client.
+This page is written for AI agents. If a user gives you this GitHub repository and says "install this skill", install the native package for the current client instead of copying random prompts.
 
 Repository: `https://github.com/yanqing7914/multi-agent`
+Release base: `https://github.com/yanqing7914/multi-agent/releases/latest`
 
 ## Choose Package
 
-| Client | Download | Install action |
-| --- | --- | --- |
-| Codex | `codex-multi-agent-skill-v0.1.5.zip` | Extract `codex-multi-agent/` into the user's Codex skills directory. Prefer native Codex Desktop subagents; handoff and Codex CLI are fallbacks. |
-| OpenClaw / Her | `openclaw-multi-agent-skill-v0.1.5.zip` | Extract the top-level `openclaw-multi-agent/` folder into the OpenClaw skills directory. |
-| Cursor | `cursor-multi-agent-pack-v0.1.5.zip` | Extract anywhere stable, then add `cursor-rules.md` or `.cursor/rules/multi-agent-coding.mdc` to the target workspace rules. Desktop users can use `--runtime cursor-desktop`; CLI users can use `--runtime cursor`. |
-| Claude | `claude-code-multi-agent-pack-v0.1.5.zip` | Extract anywhere stable, then use `CLAUDE.md` for Claude Code or `--runtime claude-desktop` for Claude Desktop / Claude.ai custom-skill prompts. |
-| Generic agent | `multi-agent-coding-skill-v0.1.5.zip` | Extract and read `SKILL.md`; this is protocol guidance only, not a launcher pack. |
+| Client | Download | Install action | Full Worker mode |
+| --- | --- | --- | --- |
+| Codex App / CLI | `codex-multi-agent-skill-v0.2.0.zip` | Extract, then run `scripts/install_native_skills.py --client codex --scope primary --force` | Native Codex skills + bundled custom agents; `codex` CLI bridge is optional |
+| Cursor App / CLI | `cursor-multi-agent-pack-v0.2.0.zip` | Extract, then run `scripts/install_native_skills.py --client cursor --scope primary --force` | Native Cursor skills + local `agent` CLI bridge for automatic Workers |
+| Claude Code App / IDE / CLI | `claude-code-multi-agent-pack-v0.2.0.zip` | Extract, then run `scripts/install_native_skills.py --client claude --scope primary --force` | Native Claude skills + bundled `.claude/agents`; `claude` CLI bridge is optional for script launch |
+| OpenClaw / Her | `openclaw-multi-agent-skill-v0.2.0.zip` | Extract `openclaw-multi-agent/` into the OpenClaw skills directory | Native OpenClaw `sessions_spawn` / `sessions_send` workflow |
+| Generic agent | `multi-agent-coding-skill-v0.2.0.zip` | Extract and read `SKILL.md` | Protocol guidance only; use a client pack for native install |
+
+## Required Behavior For Installing Agents
+
+When acting as the user's agent:
+
+1. Detect your client: Codex, Cursor, Claude Code, OpenClaw/Her, or other.
+2. Download the matching latest release asset.
+3. Extract the package into a stable temp or tool directory.
+4. Run the native installer when the package includes `scripts/install_native_skills.py`.
+5. Run `--check` and report whether native skill discovery and Worker automation are ready.
+6. Do not claim complete Worker automation if the required bridge binary is missing.
+
+## Native Install Commands
+
+From an extracted client package root:
+
+```bash
+python3 scripts/install_native_skills.py --client all --scope primary --force
+python3 scripts/install_native_skills.py --client all --check
+```
+
+`--client all` means "all client adapters present in this package". In a single-client package it installs only that client. In the full repository it installs Codex, Cursor, and Claude.
+
+`--scope primary` installs to the recommended native skill directory. `--scope all-compatible` also writes compatible directories such as `.agents/skills`, `.cursor/skills`, `.claude/skills`, and `.codex/skills`.
 
 ## Codex Install
 
-1. Download the Codex package from the latest GitHub Release.
-2. Extract it.
-3. Move `codex-multi-agent/` to:
+Install package: `codex-multi-agent-skill-v0.2.0.zip`.
+
+Native locations used by the installer:
 
 ```text
+~/.agents/skills/codex-multi-agent
 ~/.codex/skills/codex-multi-agent
+~/.codex/agents/multi-agent-worker.toml
+~/.codex/agents/multi-agent-reviewer.toml
 ```
 
-4. Restart Codex.
-5. Use `$codex-multi-agent` for client-specific execution, or `$multi-agent-coding` for protocol-only guidance.
-
-Codex Desktop users can arrange Workers without Codex CLI. Prefer native Desktop subagents when the app exposes them:
+Codex App and Codex CLI can both discover the skill after restart/reload. Full App mode uses Codex native subagents. Scripted bridge mode uses:
 
 ```bash
-python3 ~/.codex/skills/codex-multi-agent/scripts/run_multi_agent.py \
-  --runtime codex-native \
-  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+python3 scripts/run_multi_agent.py --runtime codex --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-Main reads the returned `prompt_path` and spawns a native Codex subagent with the returned `agent_type`. If native subagent tools are unavailable, use `--runtime codex-desktop` to generate a manual handoff prompt. If Codex CLI is installed, use `--runtime codex` for automatic `codex exec` worker launch.
+If `codex` CLI is missing, native App subagents can still be full mode; only the scripted bridge is unavailable.
 
 ## Cursor Install
 
-1. Download `cursor-multi-agent-pack-v0.1.5.zip`.
-2. Extract it into a stable local directory, for example:
+Install package: `cursor-multi-agent-pack-v0.2.0.zip`.
+
+Native locations used by the installer:
 
 ```text
-~/agent-packs/cursor-multi-agent
+~/.agents/skills/cursor-multi-agent
+~/.cursor/skills/cursor-multi-agent
 ```
 
-3. In the target project, add either:
+Cursor App and Cursor CLI can both discover the skill. Complete automatic Worker orchestration from Cursor App requires the local Cursor CLI binary `agent` because Cursor App does not expose a public Codex/Claude-style native subagent API.
 
-```text
-.cursor/rules/multi-agent-coding.mdc
-```
-
-or merge `cursor-rules.md` into the project's Cursor rules.
-
-4. For Cursor Desktop prompt mode:
+Full Worker bridge:
 
 ```bash
-python3 ~/agent-packs/cursor-multi-agent/scripts/run_multi_agent.py \
-  --runtime cursor-desktop \
-  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+python3 scripts/run_multi_agent.py --runtime cursor --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-Open or paste the returned `prompt_path` in Cursor Agent. For automatic workers, ensure `agent`, `tmux`, `python3`, and `bash` are available and use `--runtime cursor`.
+If `agent` is missing, report: native skill installed, full Worker automation blocked; manual prompt handoff remains available with `--runtime cursor-desktop`.
 
-## Claude Install
+## Claude Code Install
 
-1. Download `claude-code-multi-agent-pack-v0.1.5.zip`.
-2. Extract it into a stable local directory, for example:
+Install package: `claude-code-multi-agent-pack-v0.2.0.zip`.
+
+Native locations used by the installer:
 
 ```text
-~/agent-packs/claude-code-multi-agent
+~/.claude/skills/claude-code-multi-agent
+~/.agents/skills/claude-code-multi-agent
+~/.claude/agents/multi-agent-worker.md
+~/.claude/agents/multi-agent-reviewer.md
+~/.claude/agents/multi-agent-verifier.md
 ```
 
-3. Merge the bundled `CLAUDE.md` into the target project's `CLAUDE.md`, or tell Claude Code to read it before coordinating multi-agent tasks.
-4. For Claude Desktop / Claude.ai prompt mode:
+Claude Code App/IDE and CLI can both discover the skill. Full App/CLI mode uses Claude subagents with the bundled agent files. Scripted bridge mode uses:
 
 ```bash
-python3 ~/agent-packs/claude-code-multi-agent/scripts/run_multi_agent.py \
-  --runtime claude-desktop \
-  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+python3 scripts/run_multi_agent.py --runtime claude-code --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-Use the returned `prompt_path` in Claude Desktop / Claude.ai custom skill context. For automatic local workers, ensure `claude`, `python3`, and `bash` are available and use `--runtime claude-code`. Inside OpenClaw, prefer ACP handoff.
+If standalone `claude` CLI is missing, Claude Code App/IDE subagents can still use the native skill in the app surface; only terminal-launched bridge mode is unavailable.
 
 ## Smoke Test
 
-From the extracted package root:
+From an extracted client package root:
 
 ```bash
+python3 scripts/install_native_skills.py --self-check
 python3 scripts/run_multi_agent.py --help
-python3 adapters/openclaw/scripts/validate_all.py
 ```
 
-For client-specific checks:
+Then run the client-specific check that exists in the package:
 
 ```bash
 python3 adapters/codex/scripts/codex_self_check.py
@@ -101,4 +120,4 @@ python3 adapters/cursor/scripts/cursor_self_check.py
 python3 adapters/claude-code/scripts/claude_code_self_check.py
 ```
 
-Only run the check that matches the package/client you installed.
+Only run checks whose adapter directory is present.

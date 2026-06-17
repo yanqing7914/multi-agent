@@ -119,6 +119,10 @@ ADAPTER_ROOT = SCRIPT_DIR.parent
 REPO_ROOT = ADAPTER_ROOT.parent.parent
 
 
+def adapter_required_path() -> str:
+    return "adapters/openclaw" if (REPO_ROOT / "adapters" / "openclaw").exists() else "."
+
+
 def adapter_script(name: str) -> str:
     return str((SCRIPT_DIR / name).resolve())
 
@@ -893,10 +897,12 @@ def run_self_check() -> int:
                 "--workspace-root",
                 str(workspace_root),
                 "--required-paths",
-                "adapters/openclaw",
+                adapter_required_path(),
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=False,
         )
         if proc.returncode != 0:
@@ -933,6 +939,8 @@ def run_self_check() -> int:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=False,
         )
         if proc.returncode != 0:
@@ -947,7 +955,7 @@ def run_self_check() -> int:
             "role": "Worker",
             "status": "completed",
             "files_changed": [
-                f"{mc_state_dir}/results/{mc_worker['task_id']}-{mc_worker['session_name']}.json",
+                f".codex-multi-agent/results/{mc_worker['task_id']}-{mc_worker['session_name']}.json",
                 "backend/sample.py",
             ],
         }
@@ -970,6 +978,8 @@ def run_self_check() -> int:
             ],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=False,
         )
         if proc.returncode != 0:
@@ -992,6 +1002,8 @@ def run_self_check() -> int:
             [sys.executable, str(status_script), "--self-check"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=False,
         )
         if proc.returncode != 0:

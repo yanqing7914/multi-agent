@@ -25,12 +25,14 @@ If the user asks to install this skill from GitHub, read `docs/agent-install.md`
 
 Use client-specific adapters for execution details:
 
-- Codex: use `adapters/codex/` as the client adapter; prefer native Desktop subagents when available, then Desktop handoff, then `codex exec`.
-- Cursor: use `adapters/cursor/`; Desktop users get task-card prompts + Cursor rules, CLI users get `agent`/tmux workers.
-- Claude: use `adapters/claude-code/`; Desktop/Claude.ai users get custom-skill prompts, Claude Code CLI users get local one-shot workers, and OpenClaw users get ACP handoff.
+- Codex: use `adapters/codex/`; App and CLI discover the native skill, bundled custom agents provide scoped Worker/Reviewer defaults, native subagents are the full path, and `codex exec` is the optional script bridge.
+- Cursor: use `adapters/cursor/`; App and CLI discover the native Agent Skill, while full automatic Worker orchestration uses the local Cursor `agent` CLI bridge because Cursor App does not expose a public Codex/Claude-style native subagent API.
+- Claude Code: use `adapters/claude-code/`; App/IDE and CLI discover the native skill, bundled `.claude/agents` provide Worker/Reviewer/Verifier roles, and `claude --print` is the optional script bridge.
 - OpenClaw: install `adapters/openclaw/` as the standalone skill `openclaw-multi-agent`; map roles to `sessions_spawn`, `sessions_send`, and `sessions_yield`; use the bundled scripts for task cards and scope audit.
 - Hermes: use the protocol as a task-card and role-routing contract; prefer MCP for state.
 - VS Code: use workspace instructions plus MCP/client extensions where available.
+
+If a client lacks the required native subagent or CLI bridge, do not claim full automation. Use prompt handoff only as a fallback and clearly report the limitation.
 
 When MCP is available, use it for task state, approvals, findings, and audits. When MCP is unavailable, fall back to the bundled templates and checklists.
 ## Trigger Handling

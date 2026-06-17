@@ -1,64 +1,84 @@
-# Claude Multi-Agent Adapter
+﻿# Claude Code Multi-Agent Adapter
 
-Thin Claude Code / Claude Desktop layer over [`adapters/openclaw/`](../openclaw/)
-mission-control scripts.
+Thin Claude Code layer over [`adapters/openclaw/`](../openclaw/) mission-control scripts.
 
 **Fast path:** [QUICKSTART.md](QUICKSTART.md)
 
+## What This Enables
+
+Claude Code App/IDE and Claude Code CLI both get:
+
+1. A native `claude-code-multi-agent` skill.
+2. Bundled Claude subagents for Worker, Reviewer, and Verifier roles.
+3. Shared task cards and result-report contracts under `.codex-multi-agent/`.
+4. Optional `claude --print` bridge for script-launched one-shot workers.
+5. OpenClaw ACP handoff when Claude participates inside Her/OpenClaw.
+
+Manual prompt generation remains available, but v0.2.0 treats native Claude Code skills + subagents as the full App/CLI path.
+
 ## Install
 
-No pip install. Python 3 only.
-
-1. For Claude Code projects, merge bundled `CLAUDE.md` into the target project instructions.
-2. For Claude Desktop / Claude.ai, use the generated prompt inside a custom skill or project/chat context.
-3. For automatic local edits, install and authenticate Claude Code CLI (`claude`).
-4. For OpenClaw/Her, prefer ACP handoff mode.
-
-## Usage: Claude Desktop / Claude.ai Skill Prompt
-
-Use this when the user is inside Claude Desktop or Claude.ai and wants a scoped
-task-card prompt rather than CLI automation:
+From the extracted `claude-code-multi-agent-pack-v0.2.0.zip` root:
 
 ```bash
-python3 /path/to/multi-agent-coding/scripts/run_multi_agent.py \
-  --runtime claude-desktop \
-  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+python3 scripts/install_native_skills.py --client claude --scope primary --force
+python3 scripts/install_native_skills.py --client claude --check
 ```
 
-This writes `.codex-multi-agent/claude-desktop/*.claude.md`. Use the prompt in
-Claude Desktop / Claude.ai custom skill context or paste it into a Claude
-project/chat that has access to the repository tooling.
+The installer writes:
 
-This is not an automatic desktop worker launcher. For automatic local repo
-edits, use Claude Code CLI. For OpenClaw session orchestration, use ACP.
-
-## Usage: OpenClaw ACP
-
-```bash
-python3 adapters/claude-code/scripts/launch_claude_worker.sh \
-  --task-card .codex-multi-agent/tasks/T002-worker-backend.md \
-  --mode acp
+```text
+~/.claude/skills/claude-code-multi-agent
+~/.agents/skills/claude-code-multi-agent
+~/.claude/agents/multi-agent-worker.md
+~/.claude/agents/multi-agent-reviewer.md
+~/.claude/agents/multi-agent-verifier.md
 ```
 
-Prints spawn/send/yield handoff JSON. Main pastes the task card into
-`sessions_send`.
+## Usage: Native Claude Code Subagents
 
-## Usage: Claude Code CLI
+Ask Claude Code:
+
+```text
+Use claude-code-multi-agent. Split this task into scoped task cards, delegate Worker/Reviewer/Verifier roles to the bundled subagents, require JSON and Markdown reports, then audit the diff before final delivery.
+```
+
+Reviewer cards may include `may_use_skills: [ssrd]`; the Reviewer subagent may use only those listed skills.
+
+## Usage: Claude Code CLI Bridge
+
+For deterministic script-launched Workers:
 
 ```bash
-python3 /path/to/multi-agent-coding/scripts/run_multi_agent.py \
+python3 /path/to/claude-code-multi-agent/scripts/run_multi_agent.py \
   --runtime claude-code \
   --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-Runs:
+The launcher runs `claude --print` with preflight and result-report checks. It reports quota/budget failures as non-zero instead of pretending the task completed.
 
-```text
-claude --print --permission-mode bypassPermissions "<preflight + task card prompt>"
+## Usage: OpenClaw ACP
+
+```bash
+python3 /path/to/claude-code-multi-agent/scripts/run_multi_agent.py \
+  --runtime claude-code \
+  --mode acp \
+  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-On failure (non-zero CLI exit, 429/budget/quota/`Request rejected` in log,
-missing artifacts), the launcher prints `"ok": false` and exits non-zero.
+Main uses the printed `sessions_spawn` / `sessions_send` / `sessions_yield` handoff in OpenClaw/Her.
+
+## Manual Fallback
+
+Use only when native subagents and CLI bridge are unavailable:
+
+```bash
+python3 /path/to/claude-code-multi-agent/scripts/run_multi_agent.py \
+  --runtime claude-desktop \
+  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+```
+
+This writes `.codex-multi-agent/claude-desktop/*.claude.md`.
 
 ## Contract
 
@@ -67,27 +87,12 @@ missing artifacts), the launcher prints `"ok": false` and exits non-zero.
 | Task cards | `.codex-multi-agent/tasks/*.md` |
 | Result Markdown | `.codex-multi-agent/results/*.md` |
 | Result JSON | `.codex-multi-agent/results/*.json` |
-| Desktop prompts | `.codex-multi-agent/claude-desktop/*.claude.md` |
+| Manual prompts | `.codex-multi-agent/claude-desktop/*.claude.md` |
 | Schema | `adapters/openclaw/templates/result-report.md` |
-
-## What Works Today
-
-- Claude Desktop / Claude.ai custom-skill prompt generation
-- Claude Code project instructions via bundled `CLAUDE.md`
-- Preflight before local `claude --print`
-- ACP handoff JSON for OpenClaw Main
-- Shared gate/audit via OpenClaw scripts
-- Result tee + JSON extraction helper
-
-## Limitations
-
-- Claude Desktop mode is prompt/skill guided; it does not automatically spawn local CLI workers.
-- Local Claude Code CLI can hit HTTP 429 / budget limits; the launcher reports `quota_exhausted`.
-- `bypassPermissions` is powerful; use only on trusted scoped tasks.
-- Claude Code session features beyond `--print` are not wrapped yet.
 
 ## Self-check
 
 ```bash
+python3 scripts/install_native_skills.py --client claude --check
 python3 adapters/claude-code/scripts/claude_code_self_check.py
 ```

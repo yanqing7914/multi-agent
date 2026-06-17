@@ -1,19 +1,20 @@
-# Client Support Model
+﻿# Client Support Model
 
 This project targets a shared multi-agent coordination protocol across **Codex**, **Cursor**, **Claude Code**, **OpenClaw**, Hermes, and VS Code.
 
-**v1 status:** Thin adapters exist for OpenClaw, Cursor, Codex, and Claude Code under `adapters/`. They reuse the OpenClaw mission-control scripts and `.codex-multi-agent/` contract. Hermes and VS Code remain documentation-only.
+**v0.2 status:** Codex, Cursor, and Claude Code now have client-native skill packages. Codex and Claude Code include native subagent definitions. Cursor uses native Agent Skills plus the local `agent` CLI bridge for complete Worker automation. OpenClaw/Her remains the canonical mission-control reference implementation.
 
 ## Support layers
 
 | Layer | Purpose | Required everywhere |
 | --- | --- | --- |
-| Skill / rule layer | Human-readable coordination workflow, roles, task cards, review rules | Yes |
-| MCP coordination layer | Shared task state, findings, approvals, and scope checks | Recommended (v2) |
-| Client adapter layer | Maps each client to prompts, launchers, and handoffs | Yes |
-| Execution layer | Actual code edits, tests, shell commands, and agent spawning | Client-specific |
+| Native skill layer | Client-discoverable instructions and trigger metadata | Yes for Codex/Cursor/Claude/OpenClaw |
+| Mission-control state | Task cards, ownership, status, reports, audits | Yes |
+| Worker execution layer | Native subagents or CLI bridge | Client-specific |
+| MCP coordination layer | Shared task state, findings, approvals, and scope checks | Optional |
+| IDE panel layer | Visual task board over `.codex-multi-agent/` | Optional |
 
-## Compatibility principle
+## Compatibility Principle
 
 The portable contract is not the UI or agent runtime. The portable contract is:
 
@@ -27,83 +28,86 @@ The portable contract is not the UI or agent runtime. The portable contract is:
 
 Each client may implement spawning, permissions, and tool calls differently.
 
-## v1 adapter matrix
+## v0.2 Client Matrix
 
-| Client | Adapter path | Worker launch | Mission-control scripts | Status |
-| --- | --- | --- | --- | --- |
-| OpenClaw | `adapters/openclaw/` | `sessions_spawn` / `sessions_send` / `sessions_yield` | Local (canonical) | **v1 in** |
-| Cursor | `adapters/cursor/` | `launch_cursor_worker.sh` → `agent` via tmux | Reuses OpenClaw scripts | **v1 in** |
-| Codex | `adapters/codex/` | `launch_codex_worker.sh` → `codex exec` | Reuses OpenClaw scripts | **v1 in** |
-| Claude Code | `adapters/claude-code/` | ACP handoff **or** `claude --print` | Reuses OpenClaw scripts | **v1 in** |
-| Hermes | (planned) | External runtime | MCP recommended | docs only |
-| VS Code | (planned) | Chat / MCP client | MCP recommended | docs only |
+| Client | Native skill | App full mode | CLI full mode | Worker launch | Status |
+| --- | --- | --- | --- | --- | --- |
+| Codex | `codex-multi-agent` | Native Codex subagents + bundled custom agents | Native subagents or `codex exec` bridge | `codex-native` / `codex` | **v0.2 in** |
+| Cursor | `cursor-multi-agent` | Native Agent Skill + local `agent` CLI bridge | `agent -p` bridge | `cursor` | **v0.2 in, bridge required** |
+| Claude Code | `claude-code-multi-agent` | Native skill + bundled `.claude/agents` | Native subagents or `claude --print` bridge | `claude-code` | **v0.2 in** |
+| OpenClaw / Her | `openclaw-multi-agent` | `sessions_spawn` / `sessions_send` / `sessions_yield` | Runtime-specific | `openclaw` / ACP | **v1 canonical** |
+| Hermes | Protocol package | Runtime-specific | Runtime-specific | MCP recommended | docs only |
+| VS Code | Protocol + panel | Extension/MCP dependent | CLI dependent | MCP/panel planned | scaffold |
 
-**Cross-adapter entrypoint:** `scripts/run_multi_agent.py --runtime <name> --task-card <path>`
+**Cross-adapter entrypoint:** `scripts/run_multi_agent.py --runtime <name> --task-card <path>`.
 
-**Validation:** `scripts/validate_all_adapters.py` (OpenClaw `validate_all.py` + per-adapter self-checks)
+**Validation:** `scripts/validate_all_adapters.py` runs OpenClaw checks, client checks, and native installer self-check.
 
-## Adapter layout (actual)
+## Adapter Layout
 
 ```text
 adapters/
   openclaw/          # canonical mission-control scripts + OpenClaw session mapping
-  cursor/            # SKILL.md + launch_cursor_worker.sh + examples
-  codex/             # SKILL.md + launch_codex_worker.sh + examples
-  claude-code/       # SKILL.md + launch_claude_worker.sh + ACP/local paths
-  _shared/           # bridge.py, self_check.py (thin helpers, no fork)
+  cursor/            # native Cursor skill + agent CLI bridge + rules
+  codex/             # native Codex skill + custom agents + codex exec bridge
+  claude-code/       # native Claude skill + subagents + claude bridge / ACP
+  _shared/           # bridge.py, self_check.py
 scripts/
+  install_native_skills.py
   run_multi_agent.py
   validate_all_adapters.py
 ```
 
 Source of truth remains root `SKILL.md`, `templates/`, `checklists/`, `examples/`, and `docs/mcp-format.md`.
 
-## Behavior by client
+## Behavior By Client
 
 ### Codex
 
-- Install root skill + `adapters/codex/SKILL.md`.
-- Generate cards with `adapters/openclaw/scripts/create_task_cards.py`.
-- Launch workers: `scripts/run_multi_agent.py --runtime codex --task-card ...`
-- Use git worktrees for parallel Workers (see `adapters/codex/README.md`).
-- MCP optional (v2).
+- Install `codex-multi-agent-skill-v0.2.0.zip` or run `scripts/install_native_skills.py --client codex` from the repo.
+- Native skill dirs: `~/.agents/skills/codex-multi-agent`, `~/.codex/skills/codex-multi-agent`.
+- Native custom agents: `~/.codex/agents/multi-agent-worker.toml`, `~/.codex/agents/multi-agent-reviewer.toml`.
+- App full mode: Main uses native subagents after the user asks for multi-agent work.
+- CLI bridge: `scripts/run_multi_agent.py --runtime codex --task-card ...`.
 
 ### Cursor
 
-- Use `adapters/cursor/SKILL.md` and project rules from root `SKILL.md`.
-- Main runs OpenClaw scripts for state; workers via `launch_cursor_worker.sh`.
-- Requires Cursor `agent` CLI + tmux for detached workers.
-- MCP optional (v2).
+- Install `cursor-multi-agent-pack-v0.2.0.zip` or run `scripts/install_native_skills.py --client cursor` from the repo.
+- Native skill dirs: `~/.agents/skills/cursor-multi-agent`, `~/.cursor/skills/cursor-multi-agent`.
+- App and CLI full automation require local `agent` CLI for Worker launch.
+- Manual prompt fallback: `--runtime cursor-desktop` only when `agent` is unavailable or explicitly requested.
 
 ### Claude Code
 
-- **Inside OpenClaw:** `runtime=acp` + task card handoff (preferred).
-- **Standalone:** `launch_claude_worker.sh` or `run_multi_agent.py --runtime claude-code`.
-- Same preflight and result-report gates as OpenClaw v1.
+- Install `claude-code-multi-agent-pack-v0.2.0.zip` or run `scripts/install_native_skills.py --client claude` from the repo.
+- Native skill dirs: `~/.claude/skills/claude-code-multi-agent`, `~/.agents/skills/claude-code-multi-agent`.
+- Native subagents: `~/.claude/agents/multi-agent-worker.md`, `multi-agent-reviewer.md`, `multi-agent-verifier.md`.
+- CLI bridge: `scripts/run_multi_agent.py --runtime claude-code --task-card ...`.
+- OpenClaw ACP: add `--mode acp`.
 
 ### OpenClaw
 
 - Install `adapters/openclaw/` as skill `openclaw-multi-agent`.
-- Full session workflow documented in `adapters/openclaw/QUICKSTART.md`.
-- Other adapters delegate here for scripts and templates.
+- Full session workflow is documented in `adapters/openclaw/QUICKSTART.md`.
+- Other adapters delegate here for scripts, templates, gates, and audits.
 
 ### Hermes
 
 - Use the protocol as a role-routing and task-card contract.
-- Prefer MCP for state (v2), because Hermes runtime details may vary.
+- Prefer MCP for state because Hermes runtime details may vary.
 
 ### VS Code
 
-- Use workspace instructions and MCP client configuration (v2/v3).
-- Use Review Mode for multi-perspective diff reviews.
+- Use workspace instructions and MCP client configuration.
+- Use the IDE panel scaffold for `.codex-multi-agent/` visibility when useful.
 
-## Portable state (v1)
+## Portable State
 
 ```text
 .codex-multi-agent/
-  tasks/       # task cards (portable)
+  tasks/       # task cards
   results/     # JSON + Markdown result reports
-  status.json  # gates (Main reads; scripts update)
+  status.json  # gates
   ownership.json
   audits/
 ```

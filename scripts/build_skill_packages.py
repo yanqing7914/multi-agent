@@ -46,6 +46,7 @@ CLIENT_SHARED = [
     "adapters/openclaw/templates",
     "checklists",
     "docs/agent-install.md",
+    "scripts/install_native_skills.py",
     "scripts/run_multi_agent.py",
     "templates",
 ]
@@ -55,7 +56,7 @@ CLIENTS = {
         "root": "codex-multi-agent",
         "zip": "codex-multi-agent-skill",
         "adapter": "adapters/codex",
-        "extra": [],
+        "extra": ["adapters/codex/agents"],
     },
     "cursor": {
         "root": "cursor-multi-agent",
@@ -67,7 +68,7 @@ CLIENTS = {
         "root": "claude-code-multi-agent",
         "zip": "claude-code-multi-agent-pack",
         "adapter": "adapters/claude-code",
-        "extra": [],
+        "extra": ["adapters/claude-code/agents"],
     },
 }
 
@@ -135,8 +136,9 @@ Use this project as a multi-agent mission-control pack.
 - Read `SKILL.md` first for trigger rules and role boundaries.
 - Use `QUICKSTART.md` for the Golden Path.
 - Generate task cards with `adapters/openclaw/scripts/create_task_cards.py`.
-- For Cursor Desktop, generate prompts with `scripts/run_multi_agent.py --runtime cursor-desktop`.
-- Launch Cursor workers with `scripts/run_multi_agent.py --runtime cursor`.
+- Cursor App and Cursor CLI both discover this native skill from `.agents/skills`, `.cursor/skills`, or user skill directories.
+- For complete Worker automation from Cursor App, use the local `agent` CLI bridge with `scripts/run_multi_agent.py --runtime cursor`.
+- Use `--runtime cursor-desktop` only when the user explicitly wants a manual prompt handoff.
 - Keep `.codex-multi-agent/` local unless the user explicitly asks to commit it.
 - Workers may edit only `allowed_paths`; Reviewers stay read-only.
 - Main must run gate sync and scope audit before final delivery.
@@ -149,8 +151,10 @@ def claude_md() -> str:
 Use this pack for scoped multi-agent coding tasks.
 
 - Read `SKILL.md` before coordinating roles.
-- For Claude Desktop / Claude.ai, generate prompts with `scripts/run_multi_agent.py --runtime claude-desktop`.
-- For local Claude Code workers, use `scripts/run_multi_agent.py --runtime claude-code`.
+- Claude Code App/IDE and Claude Code CLI both discover this native skill from `.claude/skills` or user skill directories.
+- Install bundled subagents from `adapters/claude-code/agents` into `.claude/agents` or `~/.claude/agents`.
+- For automatic local workers, use native subagents or `scripts/run_multi_agent.py --runtime claude-code`.
+- Use `--runtime claude-desktop` only when the user explicitly wants a manual prompt handoff.
 - Inside OpenClaw/Her, prefer ACP handoff with `adapters/claude-code/scripts/launch_claude_worker.sh --mode acp`.
 - Generate task cards with `adapters/openclaw/scripts/create_task_cards.py`.
 - Workers must write JSON and Markdown result reports before completion.

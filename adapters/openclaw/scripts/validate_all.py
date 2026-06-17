@@ -54,6 +54,8 @@ def main() -> int:
             [sys.executable, str(path), "--self-check"],
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=False,
         )
         ok = proc.returncode == 0

@@ -1,95 +1,62 @@
-# Codex Multi-Agent Adapter
+﻿# Codex Multi-Agent Adapter
 
-Thin Codex layer over [`adapters/openclaw/`](../openclaw/) mission-control
-scripts.
+Thin Codex layer over [`adapters/openclaw/`](../openclaw/) mission-control scripts.
 
 **Fast path:** [QUICKSTART.md](QUICKSTART.md)
 
 ## What This Enables
 
-Codex Desktop users should not have to install Codex CLI just to arrange
-Workers. The preferred flow is:
+Codex App and Codex CLI both get:
 
-1. User asks Codex Desktop Main to use multiple agents.
-2. Main generates scoped task cards.
-3. Main uses native Codex Desktop subagent tools when available.
-4. Workers/Reviewers write result reports.
-5. Main runs gate sync, scope audit, and final integration.
+1. A native `codex-multi-agent` skill.
+2. Bundled Codex custom agents for scoped Worker and read-only Reviewer roles.
+3. Native subagent orchestration when the user asks for multiple agents.
+4. Optional `codex exec` bridge for deterministic script-launched workers.
+5. Shared task cards, result reports, gate sync, and scope audit.
 
-The prompt-handoff file flow still exists, but it is a fallback for Desktop
-clients that do not expose native subagent tools.
+Manual prompt handoff remains available, but v0.2.0 treats native Codex subagents as the full App/CLI path.
 
 ## Install
 
-1. Install `codex-multi-agent-skill-*.zip` into the Codex skills directory.
-2. Start a Codex Desktop thread in the target repository.
-3. Ask for multi-agent work explicitly, for example:
-
-```text
-$codex-multi-agent
-Use native Codex Desktop subagents. Spawn one Worker for backend changes and
-one Reviewer using ssrd. Wait for both and audit the diff before final delivery.
-```
-
-## Usage: Codex Desktop Native Subagents
-
-Main prepares the task-card prompt:
+From the extracted `codex-multi-agent-skill-v0.2.0.zip` root:
 
 ```bash
-python3 /path/to/multi-agent-coding/scripts/run_multi_agent.py \
+python3 scripts/install_native_skills.py --client codex --scope primary --force
+python3 scripts/install_native_skills.py --client codex --check
+```
+
+The installer writes:
+
+```text
+~/.agents/skills/codex-multi-agent
+~/.codex/skills/codex-multi-agent
+~/.codex/agents/multi-agent-worker.toml
+~/.codex/agents/multi-agent-reviewer.toml
+```
+
+## Usage: Codex App Native Subagents
+
+Ask Codex App:
+
+```text
+Use codex-multi-agent. Split this task into scoped task cards, spawn a Worker for implementation and a Reviewer using ssrd if available, wait for result reports, run gate sync and scope audit, then deliver only after gates pass.
+```
+
+Main prepares each task-card prompt:
+
+```bash
+python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
   --runtime codex-native \
   --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-Expected output:
+Then Main spawns a native Codex subagent with the returned `agent_type` and prompt contents. If `may_use_skills` contains `ssrd` or another named skill, Main attaches or names that skill for the subagent.
 
-```json
-{
-  "ok": true,
-  "runtime": "codex-desktop",
-  "mode": "native-subagent",
-  "agent_type": "worker",
-  "prompt_path": ".../.codex-multi-agent/native-subagents/T002-worker-backend.spawn.md",
-  "may_use_skills": [],
-  "spawn_instruction": {
-    "agent_type": "worker",
-    "message_source": ".../T002-worker-backend.spawn.md",
-    "fork_context": false
-  }
-}
-```
-
-Then Main reads `prompt_path` and spawns a native Codex subagent with that
-prompt. If `may_use_skills` contains `ssrd` or another named skill, Main should
-attach that skill when the client supports structured skill input, or name it
-explicitly in the subagent prompt.
-
-## Usage: Desktop Prompt Handoff Fallback
-
-Use this only when native subagent tools are unavailable:
+## Usage: Codex CLI Bridge
 
 ```bash
-python3 /path/to/multi-agent-coding/scripts/run_multi_agent.py \
-  --runtime codex-desktop \
-  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
-```
-
-This writes `.codex-multi-agent/desktop-workers/*.prompt.md`. Open each prompt
-in a new Codex Desktop session or task. The Worker writes the JSON/Markdown
-reports listed in the prompt; Main then runs sync and audit.
-
-## Usage: Codex CLI Fallback
-
-```bash
-python3 /path/to/multi-agent-coding/scripts/run_multi_agent.py \
+python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
   --runtime codex \
-  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
-```
-
-Direct CLI launcher:
-
-```bash
-/path/to/multi-agent-coding/adapters/codex/scripts/launch_codex_worker.sh \
   --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
@@ -99,10 +66,19 @@ Optional env / CLI overrides:
 | --- | --- | --- |
 | `CODEX_MODEL` / `--model` | `gpt-5.3-codex` | Model passed to `codex exec` |
 | `CODEX_BIN` / `--codex-bin` | `codex` | Codex CLI binary |
-| `CODEX_SANDBOX` / `--sandbox` | `workspace-write` | Sandbox mode (`read-only`, `workspace-write`, `danger-full-access`) |
+| `CODEX_SANDBOX` / `--sandbox` | `workspace-write` | Sandbox mode |
 
-The launcher always passes `--skip-git-repo-check` and defaults to
-`workspace-write` so read-only sandboxes do not silently block writes.
+## Manual Fallback
+
+Use only when native subagents and CLI bridge are unavailable:
+
+```bash
+python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
+  --runtime codex-desktop \
+  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+```
+
+This writes `.codex-multi-agent/desktop-workers/*.prompt.md`.
 
 ## Result Contract
 
@@ -116,23 +92,16 @@ Main must run OpenClaw gate sync and scope audit before final delivery.
 
 ## What Works Today
 
-- Native Codex Desktop subagent prompt preparation
-- Desktop handoff fallback for users without native spawn exposure
-- CLI fallback via `codex exec`
-- Preflight gate before worker execution
-- Same result-report contract as OpenClaw v1
-- OpenClaw gate sync / audit when Main runs shared scripts
-
-## Limitations
-
-- Scripts cannot call Desktop-only subagent tools by themselves; the Codex Main
-  agent must use the native spawn tool when the app exposes it.
-- Native subagents inherit the current sandbox and approval policy.
-- Handoff fallback does not automatically create a second Desktop session.
-- CLI fallback requires Codex CLI and a writable sandbox.
+- Native Codex skill install for App and CLI
+- Bundled Codex custom agents under `~/.codex/agents`
+- Native subagent prompt preparation
+- CLI bridge via `codex exec`
+- Manual prompt fallback
+- Shared OpenClaw gate sync / audit
 
 ## Self-check
 
 ```bash
+python3 scripts/install_native_skills.py --client codex --check
 python3 adapters/codex/scripts/codex_self_check.py
 ```

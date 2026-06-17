@@ -2,6 +2,27 @@
 
 本文件遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.2.0] - 2026-06-17
+
+### Added
+
+- Added native installer `scripts/install_native_skills.py` for Codex, Cursor, and Claude Code packages.
+- Added Codex custom agent definitions under `adapters/codex/agents/`.
+- Added Claude Code subagent definitions under `adapters/claude-code/agents/`.
+- Added v0.2 client support model for App and CLI surfaces.
+
+### Changed
+
+- Reframed Codex App/CLI as native skill + native subagent first, with `codex exec` as optional bridge.
+- Reframed Cursor App/CLI as native Agent Skill plus local `agent` CLI bridge for complete Worker automation.
+- Reframed Claude Code App/IDE/CLI as native skill + bundled subagents first, with `claude --print` as optional bridge.
+- Updated GitHub-link install docs so another agent can install the correct package directly from the repository link.
+
+### Fixed
+
+- Client packages now include the native installer and only the adapter assets needed by that client.
+- Validation now includes native installer self-checks.
+
 ## [0.1.5] - 2026-06-17
 
 ### Fixed
@@ -95,6 +116,7 @@
 - 许可证：MIT。
 - Hermes / VS Code 扩展仍为文档与脚手架阶段；实时 LLM bench 运行需各客户端 CLI 与配额。
 
+[0.2.0]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.2.0
 [0.1.5]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.5
 [0.1.4]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.4
 [0.1.3]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.3

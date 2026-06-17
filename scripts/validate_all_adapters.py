@@ -28,6 +28,7 @@ ADAPTER_CHECKS = [
     ("lint_tool", REPO_ROOT / "tools" / "lint_tool.py", ["--self-check"]),
     ("shell_tool", REPO_ROOT / "tools" / "shell_tool.py", ["--self-check"]),
     ("repo_index_tool", REPO_ROOT / "tools" / "repo_index_tool.py", ["--self-check"]),
+    ("native_skill_installer", REPO_ROOT / "scripts" / "install_native_skills.py", ["--self-check"]),
     ("memory_log", REPO_ROOT / "adapters" / "openclaw" / "scripts" / "memory_log.py", ["--self-check"]),
     (
         "dogfood_claude",

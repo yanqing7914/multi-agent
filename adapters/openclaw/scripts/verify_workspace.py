@@ -13,7 +13,8 @@ from _preflight import verify_required_paths
 
 def run_self_check() -> int:
     root = Path(__file__).resolve().parent.parent.parent.parent
-    checked, missing = verify_required_paths(root, ["adapters/openclaw"])
+    required = "adapters/openclaw" if (root / "adapters" / "openclaw").exists() else "."
+    checked, missing = verify_required_paths(root, [required])
     if missing:
         print(json.dumps({"ok": False, "errors": [f"missing: {missing}"]}, indent=2))
         return 1

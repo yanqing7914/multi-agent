@@ -22,8 +22,20 @@ REPO_ROOT = SCRIPT_DIR.parent.parent.parent
 from _runtimes import DEMO_SPAWN_RUNTIME  # noqa: E402
 
 
+def adapter_path(path: str) -> str:
+    return path if (REPO_ROOT / "adapters" / "openclaw").exists() else path.replace("adapters/openclaw/", "")
+
+
 def run_cmd(cmd: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess:
-    return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, check=False)
+    return subprocess.run(
+        cmd,
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
 
 
 def write_result(path: Path, payload: dict) -> None:
@@ -90,9 +102,9 @@ def demo_run(state_dir: Path, workspace_root: Path, keep: bool = False) -> dict:
 
     root_str = str(workspace_root)
     adapter_files = [
-        "adapters/openclaw/SKILL.md",
-        "adapters/openclaw/README.md",
-        "adapters/openclaw/scripts/create_task_cards.py",
+        adapter_path("adapters/openclaw/SKILL.md"),
+        adapter_path("adapters/openclaw/README.md"),
+        adapter_path("adapters/openclaw/scripts/create_task_cards.py"),
     ]
 
     for task in tasks_by_role.get("Explorer", []):
