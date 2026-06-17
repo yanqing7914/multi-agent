@@ -2,6 +2,13 @@
 
 本文件遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.1.5] - 2026-06-17
+
+### Fixed
+
+- Updated GitHub-link install docs and demo references from v0.1.4/v0.1.3 to v0.1.5.
+- Documented `cursor-desktop` and `claude-desktop` in the launcher example.
+
 ## [0.1.4] - 2026-06-17
 
 ### Added
@@ -88,6 +95,7 @@
 - 许可证：MIT。
 - Hermes / VS Code 扩展仍为文档与脚手架阶段；实时 LLM bench 运行需各客户端 CLI 与配额。
 
+[0.1.5]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.5
 [0.1.4]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.4
 [0.1.3]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.3
 [0.1.2]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.2

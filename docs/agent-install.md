@@ -8,11 +8,11 @@ Repository: `https://github.com/yanqing7914/multi-agent`
 
 | Client | Download | Install action |
 | --- | --- | --- |
-| Codex | `codex-multi-agent-skill-v0.1.4.zip` | Extract `codex-multi-agent/` into the user's Codex skills directory. Prefer native Codex Desktop subagents; handoff and Codex CLI are fallbacks. |
-| OpenClaw / Her | `openclaw-multi-agent-skill-v0.1.4.zip` | Extract the top-level `openclaw-multi-agent/` folder into the OpenClaw skills directory. |
-| Cursor | `cursor-multi-agent-pack-v0.1.4.zip` | Extract anywhere stable, then add `cursor-rules.md` or `.cursor/rules/multi-agent-coding.mdc` to the target workspace rules. Desktop users can use `--runtime cursor-desktop`; CLI users can use `--runtime cursor`. |
-| Claude | `claude-code-multi-agent-pack-v0.1.4.zip` | Extract anywhere stable, then use `CLAUDE.md` for Claude Code or `--runtime claude-desktop` for Claude Desktop / Claude.ai custom-skill prompts. |
-| Generic agent | `multi-agent-coding-skill-v0.1.4.zip` | Extract and read `SKILL.md`; this is protocol guidance only, not a launcher pack. |
+| Codex | `codex-multi-agent-skill-v0.1.5.zip` | Extract `codex-multi-agent/` into the user's Codex skills directory. Prefer native Codex Desktop subagents; handoff and Codex CLI are fallbacks. |
+| OpenClaw / Her | `openclaw-multi-agent-skill-v0.1.5.zip` | Extract the top-level `openclaw-multi-agent/` folder into the OpenClaw skills directory. |
+| Cursor | `cursor-multi-agent-pack-v0.1.5.zip` | Extract anywhere stable, then add `cursor-rules.md` or `.cursor/rules/multi-agent-coding.mdc` to the target workspace rules. Desktop users can use `--runtime cursor-desktop`; CLI users can use `--runtime cursor`. |
+| Claude | `claude-code-multi-agent-pack-v0.1.5.zip` | Extract anywhere stable, then use `CLAUDE.md` for Claude Code or `--runtime claude-desktop` for Claude Desktop / Claude.ai custom-skill prompts. |
+| Generic agent | `multi-agent-coding-skill-v0.1.5.zip` | Extract and read `SKILL.md`; this is protocol guidance only, not a launcher pack. |
 
 ## Codex Install
 
@@ -39,7 +39,7 @@ Main reads the returned `prompt_path` and spawns a native Codex subagent with th
 
 ## Cursor Install
 
-1. Download `cursor-multi-agent-pack-v0.1.4.zip`.
+1. Download `cursor-multi-agent-pack-v0.1.5.zip`.
 2. Extract it into a stable local directory, for example:
 
 ```text
@@ -66,7 +66,7 @@ Open or paste the returned `prompt_path` in Cursor Agent. For automatic workers,
 
 ## Claude Install
 
-1. Download `claude-code-multi-agent-pack-v0.1.4.zip`.
+1. Download `claude-code-multi-agent-pack-v0.1.5.zip`.
 2. Extract it into a stable local directory, for example:
 
 ```text

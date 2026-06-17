@@ -21,10 +21,10 @@ Use ssrd for read-only review if available.
 1. Open the repository README.
 2. Read `docs/agent-install.md`.
 3. Detect the client surface:
-   - Codex Desktop -> `codex-multi-agent-skill-v0.1.3.zip`
-   - Cursor Desktop -> `cursor-multi-agent-pack-v0.1.3.zip`
-   - Claude Desktop / Claude Code -> `claude-code-multi-agent-pack-v0.1.3.zip`
-   - OpenClaw / Her -> `openclaw-multi-agent-skill-v0.1.3.zip`
+   - Codex Desktop -> `codex-multi-agent-skill-v0.1.5.zip`
+   - Cursor Desktop -> `cursor-multi-agent-pack-v0.1.5.zip`
+   - Claude Desktop / Claude Code -> `claude-code-multi-agent-pack-v0.1.5.zip`
+   - OpenClaw / Her -> `openclaw-multi-agent-skill-v0.1.5.zip`
 4. Install or unpack the package into the client-specific location.
 5. Generate `.codex-multi-agent/` task cards in the target repo.
 6. Start the right execution path:
