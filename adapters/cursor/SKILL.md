@@ -1,118 +1,60 @@
 ---
 name: cursor-multi-agent
-description: Cursor-specific thin adapter for multi-agent coding. Use when Cursor Main should spawn scoped Explorer/Worker/Reviewer/Verifier subagents via the Cursor agent CLI, with OpenClaw mission-control state (.codex-multi-agent/), preflight gates, and result-report contracts. Do not use for simple single-file edits or when OpenClaw session orchestration is already available.
+description: Cursor-specific adapter for multi-agent coding. Use Cursor Desktop prompt/rules mode first for desktop users, or Cursor agent CLI/tmux for automatic Workers. Do not use for simple single-file edits.
 ---
 
 # cursor-multi-agent
 
-Thin Cursor adapter over the shared OpenClaw mission-control core. Reuses `adapters/openclaw/scripts/*` for task cards, gates, audits, and demos — this folder only maps Cursor spawn mechanics to that contract.
+Thin Cursor adapter over the shared OpenClaw mission-control core. Reuses
+`adapters/openclaw/scripts/*` for task cards, gates, audits, and demos.
 
 ## When To Use
 
 Use when:
 
-- you are coordinating from **Cursor** as Main Agent
-- the task needs Explorer / Worker / Reviewer / Verifier roles with path scoping
-- you want `.codex-multi-agent/` local state, preflight, and false-completion gates
-- you will spawn workers with the Cursor **`agent`** CLI (often inside **tmux**)
+- you are coordinating from Cursor as Main Agent
+- the user asks for multiple agents, Workers, Reviewers, or parallel review
+- the task needs scoped `allowed_paths`, result reports, and final diff audit
+- Cursor Desktop should receive task-card prompts, or Cursor CLI should launch background workers
 
-Do **not** use when:
+Do not use when:
 
-- the task is a single quick edit (use Quick Path in root `SKILL.md`)
-- you already run inside OpenClaw and prefer `sessions_spawn` — use `adapters/openclaw/` instead
-- you need MCP-backed task panels (v2/v3 roadmap)
+- the task is a quick single-agent edit
+- the user wants OpenClaw `sessions_spawn`; use `adapters/openclaw/`
+- the user expects Cursor Desktop to expose Codex-style native subagent tools
 
-## Role Mapping (Cursor)
+## Execution Modes
 
-| Role | Cursor mechanism |
-| --- | --- |
-| Main | Current Cursor Agent session — runs `create_task_cards.py`, `--sync`, audit, delivery |
-| Explorer | `agent -p "<task card>" --force --trust` in read-only card (`write_permission: false`) |
-| Worker | `launch_cursor_worker.sh --task-card .codex-multi-agent/tasks/T00X-*.md` (tmux detached) |
-| Reviewer | Same launcher; card sets `write_permission: false`, may authorize `ssrd` |
-| Verifier | Same launcher; card lists validation commands |
+| Mode | Use when | How |
+| --- | --- | --- |
+| Cursor Desktop prompt | User is in Cursor Desktop | Generate `.codex-multi-agent/cursor-desktop/*.cursor.md` and paste/open in Cursor Agent |
+| Cursor CLI worker | User has `agent` CLI + `tmux` | Run `scripts/run_multi_agent.py --runtime cursor` |
 
-Main stays accountable. Scripts update state; they do not spawn agents.
+Cursor Desktop mode is not a separate native subagent runtime. It is a
+Desktop-friendly prompt/rules path that preserves the same task-card, result,
+and audit contract.
 
 ## Golden Path
 
-1. **Generate mission-control state** (from target repo root):
-
-```bash
-python3 /path/to/multi-agent-coding/adapters/openclaw/scripts/create_task_cards.py \
-  --from-yaml /path/to/multi-agent-coding/adapters/cursor/examples/favorite-feature.yaml \
-  --workspace-root "$(pwd)" \
-  --out .codex-multi-agent
-```
-
-2. **Sync gates** before each wave:
-
-```bash
-python3 /path/to/multi-agent-coding/adapters/openclaw/scripts/update_task_status.py \
-  --state-dir .codex-multi-agent --sync
-```
-
-3. **Launch a worker** (preflight runs first; exits non-zero on failure):
+1. Install or merge `.cursor/rules/multi-agent-coding.mdc` into the target workspace.
+2. Generate `.codex-multi-agent/` task cards.
+3. Prefer `--runtime cursor-desktop` for Desktop users:
 
 ```bash
 python3 /path/to/multi-agent-coding/scripts/run_multi_agent.py \
-  --runtime cursor \
+  --runtime cursor-desktop \
   --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-Or directly:
+4. Paste/open the generated prompt in Cursor Agent.
+5. Use `--runtime cursor` only when CLI/tmux automation is desired.
+6. Main runs gate sync and scope audit before delivery.
 
-```bash
-/path/to/multi-agent-coding/adapters/cursor/scripts/launch_cursor_worker.sh \
-  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
-```
+## Skill Routing
 
-4. **Attach to tmux** (if detached): `tmux attach -t cursor-T002`
-
-5. **After each wave** — sync, capture diff, audit (same as OpenClaw):
-
-```bash
-git diff --name-only > .codex-multi-agent/changed-files.txt
-python3 /path/to/multi-agent-coding/adapters/openclaw/scripts/audit_worker_output.py \
-  --ownership .codex-multi-agent/ownership.json \
-  --results .codex-multi-agent/results \
-  --changed-files .codex-multi-agent/changed-files.txt \
-  --write-audit --state-dir .codex-multi-agent
-```
-
-## Preflight & Result Report Contract
-
-Every worker prompt **starts with**:
-
-```bash
-cd "<absolute workspace_root from task card>"
-pwd
-python3 .../verify_workspace.py --workspace-root ... --required-paths ...
-```
-
-Workers must write **both**:
-
-- Markdown: `.codex-multi-agent/results/<task_id>-<session>.md`
-- JSON sidecar: same stem `.json` (schema: `adapters/openclaw/templates/result-report.md`)
-
-The launcher tees CLI output to the Markdown path and best-effort extracts JSON from the log.
-
-## Shared Scripts (do not duplicate)
-
-| Script | Purpose |
-| --- | --- |
-| `adapters/openclaw/scripts/create_task_cards.py` | Task cards + ownership + status |
-| `adapters/openclaw/scripts/update_task_status.py` | Gate sync + summarize |
-| `adapters/openclaw/scripts/audit_worker_output.py` | Scope audit |
-| `adapters/openclaw/scripts/verify_workspace.py` | Preflight path checks |
-| `adapters/openclaw/scripts/run_local_demo.py` | Deterministic gate demo |
-
-## Cursor-Specific Notes
-
-- Requires **`agent`** CLI and **`tmux`** on PATH for detached workers.
-- Use `--foreground` on `launch_cursor_worker.py` for debugging without tmux.
-- Convert root `SKILL.md` rules into Cursor project rules for Main; this adapter covers **worker launch** only.
-- `.codex-multi-agent/` is local/gitignored — do not commit unless the user asks.
+- Reviewer cards may authorize review skills such as `ssrd` with `may_use_skills: [ssrd]`.
+- Cursor Desktop prompts include authorized skill names; if unavailable, the Agent must report blocked.
+- Workers may not use skills to expand paths, shell commands, network access, credentials, git writes, or role permissions.
 
 ## Validation
 

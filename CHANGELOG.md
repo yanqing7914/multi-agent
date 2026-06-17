@@ -2,6 +2,21 @@
 
 本文件遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.1.4] - 2026-06-17
+
+### Added
+
+- Cursor Desktop prompt mode via `--runtime cursor-desktop`.
+- Claude Desktop / Claude.ai prompt mode via `--runtime claude-desktop`.
+- Shared Desktop prompt helper for non-native Desktop surfaces.
+- End-to-end GitHub-link install demo under `examples/end-to-end-agent-install/`.
+
+### Changed
+
+- Cursor docs now describe Desktop prompt/rules mode and CLI/tmux mode separately.
+- Claude docs now separate Desktop/custom-skill prompt, Claude Code CLI, and OpenClaw ACP paths.
+- Client packages include updated Desktop guidance and prompt-generation scripts.
+
 ## [0.1.3] - 2026-06-08
 
 ### Added
@@ -73,6 +88,7 @@
 - 许可证：MIT。
 - Hermes / VS Code 扩展仍为文档与脚手架阶段；实时 LLM bench 运行需各客户端 CLI 与配额。
 
+[0.1.4]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.4
 [0.1.3]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.3
 [0.1.2]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.2
 [0.1.1]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.1

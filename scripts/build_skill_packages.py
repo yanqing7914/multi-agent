@@ -23,6 +23,7 @@ COMMON_GENERIC = [
     "docs",
     "examples/README.md",
     "examples/bugfix.md",
+    "examples/end-to-end-agent-install",
     "examples/feature.md",
     "examples/review.md",
     "templates",
@@ -134,6 +135,7 @@ Use this project as a multi-agent mission-control pack.
 - Read `SKILL.md` first for trigger rules and role boundaries.
 - Use `QUICKSTART.md` for the Golden Path.
 - Generate task cards with `adapters/openclaw/scripts/create_task_cards.py`.
+- For Cursor Desktop, generate prompts with `scripts/run_multi_agent.py --runtime cursor-desktop`.
 - Launch Cursor workers with `scripts/run_multi_agent.py --runtime cursor`.
 - Keep `.codex-multi-agent/` local unless the user explicitly asks to commit it.
 - Workers may edit only `allowed_paths`; Reviewers stay read-only.
@@ -147,6 +149,7 @@ def claude_md() -> str:
 Use this pack for scoped multi-agent coding tasks.
 
 - Read `SKILL.md` before coordinating roles.
+- For Claude Desktop / Claude.ai, generate prompts with `scripts/run_multi_agent.py --runtime claude-desktop`.
 - For local Claude Code workers, use `scripts/run_multi_agent.py --runtime claude-code`.
 - Inside OpenClaw/Her, prefer ACP handoff with `adapters/claude-code/scripts/launch_claude_worker.sh --mode acp`.
 - Generate task cards with `adapters/openclaw/scripts/create_task_cards.py`.

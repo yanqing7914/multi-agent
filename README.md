@@ -1,6 +1,6 @@
 ﻿# multi-agent
 
-[![version](https://img.shields.io/badge/version-0.1.3-blue)](CHANGELOG.md)
+[![version](https://img.shields.io/badge/version-0.1.4-blue)](CHANGELOG.md)
 [![python](https://img.shields.io/badge/python-%3E%3D3.10-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -29,11 +29,11 @@ IDE Panel    = 图形化任务面板、Prompt 生成器和本地集成入口
 
 | 压缩包 | 适用场景 |
 | --- | --- |
-| [`codex-multi-agent-skill-v0.1.3.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.3/codex-multi-agent-skill-v0.1.3.zip) | Codex 专用，优先支持 Desktop 原生 subagent；handoff 与 `codex exec` 是兜底 |
-| [`cursor-multi-agent-pack-v0.1.3.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.3/cursor-multi-agent-pack-v0.1.3.zip) | Cursor 专用，包含 `cursor-rules.md` 与 `.cursor/rules/` |
-| [`claude-code-multi-agent-pack-v0.1.3.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.3/claude-code-multi-agent-pack-v0.1.3.zip) | Claude Code 专用，包含 `CLAUDE.md` 与本地/ACP launcher |
-| [`openclaw-multi-agent-skill-v0.1.3.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.3/openclaw-multi-agent-skill-v0.1.3.zip) | OpenClaw / Her 专用，推荐 OpenClaw 用户下载这个 |
-| [`multi-agent-coding-skill-v0.1.3.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.3/multi-agent-coding-skill-v0.1.3.zip) | 通用协议包，只包含 skill 规则、模板和清单 |
+| [`codex-multi-agent-skill-v0.1.4.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.4/codex-multi-agent-skill-v0.1.4.zip) | Codex 专用，优先支持 Desktop 原生 subagent；handoff 与 `codex exec` 是兜底 |
+| [`cursor-multi-agent-pack-v0.1.4.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.4/cursor-multi-agent-pack-v0.1.4.zip) | Cursor 专用，包含 Desktop Agent prompt、Cursor rules 与 CLI launcher |
+| [`claude-code-multi-agent-pack-v0.1.4.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.4/claude-code-multi-agent-pack-v0.1.4.zip) | Claude 专用，包含 Desktop/custom-skill prompt、`CLAUDE.md`、本地/ACP launcher |
+| [`openclaw-multi-agent-skill-v0.1.4.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.4/openclaw-multi-agent-skill-v0.1.4.zip) | OpenClaw / Her 专用，推荐 OpenClaw 用户下载这个 |
+| [`multi-agent-coding-skill-v0.1.4.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.4/multi-agent-coding-skill-v0.1.4.zip) | 通用协议包，只包含 skill 规则、模板和清单 |
 | [`openclaw-multi-agent-skill-v0.1.1.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.1/openclaw-multi-agent-skill-v0.1.1.zip) | OpenClaw / Her 专用，推荐 OpenClaw 用户下载这个 |
 | [`multi-agent-coding-skill-v0.1.1.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.1.1/multi-agent-coding-skill-v0.1.1.zip) | 通用 Codex/OpenClaw 风格 skill 包 |
 
@@ -55,12 +55,12 @@ IDE Panel    = 图形化任务面板、Prompt 生成器和本地集成入口
 ## 当前能力概览
 
 - **OpenClaw / Her：Production v1**，作为 mission-control 参考实现。
-- **Cursor：可用并已 dogfood**，通过 launcher/tmux 接入 Worker runtime。
+- **Cursor：可用并已 dogfood**，Desktop 走 Agent prompt + rules；自动 Worker 走 `agent` CLI/tmux。
 - **Codex：可用并已 dogfood**，Desktop 原生 subagent 优先；无原生 spawn 时走 Desktop handoff；有 CLI 时可走 `codex exec`。
-- **Claude Code：契约已验证**，本地 quota/429 时建议走 OpenClaw ACP 路径。
+- **Claude：契约已验证**，Desktop/Claude.ai 走 custom-skill prompt；自动 Worker 走 Claude Code CLI 或 OpenClaw ACP。
 - **MCP coordinator：v1 已有**，基于 `.codex-multi-agent/` 暴露任务、finding、审批和审计状态。
 - **IDE panel：v1 已有雏形**，用于 mission-control task panel。
-- **Bench / case studies：已有**，包括轻量 SWE-style cases、SWE-bench Lite-shaped cases、FizzBuzz 和 Flask CLI case study。
+- **Bench / case studies：已有**，包括轻量 SWE-style cases、SWE-bench Lite-shaped cases、FizzBuzz、Flask CLI 和 GitHub-link 安装端到端 demo。
 
 ## 核心角色
 

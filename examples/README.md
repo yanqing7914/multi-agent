@@ -1,45 +1,34 @@
-# 示例目录
+# Examples
 
-本目录收录 multi-agent-coding 的**流程示例**与**端到端案例研究**。案例研究展示真实门控、结果报告与审计产物，可直接对照 OpenClaw v1 脚本复现。
+This directory contains lightweight workflow examples and complete case studies
+for `multi-agent-coding`.
 
-## 流程示例（轻量）
+## Workflow Examples
 
-| 文件 | 说明 |
+| File | Purpose |
 | --- | --- |
-| [`feature.md`](feature.md) | 多模块功能开发：Explorer → Worker → Reviewer → Verifier |
-| [`bugfix.md`](bugfix.md) | 缺陷修复：先调研再受控实现 |
-| [`review.md`](review.md) | 只读评审：多 Reviewer + `ssrd` 等 Skill |
+| [`feature.md`](feature.md) | Multi-module feature flow: Explorer -> Worker -> Reviewer -> Verifier |
+| [`bugfix.md`](bugfix.md) | Bugfix flow: investigate first, then make scoped changes |
+| [`review.md`](review.md) | Read-only multi-reviewer flow with review skills such as `ssrd` |
 
-## 案例研究（完整产物）
+## End-to-End Install Demo
 
-### [case-study-fizzbuzz](case-study-fizzbuzz/)
-
-| 项 | 内容 |
+| Case | Purpose |
 | --- | --- |
-| **场景** | 在小型 `FizzBuzz` 模块上狗食 OpenClaw v1 任务控制：验证 Explorer → Worker → Reviewer → Verifier 全门控可通过，并覆盖反虚假完成规则。 |
-| **角色** | Explorer、Worker、Reviewer、Verifier（由 Main 按任务卡编排） |
-| **关键产物** | `cards/` 任务卡、`results/` JSON+Markdown 结果报告、`summary/run-summary.md` 门控快照 |
-| **详情** | [case-study-fizzbuzz/README.md](case-study-fizzbuzz/README.md) |
+| [`end-to-end-agent-install/`](end-to-end-agent-install/) | User sends the GitHub link to an agent, the agent installs the right package, then starts a scoped multi-agent run |
 
-### [case-study-flask-cli](case-study-flask-cli/)
+## Case Studies
 
-| 项 | 内容 |
-| --- | --- |
-| **场景** | 多文件「Flask 形态」CLI（stdlib：`http.server` + `argparse`），演示跨模块 Worker 范围与 Codex 运行时启动。 |
-| **角色** | Explorer、Worker、Reviewer、Verifier；经 `scripts/run_multi_agent.py --runtime codex` 启动 Worker |
-| **关键产物** | `app/` 与 `tests/` 源码、`task.yaml` 任务定义、运行后填充的 `cards/`、`results/`、`summary/` |
-| **详情** | [case-study-flask-cli/README.md](case-study-flask-cli/README.md) |
+| Case | Purpose | Key Artifacts |
+| --- | --- | --- |
+| [`case-study-fizzbuzz/`](case-study-fizzbuzz/) | Dogfood OpenClaw v1 task control on a small FizzBuzz module | `cards/`, `results/`, `summary/run-summary.md` |
+| [`case-study-flask-cli/`](case-study-flask-cli/) | Multi-file Flask-shaped CLI case with real adapter runs | `app/`, `tests/`, `task.yaml`, `.runs/` |
+| [`case-study-gh-issue-typo/`](case-study-gh-issue-typo/) | Simulated GitHub issue -> Explorer -> Worker -> Reviewer -> Verifier | `mock-issue.md`, `mock-pr.md`, `cards/` |
 
-### [case-study-gh-issue-typo](case-study-gh-issue-typo/)
+## Related
 
-| 项 | 内容 |
-| --- | --- |
-| **场景** | 模拟真实 GitHub issue（docstring 拼写 `retrun` → `return`）：跨 issue → Explorer → Worker → Reviewer → Verifier 的 OSS 修复流程。 |
-| **角色** | Explorer、Worker、Reviewer、Verifier |
-| **关键产物** | `mock-issue.md`、`mock-pr.md`、`before.py` / `after.py`、`cards/`、`summary/run-summary.md` |
-| **详情** | [case-study-gh-issue-typo/README.md](case-study-gh-issue-typo/README.md) |
-
-## 相关链接
-
-- OpenClaw 适配器：[adapters/openclaw/README.md](../adapters/openclaw/README.md)
-- 基准 harness：[bench/README.md](../bench/README.md)
+- OpenClaw adapter: [`../adapters/openclaw/README.md`](../adapters/openclaw/README.md)
+- Codex adapter: [`../adapters/codex/README.md`](../adapters/codex/README.md)
+- Cursor adapter: [`../adapters/cursor/README.md`](../adapters/cursor/README.md)
+- Claude adapter: [`../adapters/claude-code/README.md`](../adapters/claude-code/README.md)
+- Bench harness: [`../bench/README.md`](../bench/README.md)

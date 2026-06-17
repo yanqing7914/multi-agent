@@ -1,83 +1,55 @@
 ---
 name: claude-code-multi-agent
-description: Claude Code thin adapter for multi-agent coding. Use when Claude Code should run as a scoped Worker/Reviewer/Verifier with OpenClaw mission-control state, either via OpenClaw ACP runtime (sessions_spawn runtime=acp) or local claude --print one-shot workers. Do not use for unscoped full-repo edits without task cards.
+description: Claude Code / Claude Desktop adapter for multi-agent coding. Use Claude Desktop prompt mode for custom-skill/project users, OpenClaw ACP for orchestrated sessions, or Claude Code CLI for local one-shot workers.
 ---
 
 # claude-code-multi-agent
 
-Thin Claude Code adapter over the shared OpenClaw mission-control core.
+Thin Claude adapter over the shared OpenClaw mission-control core.
 
 ## When To Use
 
 Use when:
 
-- Claude Code is the **execution agent** for a scoped task card
-- you need the same preflight / result-report / gate contract as OpenClaw v1
-- you run either **inside OpenClaw** (ACP) or **standalone** (local CLI)
+- Claude Code, Claude Desktop, or Claude.ai should participate in a scoped multi-agent workflow
+- the user asks for Workers, Reviewers, parallel review, or review skills such as `ssrd`
+- the task needs task cards, `allowed_paths`, result reports, and final audit
 
-## Two Launch Paths
+Do not use when:
 
-### A) OpenClaw ACP (preferred inside OpenClaw)
+- the task is a simple single-agent edit
+- the user expects Claude Desktop mode to automatically mutate a local repo without tooling
+- the task card is unscoped or lacks an output contract
 
-When Main runs in OpenClaw/Her:
+## Execution Modes
 
-```text
-sessions_spawn name="worker-backend" runtime="acp"
-sessions_send session="worker-backend" message="<full task card>"
-sessions_yield session="worker-backend"
-```
-
-Task cards already include `openclaw_handoff` blocks from `create_task_cards.py`. Set `runtime: acp` in YAML examples.
-
-Print ACP handoff without spawning:
-
-```bash
-python3 adapters/claude-code/scripts/launch_claude_worker.sh \
-  --task-card .codex-multi-agent/tasks/T002-worker-backend.md \
-  --mode acp
-```
-
-### B) Local one-shot CLI (standalone)
-
-Stateless worker when OpenClaw is not available:
-
-```bash
-python3 scripts/run_multi_agent.py \
-  --runtime claude-code \
-  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
-```
-
-Runs:
-
-```bash
-claude --print --permission-mode bypassPermissions "<prompt with preflight + task card>"
-```
-
-Output teed to `.codex-multi-agent/results/<task_id>-<session>.md`.
-
-## Role Mapping
-
-| Role | ACP path | Local path |
+| Mode | Use when | How |
 | --- | --- | --- |
-| Main | OpenClaw session or Claude Code project lead | Same |
-| Worker | `runtime=acp` spawn | `launch_claude_worker.sh` |
-| Reviewer | ACP spawn, read-only card | local `--print`, read-only card |
-| Verifier | ACP spawn | local `--print` |
+| Claude Desktop / Claude.ai prompt | User is in Claude Desktop or Claude.ai custom skill/project | Generate `.codex-multi-agent/claude-desktop/*.claude.md` |
+| OpenClaw ACP | Main runs in OpenClaw/Her | Print `sessions_spawn` / `sessions_send` / `sessions_yield` handoff |
+| Claude Code CLI | User has local `claude` CLI | Run `claude --print` one-shot worker |
 
 ## Golden Path
 
-1. Generate cards with `create_task_cards.py` (use `adapters/claude-code/examples/favorite-feature.yaml`).
-2. Sync gates with `update_task_status.py --sync`.
-3. Spawn via ACP **or** local launcher.
-4. Audit with `audit_worker_output.py` — same as OpenClaw.
+1. Generate `.codex-multi-agent/` task cards.
+2. For Desktop users:
 
-## Preflight & Result Report Contract
+```bash
+python3 /path/to/multi-agent-coding/scripts/run_multi_agent.py \
+  --runtime claude-desktop \
+  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+```
 
-Same as OpenClaw v1 — see `adapters/openclaw/templates/result-report.md`.
+3. Use the prompt in Claude Desktop / Claude.ai custom skill context.
+4. For automatic local edits, use `--runtime claude-code`.
+5. For OpenClaw orchestration, use `--runtime claude-code --mode acp`.
+6. Main runs gate sync and scope audit before final delivery.
 
-## Shared Scripts
+## Skill Routing
 
-All mission-control scripts live under `adapters/openclaw/scripts/`.
+- Reviewer cards may authorize `ssrd` with `may_use_skills: [ssrd]`.
+- Claude Desktop prompts include authorized skill names; if unavailable, Claude must report blocked.
+- Workers may not use skills to expand paths, shell commands, network access, credentials, git writes, or role permissions.
 
 ## Validation
 

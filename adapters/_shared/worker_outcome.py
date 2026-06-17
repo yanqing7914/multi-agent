@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from pathlib import Path
 
@@ -204,7 +205,8 @@ def run_outcome_fixture_checks() -> list[str]:
     if details.get("normalized_error") != "quota_exhausted":
         errors.append("tee_ok_cli_failed missing normalized_error")
 
-    stub_md = fixtures / "_selfcheck_stub.md"
+    suffix = f"{os.getpid()}"
+    stub_md = fixtures / f"_selfcheck_stub_{suffix}.md"
     stub_md.write_text("x" * MIN_RESULT_MD_BYTES, encoding="utf-8")
     try:
         ok, err, _ = evaluate_worker_outcome(
@@ -221,8 +223,8 @@ def run_outcome_fixture_checks() -> list[str]:
     finally:
         stub_md.unlink(missing_ok=True)
 
-    success_md = fixtures / "_selfcheck_success.md"
-    success_json = fixtures / "_selfcheck_success.json"
+    success_md = fixtures / f"_selfcheck_success_{suffix}.md"
+    success_json = fixtures / f"_selfcheck_success_{suffix}.json"
     success_md.write_text("completed normally; command history mentioned timeout diagnostics\n", encoding="utf-8")
     success_json.write_text(json.dumps({"task_id": "T001", "role": "Worker"}), encoding="utf-8")
     try:

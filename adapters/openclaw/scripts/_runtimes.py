@@ -26,10 +26,12 @@ BENCH_RUNTIME_CHOICES: tuple[str, ...] = (
 # Cross-adapter launcher (scripts/run_multi_agent.py)
 LAUNCHER_RUNTIME_CHOICES: tuple[str, ...] = (
     "openclaw",
+    "cursor-desktop",
     "cursor",
     "codex-native",
     "codex-desktop",
     "codex",
+    "claude-desktop",
     "claude-code",
 )
 

@@ -8,11 +8,11 @@ Repository: `https://github.com/yanqing7914/multi-agent`
 
 | Client | Download | Install action |
 | --- | --- | --- |
-| Codex | `codex-multi-agent-skill-v0.1.3.zip` | Extract `codex-multi-agent/` into the user's Codex skills directory. Prefer native Codex Desktop subagents; handoff and Codex CLI are fallbacks. |
-| OpenClaw / Her | `openclaw-multi-agent-skill-v0.1.3.zip` | Extract the top-level `openclaw-multi-agent/` folder into the OpenClaw skills directory. |
-| Cursor | `cursor-multi-agent-pack-v0.1.3.zip` | Extract anywhere stable, then add `cursor-rules.md` or `.cursor/rules/multi-agent-coding.mdc` to the target workspace rules. |
-| Claude Code | `claude-code-multi-agent-pack-v0.1.3.zip` | Extract anywhere stable, then use the bundled `CLAUDE.md` as project instructions or merge it into the target project's `CLAUDE.md`. |
-| Generic agent | `multi-agent-coding-skill-v0.1.3.zip` | Extract and read `SKILL.md`; this is protocol guidance only, not a launcher pack. |
+| Codex | `codex-multi-agent-skill-v0.1.4.zip` | Extract `codex-multi-agent/` into the user's Codex skills directory. Prefer native Codex Desktop subagents; handoff and Codex CLI are fallbacks. |
+| OpenClaw / Her | `openclaw-multi-agent-skill-v0.1.4.zip` | Extract the top-level `openclaw-multi-agent/` folder into the OpenClaw skills directory. |
+| Cursor | `cursor-multi-agent-pack-v0.1.4.zip` | Extract anywhere stable, then add `cursor-rules.md` or `.cursor/rules/multi-agent-coding.mdc` to the target workspace rules. Desktop users can use `--runtime cursor-desktop`; CLI users can use `--runtime cursor`. |
+| Claude | `claude-code-multi-agent-pack-v0.1.4.zip` | Extract anywhere stable, then use `CLAUDE.md` for Claude Code or `--runtime claude-desktop` for Claude Desktop / Claude.ai custom-skill prompts. |
+| Generic agent | `multi-agent-coding-skill-v0.1.4.zip` | Extract and read `SKILL.md`; this is protocol guidance only, not a launcher pack. |
 
 ## Codex Install
 
@@ -39,7 +39,7 @@ Main reads the returned `prompt_path` and spawns a native Codex subagent with th
 
 ## Cursor Install
 
-1. Download `cursor-multi-agent-pack-v0.1.3.zip`.
+1. Download `cursor-multi-agent-pack-v0.1.4.zip`.
 2. Extract it into a stable local directory, for example:
 
 ```text
@@ -54,11 +54,19 @@ Main reads the returned `prompt_path` and spawns a native Codex subagent with th
 
 or merge `cursor-rules.md` into the project's Cursor rules.
 
-4. Ensure `agent`, `tmux`, `python3`, and `bash` are available before launching workers.
+4. For Cursor Desktop prompt mode:
 
-## Claude Code Install
+```bash
+python3 ~/agent-packs/cursor-multi-agent/scripts/run_multi_agent.py \
+  --runtime cursor-desktop \
+  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+```
 
-1. Download `claude-code-multi-agent-pack-v0.1.3.zip`.
+Open or paste the returned `prompt_path` in Cursor Agent. For automatic workers, ensure `agent`, `tmux`, `python3`, and `bash` are available and use `--runtime cursor`.
+
+## Claude Install
+
+1. Download `claude-code-multi-agent-pack-v0.1.4.zip`.
 2. Extract it into a stable local directory, for example:
 
 ```text
@@ -66,7 +74,15 @@ or merge `cursor-rules.md` into the project's Cursor rules.
 ```
 
 3. Merge the bundled `CLAUDE.md` into the target project's `CLAUDE.md`, or tell Claude Code to read it before coordinating multi-agent tasks.
-4. Ensure `claude`, `python3`, and `bash` are available for local one-shot workers. Inside OpenClaw, prefer ACP handoff.
+4. For Claude Desktop / Claude.ai prompt mode:
+
+```bash
+python3 ~/agent-packs/claude-code-multi-agent/scripts/run_multi_agent.py \
+  --runtime claude-desktop \
+  --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+```
+
+Use the returned `prompt_path` in Claude Desktop / Claude.ai custom skill context. For automatic local workers, ensure `claude`, `python3`, and `bash` are available and use `--runtime claude-code`. Inside OpenClaw, prefer ACP handoff.
 
 ## Smoke Test
 

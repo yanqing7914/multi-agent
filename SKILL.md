@@ -26,8 +26,8 @@ If the user asks to install this skill from GitHub, read `docs/agent-install.md`
 Use client-specific adapters for execution details:
 
 - Codex: use `adapters/codex/` as the client adapter; prefer native Desktop subagents when available, then Desktop handoff, then `codex exec`.
-- Cursor: translate core rules into project rules and use MCP for state if configured.
-- Claude Code: translate core rules into `CLAUDE.md`/commands and use MCP tools when configured.
+- Cursor: use `adapters/cursor/`; Desktop users get task-card prompts + Cursor rules, CLI users get `agent`/tmux workers.
+- Claude: use `adapters/claude-code/`; Desktop/Claude.ai users get custom-skill prompts, Claude Code CLI users get local one-shot workers, and OpenClaw users get ACP handoff.
 - OpenClaw: install `adapters/openclaw/` as the standalone skill `openclaw-multi-agent`; map roles to `sessions_spawn`, `sessions_send`, and `sessions_yield`; use the bundled scripts for task cards and scope audit.
 - Hermes: use the protocol as a task-card and role-routing contract; prefer MCP for state.
 - VS Code: use workspace instructions plus MCP/client extensions where available.
