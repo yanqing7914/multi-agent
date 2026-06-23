@@ -11,13 +11,36 @@ python3 scripts/install_native_skills.py --client cursor --scope primary --force
 python3 scripts/install_native_skills.py --client cursor --check
 ```
 
+For a friendlier readiness report with Chinese remediation hints:
+
+```bash
+python3 scripts/doctor.py --client cursor
+```
+
 Reload Cursor. Then ask Cursor Agent:
 
 ```text
 Use cursor-multi-agent. Split this into scoped task cards, run Workers through the local agent CLI bridge, collect result reports, then audit the diff.
 ```
 
-If `complete_worker_bridge_ready=false`, install Cursor CLI so `agent` is on PATH, or use the manual fallback in step 2b.
+### Install the Cursor CLI (required for automatic Workers)
+
+The full Worker bridge runs Cursor's terminal agent. The binary is `agent` (the
+legacy alias `cursor-agent` also works). If `complete_worker_bridge_ready=false`,
+install it:
+
+```bash
+# macOS / Linux / WSL
+curl https://cursor.com/install -fsS | bash
+
+# Windows (native PowerShell)
+irm 'https://cursor.com/install?win32=true' | iex
+```
+
+Reopen your shell and verify with `agent --version`. If the command is not found,
+add `~/.local/bin` to your `PATH`. The bridge also needs `bash` + `tmux`; on
+native Windows run the bridge from WSL. Without the CLI you can still use the
+manual fallback in step 2b.
 
 ## 1. Generate Task Cards
 
@@ -31,6 +54,8 @@ python3 /path/to/cursor-multi-agent/adapters/openclaw/scripts/create_task_cards.
 ```
 
 ## 2a. Full Mode: Cursor CLI Bridge
+
+Cursor 3's in-App Agents Window (`/multitask`) can also split a request into parallel subagents with their own worktrees and PRs; native integration with this adapter is on the roadmap, while the CLI bridge below stays the deterministic scripted/CI path.
 
 Use this for automatic Workers from Cursor App or Cursor CLI:
 

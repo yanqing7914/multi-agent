@@ -789,6 +789,9 @@ def write_outputs(
                 "allowed_paths": item["allowed_paths"],
                 "required_paths": item.get("required_paths") or required_paths_for_task(item, tasks),
                 "blocked_paths": item["blocked_paths"],
+                # Persist the static dependency graph so sync can surface
+                # ready_to_spawn / blocked_by at runtime (auto-unblock).
+                "dependencies": prerequisite_ids(tasks, item),
                 "result_report_json": paths["json"],
                 "result_report_markdown": paths["markdown"],
                 "tools_used": tools_for_task(item),
@@ -838,10 +841,14 @@ def run_self_check() -> int:
             errors.append("expected at least one Worker in self-check output")
         if not verifiers:
             errors.append("expected Verifier task in self-check output")
+        explorer_ids = {t["task_id"] for t in ownership["tasks"] if t["role"] == "Explorer"}
         for worker in workers:
-            for key in ("result_report_json", "result_report_markdown", "allowed_paths", "required_paths"):
+            for key in ("result_report_json", "result_report_markdown", "allowed_paths", "required_paths", "dependencies"):
                 if key not in worker:
                     errors.append(f"Worker {worker['task_id']} missing {key}")
+            # Worker should declare a dependency on its module Explorer (persisted graph).
+            if not any(dep in explorer_ids for dep in worker.get("dependencies", [])):
+                errors.append(f"Worker {worker['task_id']} should depend on an Explorer in ownership.dependencies")
         card_path = state_dir / "tasks" / f"{workers[0]['task_id']}-{workers[0]['session_name']}.md"
         card_text = card_path.read_text(encoding="utf-8")
         verify_script = adapter_script("verify_workspace.py")

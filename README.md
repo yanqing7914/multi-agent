@@ -1,6 +1,6 @@
 # multi-agent
 
-[![version](https://img.shields.io/badge/version-0.2.0-blue)](CHANGELOG.md)
+[![version](https://img.shields.io/badge/version-0.3.0-blue)](CHANGELOG.md)
 [![python](https://img.shields.io/badge/python-%3E%3D3.10-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -16,7 +16,7 @@ Main Agent -> Task Card -> Worker / Reviewer / Verifier -> Result Report -> Scop
 
 ```text
 Skill        = 协作方法论、角色规则和提示词规约
-Adapters     = Codex / Cursor / Claude Code / OpenClaw 等运行时适配
+Adapters     = Codex / Cursor / Claude Code / OpenClaw / Hermes 等运行时适配
 Mission Core = task cards、ownership、status、audit、summary
 Tools        = git/test/lint/shell/repo-index 的可审计 stdlib 封装
 MCP          = 任务、状态、finding、审批和审计的工具后端
@@ -29,21 +29,22 @@ IDE Panel    = 图形化任务面板、Prompt 生成器和本地集成入口
 
 | 压缩包 | 适用场景 |
 | --- | --- |
-| [`codex-multi-agent-skill-v0.2.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.2.0/codex-multi-agent-skill-v0.2.0.zip) | Codex App + CLI 原生 skill，包含 Codex custom agents 与 `codex exec` bridge |
-| [`cursor-multi-agent-pack-v0.2.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.2.0/cursor-multi-agent-pack-v0.2.0.zip) | Cursor App + CLI 原生 skill，完整 Worker 自动化通过本机 `agent` CLI bridge |
-| [`claude-code-multi-agent-pack-v0.2.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.2.0/claude-code-multi-agent-pack-v0.2.0.zip) | Claude Code App/IDE + CLI 原生 skill，包含 Claude subagents 与 CLI bridge |
-| [`openclaw-multi-agent-skill-v0.2.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.2.0/openclaw-multi-agent-skill-v0.2.0.zip) | OpenClaw / Her 专用，推荐 OpenClaw 用户下载这个 |
-| [`multi-agent-coding-skill-v0.2.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.2.0/multi-agent-coding-skill-v0.2.0.zip) | 通用协议包，只包含共享 skill 规则、模板和清单；原生安装请使用客户端专用包 |
+| [`codex-multi-agent-skill-v0.3.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.0/codex-multi-agent-skill-v0.3.0.zip) | Codex App + CLI 原生 skill，包含 Codex custom agents 与 `codex exec` bridge |
+| [`cursor-multi-agent-pack-v0.3.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.0/cursor-multi-agent-pack-v0.3.0.zip) | Cursor App + CLI 原生 skill，含 headless / `@cursor/sdk` 原生编排与本机 `agent` CLI bridge |
+| [`claude-code-multi-agent-pack-v0.3.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.0/claude-code-multi-agent-pack-v0.3.0.zip) | Claude Code App/IDE + CLI 原生 skill，包含 Claude subagents、Agent Teams 映射与 CLI bridge |
+| [`hermes-multi-agent-pack-v0.3.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.0/hermes-multi-agent-pack-v0.3.0.zip) | Hermes 专用，agentskills.io 可移植 skill + 原生 MCP（`~/.hermes/config.yaml`） |
+| [`openclaw-multi-agent-skill-v0.3.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.0/openclaw-multi-agent-skill-v0.3.0.zip) | OpenClaw / Her 专用，推荐 OpenClaw 用户下载这个 |
+| [`multi-agent-coding-skill-v0.3.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.0/multi-agent-coding-skill-v0.3.0.zip) | 通用协议包，只包含共享 skill 规则、模板和清单；原生安装请使用客户端专用包 |
 
 安装方式：把这个 GitHub 链接发给你的 agent，并说“安装 multi-agent skill”。agent 应优先阅读 [`docs/agent-install.md`](docs/agent-install.md)，按自己的客户端选择对应包。
 
-## v0.2.0 完整支持标准
+## v0.3.0 完整支持标准
 
 “完整使用”不是只生成 prompt，而是同一套 skill 在 App 和 CLI 中都能完成：
 
 1. 原生发现 skill：App/CLI 启动后能在自己的 skill 系统里看到并触发。
 2. 生成任务卡：Main 创建 `.codex-multi-agent/tasks/*.md`、`ownership.json`、`status.json`。
-3. 安排 Worker/Reviewer/Verifier：优先原生 subagent；没有原生 subagent API 的客户端使用本机 CLI bridge。
+3. 安排 Worker/Reviewer/Verifier：优先使用客户端原生 subagent 能力；当原生集成尚未接入本适配器时，使用本机 CLI bridge 作为确定性自动化路径。
 4. 约束权限：`allowed_paths`、`blocked_commands`、`may_use_skills`、只读 Reviewer。
 5. 回收结果：每个 agent 写 JSON + Markdown result report。
 6. 审计交付：Main 跑 gate sync、scope audit，再 final delivery。
@@ -51,10 +52,13 @@ IDE Panel    = 图形化任务面板、Prompt 生成器和本地集成入口
 | 客户端 | App 完整模式 | CLI 完整模式 | Worker 编排方式 | 备注 |
 | --- | --- | --- | --- | --- |
 | Codex | ✅ 原生 skill + 原生 subagents | ✅ 原生 skill + subagents / `codex exec` | native subagent 或 `--runtime codex` | Codex App/CLI 都支持 skills；subagents 默认可用 |
-| Cursor | ✅ 原生 skill + `agent` CLI bridge | ✅ 原生 skill + `agent -p` | `--runtime cursor`，tmux/foreground 回收报告 | Cursor App 支持 skills，但没有公开等价 native subagent API；完整自动化需要本机 `agent` CLI |
+| Cursor | ✅ 原生 skill + `agent` CLI bridge | ✅ 原生 skill + `agent -p` | `--runtime cursor`，tmux/foreground 回收报告 | Cursor 3 的 Agents Window（`/multitask`、`/worktree`）与 Cursor SDK 提供原生并行子代理；本适配器当前自动化走本机 `agent` CLI bridge（App 内 `/multitask` 原生集成在路线图上），CLI bridge 仍是脚本化 / CI 的确定性路径 |
 | Claude Code | ✅ 原生 skill + Claude subagents | ✅ 原生 skill + Claude subagents / `claude --print` | `.claude/agents` 或 `--runtime claude-code` | Claude Code App/IDE 扩展内置 CLI 面板；独立终端自动化需 standalone `claude` |
+| OpenClaw / Her | ✅ `sessions_spawn` / `sessions_send` / `sessions_yield` | ✅ runtime 相关 | `--runtime openclaw` / ACP | mission-control 参考实现，其它适配器复用其门控脚本 |
+| Hermes | ✅ 原生 `SKILL.md`（agentskills.io 标准）+ 原生 MCP 工具 | ✅ 原生 MCP 工具 + mission-control 脚本 | `--runtime hermes`（打印 MCP / handoff 指引） | 自托管持久 agent；复用 OpenClaw core，`~/.hermes/config.yaml` 注册 MCP coordinator |
+| VS Code | scaffold | scaffold | MCP / 任务面板（规划中） | 协议 + 任务面板脚手架，尚未编译发布 |
 
-如果某台机器缺少 CLI bridge，项目不再宣称“完整自动化”；只能使用 prompt handoff 降级路径。
+OpenClaw / Hermes 走原生会话 / MCP 编排（不依赖 CLI bridge）；Codex / Cursor / Claude 在缺少 CLI bridge 时不再宣称“完整自动化”，只能使用 prompt handoff 降级路径。VS Code 目前是脚手架。
 
 ## 一键原生安装 / 检查
 
@@ -67,6 +71,44 @@ python3 scripts/install_native_skills.py --client all --check
 
 `--scope primary` 安装到每个客户端推荐的原生 skill 目录。`--scope all-compatible` 会同时写入兼容目录，例如 `.agents/skills`、`.cursor/skills`、`.claude/skills`、`.codex/skills`。
 
+### 体检（doctor）
+
+`--check` 之外，推荐用更友好的 `doctor`，它会逐客户端检查「skill 是否安装 / 原生 agent 文件是否存在 / App·CLI 是否就位 / 完整 Worker 编排是否就绪」，并给出中文「下一步怎么补齐」：
+
+```bash
+python3 scripts/doctor.py            # 全部客户端，友好中文报告
+python3 scripts/doctor.py --client cursor
+python3 scripts/doctor.py --json     # 机器可读
+```
+
+其中 Cursor 的完整自动 Worker 需要本机 Cursor CLI（命令为 `agent`，旧别名 `cursor-agent` 也可）：
+
+```bash
+# macOS / Linux / WSL
+curl https://cursor.com/install -fsS | bash
+# Windows 原生 PowerShell
+irm 'https://cursor.com/install?win32=true' | iex
+```
+
+安装后重开终端，`agent --version` 验证；找不到命令时把 `~/.local/bin` 加入 PATH。tmux bridge 还需 `bash` + `tmux`，Windows 原生建议在 WSL 里运行。
+
+`doctor` 覆盖 Codex / Cursor / Claude Code / Hermes 四端（VS Code 仍为脚手架，不在体检范围）。
+
+### 一键注册 MCP（configure_mcp）
+
+把 MCP coordinator 写进各客户端配置，省去手动拼路径。默认 `--dry-run`（只打印将要写入的内容，不落盘），确认后再加 `--write`：
+
+```bash
+python3 scripts/configure_mcp.py --client all --workspace .          # 预览（dry-run）
+python3 scripts/configure_mcp.py --client cursor --workspace . --write
+```
+
+- Cursor / Claude Code 为 JSON 配置，原地合并并保留已有 `mcpServers`（`--write` 才落盘）。
+- Codex 为 TOML（`~/.codex/config.toml`），打印可粘贴的 `[mcp_servers.*]` 片段。
+- Hermes 为 YAML（`~/.hermes/config.yaml`），打印可粘贴的 `mcp_servers` 片段。
+
+依赖无第三方库（stdlib only）。
+
 ## 推荐入口
 
 | 你是谁 | 推荐入口 |
@@ -75,6 +117,7 @@ python3 scripts/install_native_skills.py --client all --check
 | Cursor App / CLI 用户 | [`adapters/cursor/QUICKSTART.md`](adapters/cursor/QUICKSTART.md) |
 | Codex App / CLI 用户 | [`adapters/codex/QUICKSTART.md`](adapters/codex/QUICKSTART.md) |
 | Claude Code App / CLI 用户 | [`adapters/claude-code/QUICKSTART.md`](adapters/claude-code/QUICKSTART.md) |
+| Hermes Agent 用户 | [`adapters/hermes/QUICKSTART.md`](adapters/hermes/QUICKSTART.md) |
 | 想看自动安装入口 | [`docs/agent-install.md`](docs/agent-install.md) |
 | 想看 MCP 协议 | [`mcp/multi-agent-coordinator/README.md`](mcp/multi-agent-coordinator/README.md) |
 | 想看路线图 | [`docs/roadmap.md`](docs/roadmap.md) |
@@ -83,9 +126,11 @@ python3 scripts/install_native_skills.py --client all --check
 ## 当前能力概览
 
 - **Codex：完整 v0.2**，App/CLI 原生 skill + 原生 subagents，CLI bridge 走 `codex exec`。
-- **Cursor：完整 v0.2（带 bridge 条件）**，App/CLI 原生 skill；完整 Worker 自动化需要本机 `agent` CLI。
+- **Cursor：完整 v0.2（带 bridge 条件）**，App/CLI 原生 skill；Cursor 3 的 Agents Window（`/multitask`、`/worktree`）与 Cursor SDK 提供原生并行子代理，本适配器当前 Worker 自动化走本机 `agent` CLI bridge（App 内 `/multitask` 原生集成在路线图上）。
 - **Claude Code：完整 v0.2**，App/IDE/CLI 原生 skill + `.claude/agents` subagents，CLI bridge 走 `claude --print`。
 - **OpenClaw / Her：Production v1**，作为 mission-control 参考实现。
+- **Hermes：适配器已落地**，通过 agentskills.io 标准 `SKILL.md` 被原生发现，借助 Hermes 原生 MCP 客户端（`~/.hermes/config.yaml` 的 `mcp_servers`）复用 OpenClaw mission-control core。
+- **原生编排与受控自纠循环：已落地**，Cursor 提供 `/multitask`·`/worktree`·headless·`@cursor/sdk` 原生路径；`run_loop.py` 把 Worker(maker) 与独立 Verifier·审计(checker) 组成有界自纠循环。
 - **MCP coordinator：v1 已有**，基于 `.codex-multi-agent/` 暴露任务、finding、审批和审计状态。
 - **IDE panel：v1 已有雏形**，用于 mission-control task panel。
 - **Bench / case studies：已有**，包括轻量 SWE-style cases、SWE-bench Lite-shaped cases、FizzBuzz、Flask CLI 和 GitHub-link 安装端到端 demo。
@@ -141,15 +186,71 @@ python3 scripts/validate_all_adapters.py
 bash scripts/full_validate.sh
 ```
 
+## Hermes Adapter
+
+[Hermes](https://agentskills.io)（Nous Research，2026）是自托管、always-on 的持久记忆 agent。它加载 agentskills.io 标准的可移植 `SKILL.md`（与本项目同一格式），并内置原生 MCP 客户端，因此装好后会被原生发现。[`adapters/hermes/`](adapters/hermes/) 是一层薄适配，不复制 mission-control 逻辑，而是复用 OpenClaw 的脚本做任务卡、门控、审计与记忆。
+
+| 项 | 说明 |
+| --- | --- |
+| Native skill | `hermes-multi-agent` |
+| 安装目录 | `~/.agents/skills/hermes-multi-agent`、`~/.hermes/skills/hermes-multi-agent` |
+| Worker 编排 | Hermes 原生 MCP 工具 + OpenClaw mission-control 脚本 |
+| MCP 接入 | `~/.hermes/config.yaml` 的 `mcp_servers`（stdio / http） |
+
+```bash
+# 安装原生 skill（也可解压 hermes 包后在包根目录运行）
+python3 scripts/install_native_skills.py --client hermes --scope primary --force
+# 把 MCP coordinator 注册进 ~/.hermes/config.yaml（打印可粘贴的 yaml 片段）
+python3 scripts/configure_mcp.py --client hermes
+# 跨端 launcher 会打印 Hermes 的 MCP / handoff 指引
+python3 scripts/run_multi_agent.py --runtime hermes --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+# 自检
+python3 adapters/hermes/scripts/hermes_self_check.py --self-check
+```
+
+详见 [`adapters/hermes/QUICKSTART.md`](adapters/hermes/QUICKSTART.md)。
+
 ## 跨 Adapter Launcher
 
 所有 client adapter 尽量复用 OpenClaw mission-control core，不复制 gate 逻辑。
 
 ```bash
-python3 scripts/run_multi_agent.py --runtime cursor-desktop|cursor|codex-native|codex-desktop|codex|claude-desktop|claude-code|openclaw --task-card .codex-multi-agent/tasks/T002-worker-backend.md
+python3 scripts/run_multi_agent.py --runtime cursor-desktop|cursor|codex-native|codex-desktop|codex|claude-desktop|claude-code|openclaw|hermes --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-Launcher 使用 `pipefail` 和 post-run checks：外部 CLI 失败、quota/error pattern、结果 Markdown 过薄、JSON 缺失等都应该返回非零和 `"ok": false`。
+Launcher 使用 `pipefail` 和 post-run checks：外部 CLI 失败、quota/error pattern、结果 Markdown 过薄、JSON 缺失等都应该返回非零和 `"ok": false`。`--runtime hermes` 不直接拉起进程，而是打印 Hermes 的 MCP / handoff 指引。
+
+## 受控自纠循环（Loop Engineering）
+
+`adapters/openclaw/scripts/run_loop.py` 把 Worker、Verifier 与审计门控升级为一个**有界自纠循环**，而不是放任 agent 无限重试。五要素：Goal（可验证的停止条件）、Actions（maker 每轮做一步）、Verify（**独立** verifier，强制 maker ≠ checker）、Repair（把上轮反馈喂给下一轮 maker）、Memory（逐轮记录），并始终受 `max_iterations` / budget 上界约束。
+
+真实模式里：maker = `run_multi_agent.py` 派发一个 Worker，verifier = `--verify-command`（returncode 0 即通过），可叠加 `--with-audit` 让 `audit_worker_output.py` 的 `ok` 一起作为通过条件。
+
+```bash
+# 完全确定性自检（不触碰仓库、不调用任何外部 CLI）
+python3 adapters/openclaw/scripts/run_loop.py --self-check
+# 真实模式：跑 Worker -> pytest -> 审计，最多 5 轮收敛
+python3 adapters/openclaw/scripts/run_loop.py \
+  --task-card .codex-multi-agent/tasks/T002-worker-backend.md \
+  --runtime openclaw --verify-command "pytest -q" \
+  --with-audit --max-iterations 5 --state-dir .codex-multi-agent
+```
+
+## 依赖图：自动解锁与调度（auto-unblock）
+
+`create_task_cards.py` 把静态依赖图写进 `ownership.json` 的每个任务（`dependencies`）；`update_task_status.py --sync` 据此为 `status.json` 每个任务派生 `dependencies` / `blocked_by` / `ready_to_spawn`（**纯增量、不改 gate 通过/失败语义**）。两种消费方式：
+
+```bash
+# 查询当前哪些任务可以 spawn、哪些被谁阻塞
+python3 adapters/openclaw/scripts/update_task_status.py --state-dir .codex-multi-agent --ready
+# -> {"ready": ["T001"], "blocked": {"T002": ["T001"], ...}}
+
+# 依赖序自动调度整张任务图（默认只输出 dry-plan，--execute 才真正派发 Worker）
+python3 adapters/openclaw/scripts/run_graph.py --state-dir .codex-multi-agent
+python3 adapters/openclaw/scripts/run_graph.py --state-dir .codex-multi-agent --runtime openclaw --max-rounds 8 --execute
+```
+
+`run_graph.py` 反复 `sync → 找就绪任务 → 派发 → 重新评估`，直到全图完成、死锁（有未完成但无就绪任务），或触达 `--max-rounds`（始终有界）。它经 `multi-agent://state` 资源也可被 MCP 客户端读取。
 
 ## Tools Layer
 
@@ -162,8 +263,22 @@ Launcher 使用 `pipefail` 和 post-run checks：外部 CLI 失败、quota/error
 | `lint_tool.py` | best-effort lint / format / type check |
 | `shell_tool.py` | allowlist/denylist shell wrapper |
 | `repo_index_tool.py` | 文件列表和 grep，`rg` 不可用时 fallback |
+| `worktree_tool.py` | 为每个 Worker 创建隔离 git worktree + 分支（可直接对接 `ownership.json`），并行写入互不覆盖 |
 
 每个工具支持 `--help`、JSON-in/JSON-out 和 `--self-check`。
+
+### 并行 Worker 物理隔离（git worktree）
+
+`ownership.allowed_paths` 做的是**逻辑**文件域划分，`audit_worker_output.py` 做的是**事后**越界/冲突检测。`worktree_tool.py` 补上业界（Cursor / Claude Code worktrees）通行的**物理隔离**：每个 Worker 在自己的 git worktree + 分支里写代码，真并行也不会互相覆盖，且天然为「每个 Worker 一个分支 / PR」铺路（roadmap v4）。
+
+```bash
+# 直接按 ownership.json 规划：每个 write_permission=true 的 Worker 一个 worktree+分支
+python tools/worktree_tool.py --action plan --ownership .codex-multi-agent/ownership.json
+# 加 --create 真正创建；Worker 完成后回收：
+python tools/worktree_tool.py --action remove --repo-root . --path <worktree_path> --delete-branch
+```
+
+默认 worktree 放在 `<repo>.worktrees/` 同级目录，避免污染主工作树的 `git status`（否则会干扰 scope 审计）。
 
 ## Memory Layer
 
@@ -219,6 +334,7 @@ python3 adapters/openclaw/scripts/audit_worker_output.py \
 
 - MCP coordinator server：[`mcp/multi-agent-coordinator/`](mcp/multi-agent-coordinator/)
 - Per-client MCP config snippets：[`mcp/multi-agent-coordinator/clients/`](mcp/multi-agent-coordinator/clients/)
+- 一键注册到 cursor / claude / codex / hermes：`python3 scripts/configure_mcp.py --client all`（默认 dry-run，`--write` 落盘）
 - Mission-control task panel：[`ide/multi-agent-panel/`](ide/multi-agent-panel/)
 - VS Code / Cursor / Hermes extension scaffolds：[`ide/extensions/`](ide/extensions/)
 
@@ -242,8 +358,13 @@ python3 adapters/openclaw/scripts/audit_worker_output.py \
 ## 路线图
 
 ```text
-v1 scripts：OpenClaw mission-control core + adapters + audit gates
-v2 MCP：任务、状态、finding、approval、audit 的工具后端
-v3 IDE panel：任务面板、Prompt 生成器、审计视图
-v4 worktree / PR / CI：并行分支、PR review、CI 失败回流
+v1 scripts：OpenClaw mission-control core + adapters + audit gates（已落地）
+v2 MCP：任务、状态、finding、approval、audit 的工具后端（已落地）
+v3 IDE panel：任务面板、Prompt 生成器、审计视图（已落地）
+v4 tools / memory / bench：stdlib 工具层（含 worktree_tool）、MEMORY、本地 bench（已落地）
+v5 SWE-bench Lite 形态 harness、扩展脚手架（已落地，离线为主）
+v6 loop engineering（run_loop）、依赖图 auto-unblock + 调度（run_graph / --ready）、Hermes 适配器、Cursor 原生编排（SDK / headless）、doctor / configure_mcp（已落地）
+下一步：每 Worker 一分支 → PR review → CI 失败回流（worktree 物理隔离已铺路）
 ```
+
+详细分层与已落地状态见 [`docs/roadmap.md`](docs/roadmap.md)。

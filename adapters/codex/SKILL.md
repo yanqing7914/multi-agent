@@ -63,6 +63,11 @@ Workers must not spawn child agents unless the task card explicitly says
 `may_spawn_sessions: true`. Child agents inherit the Worker's scope and should
 normally be read-only Explorers.
 
+> Reliable custom `agent_type` selection (e.g. `multi-agent-reviewer`'s read-only
+> sandbox) requires Codex CLI >= 0.139.0. On older versions `spawn_agent` ignores
+> the custom type and falls back to a generic subagent; the role, write-permission,
+> and read-only instructions embedded in the prompt still enforce the boundary.
+
 ## Skill Use Routing
 
 Task cards control skill use with `may_use_skills`.

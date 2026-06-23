@@ -543,6 +543,48 @@ def generate_final_report(
     return report
 
 
+def run_repo_script(rel_path: str, args: list[str]) -> tuple[int, dict | str]:
+    """Run any repo-root-relative script and parse its JSON stdout (utf-8)."""
+    cmd = [sys.executable, str(REPO_ROOT / rel_path), *args]
+    proc = subprocess.run(
+        cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False
+    )
+    text = (proc.stdout or proc.stderr or "").strip()
+    try:
+        payload = json.loads(text) if text else {}
+    except json.JSONDecodeError:
+        payload = text
+    return proc.returncode, payload
+
+
+def plan_worktrees(state_dir: Path, create: bool = False) -> dict:
+    """Plan (or create) one isolated git worktree + branch per write-permitted Worker.
+
+    Reads ownership.json and maps each Worker to a `multi-agent/<task>-<session>`
+    worktree (physical isolation for parallel Workers). `create=False` is a
+    read-only plan with no git side effects.
+    """
+    ownership = state_dir / "ownership.json"
+    if not ownership.exists():
+        return {"ok": False, "error": "ownership.json not found; create tasks first"}
+    args = ["--action", "plan", "--ownership", str(ownership)]
+    if create:
+        args.append("--create")
+    code, payload = run_repo_script("tools/worktree_tool.py", args)
+    if isinstance(payload, dict):
+        return {"ok": payload.get("ok", code == 0), **payload}
+    return {"ok": code == 0, "result": payload}
+
+
+def check_readiness(client: str = "all") -> dict:
+    """Per-client install/tooling readiness via scripts/doctor.py --json (read-only)."""
+    args = ["--json"] if client in (None, "", "all") else ["--client", client, "--json"]
+    code, payload = run_repo_script("scripts/doctor.py", args)
+    if isinstance(payload, dict):
+        return {"ok": payload.get("ok", code == 0), **payload}
+    return {"ok": code == 0, "result": payload}
+
+
 def read_resource(uri: str, state_dir: Path) -> tuple[str, str]:
     """Return (mime_type, text) for MCP resource read."""
     mapping = {

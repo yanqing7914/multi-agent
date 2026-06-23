@@ -190,6 +190,53 @@ def gate_status(required_ids: list[str], task_statuses: dict[str, str]) -> str:
     return "pending"
 
 
+def annotate_dependencies(
+    tasks: list[dict],
+    task_statuses: dict[str, str],
+    task_entries: dict[str, dict],
+) -> None:
+    """Surface the runtime dependency graph on each status entry (additive).
+
+    Reads the static ``dependencies`` persisted on each ownership task and
+    derives, per task:
+      - ``dependencies``: the declared prerequisite task ids,
+      - ``blocked_by``: prerequisites not yet ``completed`` (empty => unblocked),
+      - ``ready_to_spawn``: pending AND not blocked (auto-unblock signal).
+
+    This is purely informational for Main / launchers; it does NOT change gate
+    pass/fail computation, so existing gate behavior is untouched.
+    """
+    known_ids = {task.get("task_id") for task in tasks}
+    for task in tasks:
+        task_id = task.get("task_id")
+        entry = task_entries.get(task_id)
+        if entry is None:
+            continue
+        deps = [dep for dep in (task.get("dependencies") or []) if dep in known_ids]
+        blocked_by = [dep for dep in deps if task_statuses.get(dep) != "completed"]
+        entry["dependencies"] = deps
+        entry["blocked_by"] = blocked_by
+        entry["ready_to_spawn"] = task_statuses.get(task_id) == "pending" and not blocked_by
+
+
+def readiness_report(status_doc: dict) -> dict:
+    """Summarize which tasks are ready to spawn vs blocked, from a synced status doc.
+
+    Consumes the additive ``ready_to_spawn`` / ``blocked_by`` fields written by
+    ``annotate_dependencies`` so Main / loops can pick the next unblocked task
+    without re-deriving the graph.
+    """
+    ready: list[str] = []
+    blocked: dict[str, list[str]] = {}
+    for task_id, entry in (status_doc.get("tasks") or {}).items():
+        if entry.get("ready_to_spawn"):
+            ready.append(task_id)
+        blocking = entry.get("blocked_by") or []
+        if blocking:
+            blocked[task_id] = blocking
+    return {"ready": sorted(ready), "blocked": blocked}
+
+
 def build_gates(
     tasks: list[dict],
     task_statuses: dict[str, str],
@@ -464,6 +511,8 @@ def sync_status(state_dir: Path) -> dict:
         task_entries[task_id] = entry
         task["status"] = status
 
+    annotate_dependencies(tasks, task_statuses, task_entries)
+
     audit_meta = resolve_scope_audit(state_dir, audits_dir)
     audit_ok = audit_meta["ok"]
     audit_gate = audit_meta["gate_status"]
@@ -572,8 +621,14 @@ def summarize_run(state_dir: Path, out_path: Path | None) -> dict:
 
     lines.extend(["", "## Tasks", ""])
     for task in ownership.get("tasks", []):
+        status_entry = status_doc.get("tasks", {}).get(task.get("task_id"), {})
         line = f"- {task.get('task_id')} ({task.get('role')} / {task.get('session_name')}): {task.get('status', 'pending')}"
-        preflight = status_doc.get("tasks", {}).get(task.get("task_id"), {}).get("preflight")
+        blocked_by = status_entry.get("blocked_by") or []
+        if blocked_by:
+            line += f" [blocked_by: {', '.join(blocked_by)}]"
+        elif status_entry.get("ready_to_spawn"):
+            line += " [ready_to_spawn]"
+        preflight = status_entry.get("preflight")
         if preflight:
             line += f" [false completion blocked: {preflight.get('reason', 'required paths not verified')}]"
         lines.append(line)
@@ -1290,6 +1345,69 @@ def run_self_check() -> int:
         if not any(issue.get("missing_result_report") for issue in manual_preflight):
             errors.append("manual completion bypass must surface missing_result_report in preflight_issues")
 
+        # --- auto-unblock: dependencies / blocked_by / ready_to_spawn (additive) ---
+        au_state = Path(tmp) / "auto-unblock"
+        au_state.mkdir()
+        au_results = au_state / "results"
+        au_results.mkdir()
+        au_ownership = {
+            "schema_version": 1,
+            "task": "dependency auto-unblock",
+            "workspace_root": str(au_state),
+            "tasks": [
+                {
+                    "task_id": "T001",
+                    "session_name": "explorer-backend",
+                    "role": "Explorer",
+                    "write_permission": False,
+                    "allowed_paths": ["backend/**"],
+                    "required_paths": [],
+                    "dependencies": [],
+                    "result_report_json": str(au_results / "T001-explorer-backend.json"),
+                    "result_report_markdown": str(au_results / "T001-explorer-backend.md"),
+                    "status": "pending",
+                },
+                {
+                    "task_id": "T002",
+                    "session_name": "worker-backend",
+                    "role": "Worker",
+                    "write_permission": True,
+                    "allowed_paths": ["backend/**"],
+                    "required_paths": [],
+                    "dependencies": ["T001"],
+                    "result_report_json": str(au_results / "T002-worker-backend.json"),
+                    "result_report_markdown": str(au_results / "T002-worker-backend.md"),
+                    "status": "pending",
+                },
+            ],
+        }
+        write_json(au_state / "ownership.json", au_ownership)
+        au_sync = sync_status(au_state)
+        t1 = au_sync["tasks"]["T001"]
+        t2 = au_sync["tasks"]["T002"]
+        if t1.get("ready_to_spawn") is not True or t1.get("blocked_by") != []:
+            errors.append("auto-unblock: T001 (no deps) should be ready_to_spawn with empty blocked_by")
+        if t2.get("ready_to_spawn") is not False or t2.get("blocked_by") != ["T001"]:
+            errors.append("auto-unblock: T002 should be blocked_by [T001] and not ready while T001 pending")
+        # Complete the dependency; T002 must auto-unblock.
+        (au_results / "T001-explorer-backend.json").write_text(
+            json.dumps({"task_id": "T001", "role": "Explorer", "status": "completed", "files_changed": []}),
+            encoding="utf-8",
+        )
+        au_sync2 = sync_status(au_state)
+        t2b = au_sync2["tasks"]["T002"]
+        if t2b.get("blocked_by") != [] or t2b.get("ready_to_spawn") is not True:
+            errors.append("auto-unblock: T002 should auto-unblock (ready_to_spawn) once T001 completes")
+        if t2b.get("dependencies") != ["T001"]:
+            errors.append("auto-unblock: dependencies should be echoed on the status entry")
+        # readiness_report consumes the same signal for Main / loops.
+        ready0 = readiness_report(au_sync)
+        if ready0["ready"] != ["T001"] or ready0["blocked"].get("T002") != ["T001"]:
+            errors.append(f"readiness_report initial wrong: {ready0}")
+        ready1 = readiness_report(au_sync2)
+        if "T002" not in ready1["ready"] or "T002" in ready1["blocked"]:
+            errors.append(f"readiness_report after unblock wrong: {ready1}")
+
     if errors:
         print(json.dumps({"ok": False, "errors": errors}, indent=2))
         return 1
@@ -1302,6 +1420,7 @@ def main() -> int:
     parser.add_argument("--self-check", action="store_true", help="Run built-in validation and exit")
     parser.add_argument("--state-dir", default=".codex-multi-agent", help="Mission control state directory")
     parser.add_argument("--sync", action="store_true", help="Rebuild status.json from ownership and result reports")
+    parser.add_argument("--ready", action="store_true", help="Sync, then print tasks that are ready to spawn (dependency auto-unblock) and which are blocked")
     parser.add_argument("--summarize", action="store_true", help="Write run summary markdown for Main")
     parser.add_argument("--summary-out", help="Optional output path for --summarize")
     parser.add_argument("--task-id", help="Task id to update, e.g. T002")
@@ -1336,6 +1455,16 @@ def main() -> int:
             if report.get("memory_update_error"):
                 print(report["memory_update_error"], file=sys.stderr)
             return 1
+        return 0
+
+    if args.ready:
+        try:
+            report = sync_status(state_dir)
+        except FileNotFoundError as exc:
+            print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
+            return 1
+        readiness = readiness_report(report)
+        print(json.dumps({"ok": True, "current_phase": report.get("current_phase"), **readiness}, indent=2))
         return 0
 
     if args.sync:

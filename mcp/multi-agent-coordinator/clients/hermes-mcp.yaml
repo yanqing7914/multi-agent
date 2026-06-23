@@ -1,0 +1,24 @@
+# Hermes MCP registration — fragment for ~/.hermes/config.yaml
+#
+# Hermes Agent ships a native MCP client. Merge the block below under the
+# top-level `mcp_servers:` key of ~/.hermes/config.yaml (create the key if it
+# does not exist yet). Keep any servers you already have alongside this one.
+#
+# Placeholders (same convention as clients/*.json):
+#   {REPO_ROOT}       absolute path to this multi-agent-coding checkout
+#   {WORKSPACE_ROOT}  absolute path to the project you are dogfooding
+#                     (the directory whose .codex-multi-agent/ holds run state)
+#
+# Transport: stdio (command + args). For an HTTP transport, replace the
+# stdio entry with `type: http` and a `url:` instead of command/args.
+
+mcp_servers:
+  multi-agent-coordinator:
+    type: stdio
+    command: python3
+    args:
+      - "{REPO_ROOT}/mcp/multi-agent-coordinator/server.py"
+      - "--state-dir"
+      - "{WORKSPACE_ROOT}/.codex-multi-agent"
+    env:
+      WORKSPACE: "{WORKSPACE_ROOT}"

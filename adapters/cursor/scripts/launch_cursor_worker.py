@@ -158,7 +158,8 @@ def main() -> int:
             prompt_file = tmp.name
         shell = shell_with_pipefail(
             f"cd {shlex.quote(str(workspace_root))} && "
-            f"agent -p {shlex.quote(Path(prompt_file).read_text(encoding='utf-8'))} "
+            f'cursor_bin="$(command -v agent || command -v cursor-agent || echo agent)" && '
+            f'"$cursor_bin" -p {shlex.quote(Path(prompt_file).read_text(encoding="utf-8"))} '
             f"--force --trust --output-format text 2>&1 | tee {shlex.quote(str(launcher_log))}"
         )
         tmux_cmd = ["tmux", "new-session", "-d", "-s", session, "bash", "-lc", shell]
@@ -171,7 +172,7 @@ def main() -> int:
                         "ok": False,
                         "stage": "tmux",
                         "stderr": (proc.stderr or proc.stdout or "").strip(),
-                        "hint": "Install tmux and ensure `agent` CLI is on PATH",
+                        "hint": "Install tmux and ensure the Cursor CLI (`agent` or legacy `cursor-agent`) is on PATH",
                     },
                     indent=2,
                 )
@@ -231,7 +232,8 @@ def main() -> int:
 
     shell = shell_with_pipefail(
         f"cd {shlex.quote(str(workspace_root))} && "
-        f"agent -p {shlex.quote(open(prompt_file, encoding='utf-8').read())} "
+        f'cursor_bin="$(command -v agent || command -v cursor-agent || echo agent)" && '
+        f'"$cursor_bin" -p {shlex.quote(open(prompt_file, encoding="utf-8").read())} '
         f"--force --trust --output-format text 2>&1 | tee {shlex.quote(str(launcher_log))}"
     )
     tmux_cmd = ["tmux", "new-session", "-d", "-s", session, "bash", "-lc", shell]
@@ -245,7 +247,7 @@ def main() -> int:
                     "ok": False,
                     "stage": "tmux",
                     "stderr": (proc.stderr or proc.stdout or "").strip(),
-                    "hint": "Install tmux and ensure `agent` CLI is on PATH",
+                    "hint": "Install tmux and ensure the Cursor CLI (`agent` or legacy `cursor-agent`) is on PATH",
                 },
                 indent=2,
             )

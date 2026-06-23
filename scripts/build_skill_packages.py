@@ -27,6 +27,7 @@ COMMON_GENERIC = [
     "examples/feature.md",
     "examples/review.md",
     "templates",
+    "tools",
 ]
 
 OPENCLAW_FILES = [
@@ -48,7 +49,9 @@ CLIENT_SHARED = [
     "docs/agent-install.md",
     "scripts/install_native_skills.py",
     "scripts/run_multi_agent.py",
+    "scripts/doctor.py",
     "templates",
+    "tools",
 ]
 
 CLIENTS = {
@@ -69,6 +72,12 @@ CLIENTS = {
         "zip": "claude-code-multi-agent-pack",
         "adapter": "adapters/claude-code",
         "extra": ["adapters/claude-code/agents"],
+    },
+    "hermes": {
+        "root": "hermes-multi-agent",
+        "zip": "hermes-multi-agent-pack",
+        "adapter": "adapters/hermes",
+        "extra": [],
     },
 }
 
@@ -137,7 +146,7 @@ Use this project as a multi-agent mission-control pack.
 - Use `QUICKSTART.md` for the Golden Path.
 - Generate task cards with `adapters/openclaw/scripts/create_task_cards.py`.
 - Cursor App and Cursor CLI both discover this native skill from `.agents/skills`, `.cursor/skills`, or user skill directories.
-- For complete Worker automation from Cursor App, use the local `agent` CLI bridge with `scripts/run_multi_agent.py --runtime cursor`.
+- Cursor 3's Agents Window (`/multitask`, `/worktree`) and the Cursor SDK provide native parallel subagents; this pack's current automation path is the local `agent` CLI bridge via `scripts/run_multi_agent.py --runtime cursor` (the deterministic path for scripted/CI runs). Native in-App `/multitask` integration is on the roadmap.
 - Use `--runtime cursor-desktop` only when the user explicitly wants a manual prompt handoff.
 - Keep `.codex-multi-agent/` local unless the user explicitly asks to commit it.
 - Workers may edit only `allowed_paths`; Reviewers stay read-only.

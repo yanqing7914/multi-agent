@@ -14,11 +14,11 @@ Cursor App and Cursor CLI both get a native Agent Skill for the same workflow:
 4. Each agent writes JSON + Markdown result reports.
 5. Main runs gate sync, scope audit, and final delivery.
 
-Cursor App currently does not expose a public Codex/Claude-style native subagent API. That is why v0.2.0 treats the `agent` CLI bridge as the full automation path for Cursor App and CLI. Manual prompt handoff still exists, but it is a fallback.
+Cursor 3's Agents Window (`/multitask`, `/worktree`) and the Cursor SDK provide native parallel subagents. v0.3.0's current automation path for Cursor App and CLI is the local `agent` CLI bridge, which stays the deterministic path for scripted/CI runs; native in-App `/multitask` integration is on the roadmap. Manual prompt handoff still exists, but it is a fallback.
 
 ## Install
 
-From the extracted `cursor-multi-agent-pack-v0.2.0.zip` root:
+From the extracted `cursor-multi-agent-pack-v0.3.0.zip` root:
 
 ```bash
 python3 scripts/install_native_skills.py --client cursor --scope primary --force
@@ -34,7 +34,27 @@ The installer writes native skill files to:
 
 For workspace-level rules, keep or copy the bundled `.cursor/rules/multi-agent-coding.mdc`.
 
-## Usage: Cursor App Full Mode
+### Install the Cursor CLI (for the full Worker bridge)
+
+Automatic Workers run Cursor's terminal agent. The current binary is `agent`; the
+legacy `cursor-agent` alias is also accepted by the detector and launcher.
+
+```bash
+# macOS / Linux / WSL
+curl https://cursor.com/install -fsS | bash
+
+# Windows (native PowerShell)
+irm 'https://cursor.com/install?win32=true' | iex
+```
+
+Reopen your shell and run `agent --version`. If it is not found, add
+`~/.local/bin` to `PATH`. The bridge also relies on `bash` + `tmux`, so on native
+Windows run it from WSL. Run `python3 scripts/doctor.py --client cursor` for a
+guided readiness check with Chinese next-step hints.
+
+## Usage: Cursor App Full Mode (Local `agent` CLI Bridge)
+
+> Cursor 3's in-App Agents Window (`/multitask`, `/worktree`) can also fan one request into parallel subagents with their own git worktrees and PRs. Native in-App integration with this adapter is on the roadmap; the steps below use the local `agent` CLI bridge, which stays the deterministic path for scripted/CI runs.
 
 After the skill is installed and Cursor is reloaded, ask Cursor Agent:
 
@@ -87,12 +107,13 @@ This writes `.codex-multi-agent/cursor-desktop/*.cursor.md`. Open or paste the p
 ## Readiness
 
 - `native_skill_ready=true`: Cursor can load the skill.
-- `complete_worker_bridge_ready=true`: Cursor `agent` CLI is present, so automatic Workers can run.
-- If bridge readiness is false, do not claim full automation; use manual fallback or install Cursor CLI.
+- `complete_worker_bridge_ready=true`: the Cursor CLI (`agent` or legacy `cursor-agent`) is on PATH, so automatic Workers can run.
+- If bridge readiness is false, do not claim full automation; use manual fallback or install the Cursor CLI.
 
 ## Self-check
 
 ```bash
 python3 scripts/install_native_skills.py --client cursor --check
+python3 scripts/doctor.py --client cursor        # friendly readiness report
 python3 adapters/cursor/scripts/cursor_self_check.py
 ```

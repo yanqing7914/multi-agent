@@ -28,19 +28,23 @@ Do not use when:
 | Mode | Use when | How |
 | --- | --- | --- |
 | Native Cursor skill | Cursor App or CLI has loaded this skill | Main follows this workflow and creates task cards |
-| Cursor CLI bridge | Automatic Workers are required | Run `scripts/run_multi_agent.py --runtime cursor` |
+| App native parallel | Inside Cursor 3 App | Use `/multitask` (parallel subagents, each in its own worktree/PR) or `/sdk`; see `SDK.md` |
+| Cursor SDK / headless | Programmatic or CI runs | `@cursor/sdk` or headless `agent -p --output-format json`; generate run specs with `scripts/prepare_cursor_sdk.py`; see `SDK.md` |
+| Cursor CLI bridge | Automatic Workers from a script | Run `scripts/run_multi_agent.py --runtime cursor` (deterministic scripted/CI path) |
 | Manual handoff fallback | `agent` CLI is unavailable | Run `--runtime cursor-desktop` and paste/open prompts in Cursor Agent |
 
-Cursor App supports native Agent Skills. It does not currently expose a public
-Codex/Claude-style native subagent API, so complete automatic Worker orchestration
-uses the local Cursor `agent` CLI bridge.
+Cursor App supports native Agent Skills. Cursor 3's Agents Window (`/multitask`,
+`/worktree`) and the Cursor SDK provide native parallel subagents; this adapter's
+current automation path for complete Worker orchestration is the local Cursor
+`agent` CLI bridge (native in-App `/multitask` integration is on the roadmap),
+which stays the deterministic path for scripted/CI runs.
 
 ## Golden Path
 
 1. Install the package with `scripts/install_native_skills.py --client cursor --scope primary --force`.
 2. Restart/reload Cursor so it discovers `cursor-multi-agent`.
 3. Generate `.codex-multi-agent/` task cards from the target repo.
-4. Check bridge readiness with `scripts/install_native_skills.py --client cursor --check`.
+4. Check bridge readiness with `scripts/install_native_skills.py --client cursor --check` (or the friendlier `scripts/doctor.py --client cursor`). The bridge needs the Cursor CLI on PATH: `agent` (or legacy alias `cursor-agent`), installable via `curl https://cursor.com/install -fsS | bash` (Windows: `irm 'https://cursor.com/install?win32=true' | iex`).
 5. For full automatic Workers, launch:
 
 ```bash
@@ -65,6 +69,7 @@ python3 /path/to/cursor-multi-agent/scripts/run_multi_agent.py \
 
 ```bash
 python3 scripts/install_native_skills.py --client cursor --check
+python3 scripts/doctor.py --client cursor
 python3 adapters/cursor/scripts/cursor_self_check.py
 python3 scripts/validate_all_adapters.py
 ```

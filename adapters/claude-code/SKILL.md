@@ -29,6 +29,7 @@ Do not use when:
 | Native Claude subagents | Claude Code App/IDE or CLI has loaded `.claude/agents` | Delegate to bundled Worker/Reviewer/Verifier agents |
 | Claude Code CLI bridge | Script-launched local worker is desired | Run `scripts/run_multi_agent.py --runtime claude-code` |
 | OpenClaw ACP | Main runs in OpenClaw/Her | Run `--runtime claude-code --mode acp` |
+| Claude Agent Teams (experimental) | Lead + teammates must collaborate/challenge across layers in parallel | See [TEAMS.md](TEAMS.md) |
 | Manual prompt fallback | Native subagents/CLI bridge are unavailable | Run `--runtime claude-desktop` |
 
 ## Golden Path

@@ -33,7 +33,7 @@ CLIENTS = {
             Path.home() / ".cursor" / "skills" / "cursor-multi-agent",
         ],
         "primary": Path.home() / ".agents" / "skills" / "cursor-multi-agent",
-        "bridge_bins": ["agent"],
+        "bridge_bins": ["agent", "cursor-agent"],
     },
     "claude": {
         "source": REPO_ROOT / "adapters" / "claude-code",
@@ -47,6 +47,16 @@ CLIENTS = {
         "agent_source": REPO_ROOT / "adapters" / "claude-code" / "agents",
         "agent_dest": Path.home() / ".claude" / "agents",
     },
+    "hermes": {
+        "source": REPO_ROOT / "adapters" / "hermes",
+        "adapter_name": "hermes",
+        "destinations": [
+            Path.home() / ".agents" / "skills" / "hermes-multi-agent",
+            Path.home() / ".hermes" / "skills" / "hermes-multi-agent",
+        ],
+        "primary": Path.home() / ".agents" / "skills" / "hermes-multi-agent",
+        "bridge_bins": [],
+    },
 }
 
 SHARED_ITEMS = [
@@ -57,6 +67,7 @@ SHARED_ITEMS = [
     "templates",
     "scripts/install_native_skills.py",
     "scripts/run_multi_agent.py",
+    "scripts/doctor.py",
 ]
 
 
@@ -92,6 +103,21 @@ def destination_paths(client: str, scope: str) -> list[Path]:
     return [Path(scope).expanduser().resolve()]
 
 
+def worker_bridge_ready(client: str, bridge: dict[str, bool]) -> bool:
+    """Whether automatic Worker orchestration is available for this client.
+
+    Codex and Claude ship native subagents, so they are always ready once the
+    skill is installed. Cursor relies on the local CLI bridge, where either the
+    current `agent` binary or the backward-compatible `cursor-agent` alias is
+    sufficient (any-of), not both.
+    """
+    if client in {"codex", "claude", "hermes"}:
+        return True
+    if client == "cursor":
+        return any(bridge.values())
+    return all(bridge.values())
+
+
 def readiness_note(client: str, bridge: dict[str, bool]) -> str:
     if client == "codex":
         return (
@@ -103,14 +129,24 @@ def readiness_note(client: str, bridge: dict[str, bool]) -> str:
             "Claude Code App/IDE and CLI can load the native skill. Full App/CLI mode uses bundled "
             "Claude subagents; `claude` CLI is needed for scripted bridge/runtime `--runtime claude-code`."
         )
-    if all(bridge.values()):
+    if client == "hermes":
         return (
-            "Cursor App and CLI can load the native skill. Full Worker automation is available through "
-            "the local Cursor `agent` CLI bridge because Cursor App does not expose a Codex/Claude-style native subagent API."
+            "Hermes Agent can load the portable native skill (agentskills.io standard). Worker orchestration "
+            "runs through Hermes's native MCP client plus the bundled OpenClaw mission-control scripts; register "
+            "the MCP coordinator with `scripts/configure_mcp.py --client hermes` (adds it to ~/.hermes/config.yaml)."
+        )
+    if worker_bridge_ready(client, bridge):
+        return (
+            "Cursor App and CLI can load the native skill. This adapter's current Worker automation path is the "
+            "local Cursor CLI bridge (`agent`, or legacy `cursor-agent`); Cursor 3's Agents Window (`/multitask`, "
+            "`/worktree`) and the Cursor SDK also provide native parallel subagents, with native in-App integration "
+            "on the roadmap."
         )
     return (
-        "Cursor App and CLI can load the native skill, but full Worker automation is not ready until "
-        "the local Cursor `agent` CLI bridge is installed. Without it, only manual prompt handoff is available."
+        "Cursor App and CLI can load the native skill, but full Worker automation needs the local Cursor CLI "
+        "(`agent`, or legacy `cursor-agent`). Install it with `curl https://cursor.com/install -fsS | bash` "
+        "(Windows PowerShell: `irm 'https://cursor.com/install?win32=true' | iex`), reopen your shell, then "
+        "re-run --check. Until then only manual prompt handoff is available."
     )
 
 
@@ -167,7 +203,7 @@ def install_client(client: str, scope: str, force: bool, agent_dest_override: Pa
         "installed": installed,
         "installed_agents": installed_agents,
         "native_skill_ready": True,
-        "complete_worker_bridge_ready": client in {"codex", "claude"} or all(bridge.values()),
+        "complete_worker_bridge_ready": worker_bridge_ready(client, bridge),
         "bridge_bins": bridge,
         "note": readiness_note(client, bridge),
     }
@@ -190,7 +226,7 @@ def check_client(client: str) -> dict:
         "native_skill_paths": discovered,
         "native_agent_paths": discovered_agents,
         "native_skill_ready": bool(discovered),
-        "complete_worker_bridge_ready": client in {"codex", "claude"} or all(bridge.values()),
+        "complete_worker_bridge_ready": worker_bridge_ready(client, bridge),
         "bridge_bins": bridge,
         "note": readiness_note(client, bridge),
     }

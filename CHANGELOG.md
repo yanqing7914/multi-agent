@@ -2,6 +2,34 @@
 
 本文件遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.3.0] - 2026-06-23
+
+### Added
+
+- Added `scripts/doctor.py`: a friendly, dependency-free readiness report. Per client it checks native skill install, bundled native agent files, App/CLI tooling (CLI on PATH + best-effort config detection), and complete Worker readiness, then prints Chinese "下一步" remediation hints. Supports `--client`, `--json`, and a deterministic `--self-check`.
+- Bundled `doctor.py` into client packages (`SHARED_ITEMS`) and wired `doctor.py --self-check` into `scripts/validate_all_adapters.py`.
+- Added `tools/worktree_tool.py`: dependency-free git worktree helper that adds physical isolation for parallel Workers (industry practice from Cursor Agents / Claude Code worktrees). Supports `create`/`list`/`remove` and `plan` straight from `ownership.json` (one isolated worktree + `multi-agent/<task>-<session>` branch per write-permitted Worker), plus a deterministic `--self-check` wired into `scripts/validate_all_adapters.py`. Worktrees default to a `<repo>.worktrees/` sibling so they never pollute the main tree's `git status` / scope audit.
+- Added a **Hermes** adapter (`adapters/hermes/`): portable agentskills.io `SKILL.md` skill + native-MCP integration (`~/.hermes/config.yaml`), reusing the OpenClaw mission-control scripts for task cards and scope audit. Registered across `install_native_skills.py` (client `hermes`), `build_skill_packages.py` (`hermes-multi-agent-pack`), `run_multi_agent.py` (`--runtime hermes`), `configure_mcp.py`, `doctor.py`, and `validate_all_adapters.py`.
+- Added a **loop engineering** engine (`adapters/openclaw/scripts/run_loop.py`): a bounded, verifier-gated, self-correcting loop (Goal / Actions / independent Verify with maker≠checker / Repair / Memory / bounded stop). CLI maker calls `run_multi_agent.py`; verifier runs a `--verify-command` and can AND in `audit_worker_output.py`. Documented as a first-class path in `SKILL.md`.
+- Added Cursor native orchestration paths: `adapters/cursor/scripts/prepare_cursor_sdk.py` (headless `agent -p --output-format json` commands + SDK run-spec from `ownership.json`), `adapters/cursor/sdk/` (`@cursor/sdk` reference orchestrator), and `adapters/cursor/SDK.md`.
+- Added `scripts/configure_mcp.py`: one-step MCP registration for Cursor/Claude (JSON merge), Codex (TOML block), and Hermes (YAML block); defaults to `--dry-run`.
+- Added `mcp/multi-agent-coordinator/scripts/serve.py` and strengthened the MCP `self_check.py` to cover all 14 tools / 4 resources / 4 prompts; added a Hermes MCP config template.
+- Bundled the whole `tools/` directory into client and generic packages.
+- Added runtime dependency **auto-unblock**: `create_task_cards.py` now persists the static dependency graph (`dependencies`) onto each `ownership.json` task, and `update_task_status.py --sync` derives per-task `dependencies` / `blocked_by` / `ready_to_spawn` in `status.json` (and shows `[blocked_by: …]` / `[ready_to_spawn]` in the run summary). Added `update_task_status.py --ready` to print the ready-to-spawn / blocked task lists for Main and loops. This is additive and does not change gate pass/fail semantics. Added `ide/multi-agent-panel/scripts/open_panel.py` one-command launcher (auto free port, browser open, `--self-check`).
+- Exposed `plan_worktrees` (git worktree isolation) and `check_readiness` (doctor) as MCP coordinator tools so Cursor/Claude/Codex/Hermes can drive worktree isolation and readiness checks natively.
+- Added `adapters/openclaw/scripts/run_graph.py`: a dependency-ordered scheduler that operationalizes auto-unblock — it repeatedly syncs, finds `ready_to_spawn` tasks, dispatches each via `run_multi_agent.py`, and re-evaluates until the graph completes, deadlocks, or hits a bounded `--max-rounds`. Injectable `schedule_graph(state_dir, dispatch, max_rounds=...)` core, deterministic `--self-check`, and a safe dry-plan default (`--execute` to actually launch).
+
+- Cursor bridge detection now accepts either `agent` (current) or `cursor-agent` (legacy alias); readiness uses any-of semantics via a new `worker_bridge_ready` helper in `install_native_skills.py`.
+- `launch_cursor_worker.py` resolves the Cursor CLI binary at runtime (`agent` → `cursor-agent` fallback) inside the login shell, so the bridge works regardless of which alias is installed.
+- Documented accurate Cursor CLI install commands (macOS/Linux/WSL `curl` installer and native Windows PowerShell `irm` installer), the `~/.local/bin` PATH step, and the `bash`/`tmux` (WSL) requirement across the Cursor adapter docs, `docs/clients.md`, `docs/agent-install.md`, and root `README.md`.
+- Corrected the outdated "Cursor has no native subagent API" narrative across the Cursor adapter docs, `docs/clients.md`, `docs/agent-install.md`, `SKILL.md`, and `README.md` to reflect Cursor 3 (Agents Window, `/multitask`, `/worktree`, `@cursor/sdk`), while keeping the `agent` CLI bridge as the deterministic scripted path.
+- Added a `--runtime hermes` branch to `run_multi_agent.py` and `hermes` to the shared runtime choices.
+
+### Fixed
+
+- `build_skill_packages.py` did not bundle `scripts/doctor.py` into client packages even though the changelog and `docs/agent-install.md` smoke test referenced it; client packages now include `doctor.py` and the `tools/` directory.
+- `adapters/codex/scripts/prepare_native_subagent.py` mapped the Reviewer role to the built-in `explorer` agent type, losing the OS-level read-only sandbox defined in `multi-agent-reviewer.toml`; Worker now maps to `multi-agent-worker` and Reviewer to `multi-agent-reviewer` (Explorer/Verifier keep built-in read-only `explorer`). Documented that reliable custom `agent_type` selection needs Codex CLI >= 0.139.0.
+
 ## [0.2.0] - 2026-06-17
 
 ### Added
@@ -116,6 +144,7 @@
 - 许可证：MIT。
 - Hermes / VS Code 扩展仍为文档与脚手架阶段；实时 LLM bench 运行需各客户端 CLI 与配额。
 
+[0.3.0]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.3.0
 [0.2.0]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.2.0
 [0.1.5]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.5
 [0.1.4]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.4

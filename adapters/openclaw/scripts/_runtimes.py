@@ -10,6 +10,7 @@ TASK_CARD_RUNTIME_CHOICES: tuple[str, ...] = (
     "codex",
     "cursor",
     "claude-code",
+    "hermes",
 )
 
 # Local bench + swebench-lite harness
@@ -26,6 +27,7 @@ BENCH_RUNTIME_CHOICES: tuple[str, ...] = (
 # Cross-adapter launcher (scripts/run_multi_agent.py)
 LAUNCHER_RUNTIME_CHOICES: tuple[str, ...] = (
     "openclaw",
+    "hermes",
     "cursor-desktop",
     "cursor",
     "codex-native",

@@ -37,6 +37,8 @@ CHECKS = [
     ("audit_worker_output", "audit_worker_output.py"),
     ("verify_workspace", "verify_workspace.py"),
     ("run_local_demo", "run_local_demo.py"),
+    ("run_loop", "run_loop.py"),
+    ("run_graph", "run_graph.py"),
 ]
 
 

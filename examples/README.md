@@ -24,6 +24,7 @@ for `multi-agent-coding`.
 | [`case-study-fizzbuzz/`](case-study-fizzbuzz/) | Dogfood OpenClaw v1 task control on a small FizzBuzz module | `cards/`, `results/`, `summary/run-summary.md` |
 | [`case-study-flask-cli/`](case-study-flask-cli/) | Multi-file Flask-shaped CLI case with real adapter runs | `app/`, `tests/`, `task.yaml`, `.runs/` |
 | [`case-study-gh-issue-typo/`](case-study-gh-issue-typo/) | Simulated GitHub issue -> Explorer -> Worker -> Reviewer -> Verifier | `mock-issue.md`, `mock-pr.md`, `cards/` |
+| [`case-study-loop/`](case-study-loop/) | Loop engineering with `run_loop.py`: Worker (maker) -> independent verify + audit (checker) -> repair, bounded | deterministic `--self-check`, verifier-gated loop commands |
 
 ## Related
 
@@ -31,4 +32,7 @@ for `multi-agent-coding`.
 - Codex adapter: [`../adapters/codex/README.md`](../adapters/codex/README.md)
 - Cursor adapter: [`../adapters/cursor/README.md`](../adapters/cursor/README.md)
 - Claude adapter: [`../adapters/claude-code/README.md`](../adapters/claude-code/README.md)
+- Hermes adapter: [`../adapters/hermes/README.md`](../adapters/hermes/README.md)
+- Loop engine: [`../adapters/openclaw/scripts/run_loop.py`](../adapters/openclaw/scripts/run_loop.py) (`--self-check` for a deterministic demo)
+- Readiness + MCP: [`../scripts/doctor.py`](../scripts/doctor.py) (four-end check), [`../scripts/configure_mcp.py`](../scripts/configure_mcp.py) (dry-run by default)
 - Bench harness: [`../bench/README.md`](../bench/README.md)

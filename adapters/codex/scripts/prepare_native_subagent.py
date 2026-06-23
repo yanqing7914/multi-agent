@@ -30,9 +30,21 @@ def safe_name(value: str) -> str:
 
 
 def codex_agent_type(role: str) -> str:
+    """Map a task-card role to the Codex `spawn_agent` agent_type.
+
+    Codex selects custom agents by their TOML `name` field; we bundle
+    `multi-agent-worker` (workspace-write) and `multi-agent-reviewer`
+    (sandbox_mode=read-only). Returning those names preserves each agent's
+    sandbox + instructions. Roles without a bundled custom agent (Explorer /
+    Verifier) fall back to the built-in read-only `explorer`. Reliable custom
+    agent_type selection needs Codex CLI >= 0.139.0; older versions ignore it
+    and the prompt's role/permission text still enforces the boundary.
+    """
     normalized = role.strip().lower()
     if normalized == "worker":
-        return "worker"
+        return "multi-agent-worker"
+    if normalized == "reviewer":
+        return "multi-agent-reviewer"
     return "explorer"
 
 
@@ -199,8 +211,8 @@ def run_self_check() -> int:
         if missing:
             print(json.dumps({"ok": False, "missing": missing}, indent=2))
             return 1
-        if payload.get("agent_type") != "explorer":
-            print(json.dumps({"ok": False, "error": "reviewer should map to read-only explorer agent type"}, indent=2))
+        if payload.get("agent_type") != "multi-agent-reviewer":
+            print(json.dumps({"ok": False, "error": "reviewer should map to bundled read-only multi-agent-reviewer agent type"}, indent=2))
             return 1
         print(json.dumps({"ok": True, "adapter": "codex-native-subagent", "prompt": str(prompt)}, indent=2))
         return 0

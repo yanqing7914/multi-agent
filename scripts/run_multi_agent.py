@@ -13,6 +13,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 RUNTIMES = {
     "openclaw": REPO_ROOT / "adapters" / "openclaw" / "README.md",
+    "hermes": REPO_ROOT / "adapters" / "hermes" / "README.md",
     "cursor-desktop": REPO_ROOT / "adapters" / "cursor" / "scripts" / "prepare_cursor_desktop.py",
     "cursor": REPO_ROOT / "adapters" / "cursor" / "scripts" / "launch_cursor_worker.sh",
     "codex": REPO_ROOT / "adapters" / "codex" / "scripts" / "launch_codex_worker.sh",
@@ -64,6 +65,21 @@ def main() -> int:
                     "message": "OpenClaw uses sessions_spawn/sessions_send — see adapters/openclaw/QUICKSTART.md",
                     "task_card": str(task_card),
                     "handoff": "Paste task card into sessions_send; use openclaw_handoff block in card",
+                },
+                indent=2,
+            )
+        )
+        return 0
+
+    if args.runtime == "hermes":
+        print(
+            json.dumps(
+                {
+                    "ok": True,
+                    "runtime": "hermes",
+                    "message": "Hermes uses its native MCP client + mission-control scripts — see adapters/hermes/QUICKSTART.md",
+                    "task_card": str(task_card),
+                    "handoff": "Register the MCP coordinator (scripts/configure_mcp.py --client hermes), then drive Workers via Hermes MCP tools and the OpenClaw mission-control scripts.",
                 },
                 indent=2,
             )

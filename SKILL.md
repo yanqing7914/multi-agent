@@ -21,15 +21,15 @@ Use this skill to coordinate coding work with controlled specialist roles. This 
 
 Support Codex, Cursor, Claude Code, OpenClaw, Hermes, and VS Code by keeping the shared protocol independent of any one client runtime. Treat task cards, result reports, role permissions, skill-use approvals, review findings, scope audits, and final delivery format as the portable contract.
 
-If the user asks to install this skill from GitHub, read `docs/agent-install.md` first and choose the client-specific package. Use `codex-multi-agent-skill-*` for Codex, `cursor-multi-agent-pack-*` for Cursor, `claude-code-multi-agent-pack-*` for Claude Code, and `openclaw-multi-agent-skill-*` for OpenClaw/Her. The generic `multi-agent-coding-skill-*` package is protocol guidance only.
+If the user asks to install this skill from GitHub, read `docs/agent-install.md` first and choose the client-specific package. Use `codex-multi-agent-skill-*` for Codex, `cursor-multi-agent-pack-*` for Cursor, `claude-code-multi-agent-pack-*` for Claude Code, `openclaw-multi-agent-skill-*` for OpenClaw/Her, and `hermes-multi-agent-pack-*` for Hermes. The generic `multi-agent-coding-skill-*` package is protocol guidance only. After installing, run `scripts/doctor.py` for a per-client readiness report.
 
 Use client-specific adapters for execution details:
 
 - Codex: use `adapters/codex/`; App and CLI discover the native skill, bundled custom agents provide scoped Worker/Reviewer defaults, native subagents are the full path, and `codex exec` is the optional script bridge.
-- Cursor: use `adapters/cursor/`; App and CLI discover the native Agent Skill, while full automatic Worker orchestration uses the local Cursor `agent` CLI bridge because Cursor App does not expose a public Codex/Claude-style native subagent API.
+- Cursor: use `adapters/cursor/`; App and CLI discover the native Agent Skill. Cursor 3's Agents Window (`/multitask`, `/worktree`) and the Cursor SDK provide native parallel subagents; this adapter's current automation path for Worker orchestration is the local Cursor `agent` CLI bridge (native in-App `/multitask` integration is on the roadmap), which stays the deterministic path for scripted/CI runs.
 - Claude Code: use `adapters/claude-code/`; App/IDE and CLI discover the native skill, bundled `.claude/agents` provide Worker/Reviewer/Verifier roles, and `claude --print` is the optional script bridge.
 - OpenClaw: install `adapters/openclaw/` as the standalone skill `openclaw-multi-agent`; map roles to `sessions_spawn`, `sessions_send`, and `sessions_yield`; use the bundled scripts for task cards and scope audit.
-- Hermes: use the protocol as a task-card and role-routing contract; prefer MCP for state.
+- Hermes: install `adapters/hermes/` as the portable skill `hermes-multi-agent` (agentskills.io SKILL.md standard); drive Workers through Hermes's native MCP client (register the coordinator with `scripts/configure_mcp.py --client hermes`) plus the bundled OpenClaw mission-control scripts for task cards and scope audit.
 - VS Code: use workspace instructions plus MCP/client extensions where available.
 
 If a client lacks the required native subagent or CLI bridge, do not claim full automation. Use prompt handoff only as a fallback and clearly report the limitation.
@@ -174,6 +174,19 @@ The main agent must audit worker results before final delivery:
 ## Final Delivery
 
 Include changed files, validation run, validation not run, review findings handled, residual risks, and concise follow-up options when relevant.
+
+## Verifier-Gated Loop (Loop Engineering)
+
+For tasks with a deterministic success condition (tests, lint, build, or scope audit), drive the work as a bounded self-correcting loop instead of a single Worker pass. This is loop engineering: design the system that drives the agent, with an independent checker.
+
+- Goal: a testable stop condition (e.g. "tests in `tests/auth` pass and scope audit is clean").
+- Actions: the Worker (maker) implements within `allowed_paths`.
+- Verify: an independent checker — a `--verify-command` (pytest/lint/build) and/or `audit_worker_output.py`. The maker must never grade itself (maker ≠ checker).
+- Repair: feed the verifier's failure output into the next iteration as diagnosis, not a blind retry.
+- Memory: persist lessons across iterations (e.g. `MEMORY.md`).
+- Stop: only when the verifier passes, or a bounded `--max-iterations` / budget cap is hit — never an unbounded loop.
+
+Driver: `adapters/openclaw/scripts/run_loop.py` (e.g. `--task-card <card> --verify-command "pytest -q" --with-audit --max-iterations 5`). Roles map directly: Worker = maker, Verifier + scope audit = checker, `MEMORY.md` = memory, gates = stop conditions.
 
 ## Client Adapters
 

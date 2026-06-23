@@ -15,11 +15,13 @@ from coordinator import (
     approve_skill_use,
     audit_scope,
     check_path_allowed,
+    check_readiness,
     create_task,
     generate_final_report,
     get_task,
     list_framework_tools,
     list_tasks,
+    plan_worktrees,
     read_resource,
     record_finding,
     record_result,
@@ -193,6 +195,27 @@ TOOLS = [
                 "include_tasks": {"type": "boolean"},
                 "include_findings": {"type": "boolean"},
                 "include_validation": {"type": "boolean"},
+            },
+        },
+    },
+    {
+        "name": "plan_worktrees",
+        "description": "Plan (or create) one isolated git worktree+branch per write-permitted Worker from ownership.json (physical isolation for parallel Workers).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace": {"type": "string"},
+                "create": {"type": "boolean", "description": "Actually create the worktrees (git side effects); default false = plan only."},
+            },
+        },
+    },
+    {
+        "name": "check_readiness",
+        "description": "Per-client readiness report (doctor.py): native skill, bundled agents, App/CLI tooling, complete Worker readiness.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "client": {"type": "string", "enum": ["all", "codex", "cursor", "claude", "hermes"]},
             },
         },
     },
@@ -413,6 +436,10 @@ class MCPServer:
                 args.get("include_findings", True),
                 args.get("include_validation", True),
             )
+        if name == "plan_worktrees":
+            return plan_worktrees(sd, args.get("create", False))
+        if name == "check_readiness":
+            return check_readiness(args.get("client", "all"))
         raise ValueError(f"Unknown tool: {name}")
 
     @staticmethod

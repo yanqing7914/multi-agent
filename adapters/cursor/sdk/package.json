@@ -1,0 +1,20 @@
+{
+  "name": "cursor-multi-agent-sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Reference @cursor/sdk launcher that runs scoped multi-agent Workers from a prepare_cursor_sdk run-spec.json. Node-only reference path; not part of the dependency-free Python core or CI.",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "run_workers.mjs",
+  "bin": {
+    "cursor-multi-agent-sdk": "run_workers.mjs"
+  },
+  "scripts": {
+    "start": "node run_workers.mjs"
+  },
+  "dependencies": {
+    "@cursor/sdk": "latest"
+  }
+}
