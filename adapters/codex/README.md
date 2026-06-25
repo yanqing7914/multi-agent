@@ -14,11 +14,11 @@ Codex App and Codex CLI both get:
 4. Optional `codex exec` bridge for deterministic script-launched workers.
 5. Shared task cards, result reports, gate sync, and scope audit.
 
-Manual prompt handoff remains available, but v0.3.0 treats native Codex subagents as the full App/CLI path.
+Manual prompt handoff remains available, but v0.3.1 treats native Codex subagents as the full App/CLI path.
 
 ## Install
 
-From the extracted `codex-multi-agent-skill-v0.3.0.zip` root:
+From the extracted `codex-multi-agent-skill-v0.3.1.zip` root:
 
 ```bash
 python3 scripts/install_native_skills.py --client codex --scope primary --force

@@ -20,14 +20,17 @@ python3 scripts/doctor.py --client cursor
 Reload Cursor. Then ask Cursor Agent:
 
 ```text
-Use cursor-multi-agent. Split this into scoped task cards, run Workers through the local agent CLI bridge, collect result reports, then audit the diff.
+Use cursor-multi-agent. Split this into scoped task cards, then for each card spawn a Cursor subagent (Worker limited to allowed_paths; Reviewer read-only) to do the work and write JSON + Markdown reports. Collect reports, then audit the diff.
 ```
 
-### Install the Cursor CLI (required for automatic Workers)
+In Cursor App the primary path is **in-App subagent delegation**: the Main agent
+spawns a Cursor subagent per Worker/Reviewer. No external CLI is required.
 
-The full Worker bridge runs Cursor's terminal agent. The binary is `agent` (the
-legacy alias `cursor-agent` also works). If `complete_worker_bridge_ready=false`,
-install it:
+### (Optional) Install the Cursor CLI — only for the scripted bridge
+
+You only need the `agent` CLI if you want the scripted/CI bridge in step 2b
+(`run_multi_agent.py --runtime cursor`). The binary is `agent` (legacy alias
+`cursor-agent` also works):
 
 ```bash
 # macOS / Linux / WSL
@@ -37,10 +40,9 @@ curl https://cursor.com/install -fsS | bash
 irm 'https://cursor.com/install?win32=true' | iex
 ```
 
-Reopen your shell and verify with `agent --version`. If the command is not found,
-add `~/.local/bin` to your `PATH`. The bridge also needs `bash` + `tmux`; on
-native Windows run the bridge from WSL. Without the CLI you can still use the
-manual fallback in step 2b.
+Reopen your shell and verify with `agent --version`. If not found, add
+`~/.local/bin` to your `PATH`. The bridge also needs `bash` + `tmux`; on native
+Windows run it from WSL.
 
 ## 1. Generate Task Cards
 
@@ -53,11 +55,19 @@ python3 /path/to/cursor-multi-agent/adapters/openclaw/scripts/create_task_cards.
   --out .codex-multi-agent
 ```
 
-## 2a. Full Mode: Cursor CLI Bridge
+## 2. Dispatch Workers — In-App Subagent Delegation (primary)
 
-Cursor 3's in-App Agents Window (`/multitask`) can also split a request into parallel subagents with their own worktrees and PRs; native integration with this adapter is on the roadmap, while the CLI bridge below stays the deterministic scripted/CI path.
+In Cursor App, the Main agent dispatches each Worker/Reviewer by **spawning a
+Cursor subagent** with the task-card body + role + `allowed_paths` + the two
+`result_report_paths`. Worker edits only within `allowed_paths`;
+Reviewer/Explorer/Verifier stay read-only. Collect each subagent's JSON +
+Markdown report, then go to step 3 (audit). No external CLI is needed. If your
+Cursor agent cannot delegate, use `/multitask` (type it in Cursor 3) or the
+optional bridge in 2a.
 
-Use this for automatic Workers from Cursor App or Cursor CLI:
+## 2a. (Optional) Scripted Mode: Cursor CLI Bridge
+
+For shell/CI-driven Workers (needs the `agent` CLI + tmux; WSL on native Windows):
 
 ```bash
 python3 /path/to/cursor-multi-agent/scripts/run_multi_agent.py \
@@ -76,7 +86,7 @@ python3 /path/to/cursor-multi-agent/scripts/run_multi_agent.py \
 
 ## 2b. Manual Fallback
 
-Use only when `agent` CLI is unavailable:
+Use only when neither delegation nor the `agent` CLI is available:
 
 ```bash
 python3 /path/to/cursor-multi-agent/scripts/run_multi_agent.py \

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import tempfile
@@ -898,10 +899,18 @@ def run_self_check() -> int:
 
         audits_dir = state_dir / "audits"
         audits_dir.mkdir(exist_ok=True)
+        # Give each audit file an explicit, strictly increasing mtime so
+        # load_latest_audit's "most recent" selection is deterministic. Without
+        # this, three audits written within one clock tick can tie on mtime and
+        # the wrong one is picked under load (flaky self-check). The base is in
+        # the FUTURE so each audit file stays newer than changed-files.txt and is
+        # never flagged stale by the audit-file mtime comparison in _preflight.
+        audit_mtime_base = datetime.now(timezone.utc).timestamp() + 1_000_000
         write_json(
             audits_dir / "audit-test.json",
             {"ok": True, "gate": {"id": "scope_audit", "status": "passed"}, "violations": [], "conflicts": [], "warnings": [], "summary": {}},
         )
+        os.utime(audits_dir / "audit-test.json", (audit_mtime_base, audit_mtime_base))
         synced = sync_status(state_dir)
         if synced["gates"]["scope_audit"]["status"] != "passed":
             errors.append("scope_audit gate should pass when latest audit ok=true")
@@ -923,6 +932,7 @@ def run_self_check() -> int:
                 "warnings": [],
             },
         )
+        os.utime(audits_dir / "audit-fresh.json", (audit_mtime_base + 100, audit_mtime_base + 100))
         fresh_sync = sync_status(state_dir)
         if fresh_sync["gates"]["scope_audit"]["status"] != "passed":
             errors.append("scope_audit should pass when audit digest matches changed-files.txt")
@@ -946,6 +956,7 @@ def run_self_check() -> int:
             "changed_files_mtime": changed_path.stat().st_mtime,
         }
         write_json(audits_dir / "audit-warn.json", warn_audit)
+        os.utime(audits_dir / "audit-warn.json", (audit_mtime_base + 200, audit_mtime_base + 200))
         warn_sync = sync_status(state_dir)
         if warn_sync["gates"]["scope_audit"]["status"] != "pending":
             errors.append("scope_audit gate must stay pending when audit has warnings (ok=false)")

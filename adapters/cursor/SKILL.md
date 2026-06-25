@@ -1,6 +1,6 @@
 ﻿---
 name: cursor-multi-agent
-description: Cursor-specific thin adapter for multi-agent coding. Use when Cursor App or Cursor CLI should coordinate scoped Explorer/Worker/Reviewer/Verifier roles with native Cursor Agent Skills, task cards, result reports, and a local `agent` CLI bridge for automatic Workers. Do not use for simple single-agent edits.
+description: Cursor-specific thin adapter for multi-agent coding. Use when Cursor App or Cursor CLI should coordinate scoped Explorer/Worker/Reviewer/Verifier roles with task cards, result reports, and scope audit. In Cursor App the Main agent dispatches each Worker/Reviewer by spawning a Cursor subagent (delegation) directly; the local `agent` CLI bridge is only for scripted/CI runs. Do not use for simple single-agent edits.
 ---
 
 # cursor-multi-agent
@@ -15,47 +15,72 @@ Use when:
 - coordinating from Cursor App or Cursor CLI as Main Agent
 - the user asks for multiple agents, Workers, Reviewers, Verifiers, or parallel review
 - the task needs scoped `allowed_paths`, `blocked_commands`, result reports, and final diff audit
-- Cursor should use native Agent Skills plus the local `agent` CLI bridge for automatic Workers
 
 Do not use when:
 
 - the task is a quick single-agent edit
 - the user wants OpenClaw `sessions_spawn`; use `adapters/openclaw/`
-- `agent` CLI is missing and the user requires automatic Worker execution with no manual handoff
+
+## How To Dispatch A Worker In Cursor App (primary path)
+
+In Cursor App the Main agent (you) dispatches a Worker by **spawning a Cursor
+subagent yourself** — you do NOT need the external `agent` CLI for this. For each
+Worker/Reviewer task card:
+
+1. Generate task cards under `.codex-multi-agent/` (see Golden Path).
+2. For each task card, **spawn a subagent** (Cursor's delegation / Agents
+   capability) and give it: the task-card body, its `role`, `allowed_paths`,
+   `blocked_paths`, authorized `may_use_skills`, and the two `result_report_paths`.
+   Instruct a Worker to edit only within `allowed_paths`; instruct a
+   Reviewer/Explorer/Verifier to stay read-only (`files_changed` empty).
+3. Wait for each subagent to write its JSON + Markdown result report.
+4. As Main: capture `git diff --name-only > .codex-multi-agent/changed-files.txt`,
+   run the scope audit, sync gates, then deliver.
+
+This is the same controlled loop other clients run; in Cursor the role
+write-permission is enforced by the task-card instructions plus the post-hoc
+scope audit (`audit_worker_output.py`), and can be hardened with one git
+worktree per Worker (`tools/worktree_tool.py`). If your Cursor agent cannot
+delegate to subagents, fall back to `/multitask` (user-driven), the `agent` CLI
+bridge, or manual handoff — see Execution Modes.
 
 ## Execution Modes
 
 | Mode | Use when | How |
 | --- | --- | --- |
-| Native Cursor skill | Cursor App or CLI has loaded this skill | Main follows this workflow and creates task cards |
-| App native parallel | Inside Cursor 3 App | Use `/multitask` (parallel subagents, each in its own worktree/PR) or `/sdk`; see `SDK.md` |
+| **In-App subagent delegation (primary)** | **Cursor App, Main can delegate to subagents** | **Main spawns one Cursor subagent per Worker/Reviewer with the task-card prompt + scope; collects reports; audits. No external CLI needed.** |
+| App `/multitask` | Cursor 3 App, user-driven | User types `/multitask` (parallel subagents, each own worktree/PR) or `/sdk`; see `SDK.md` |
 | Cursor SDK / headless | Programmatic or CI runs | `@cursor/sdk` or headless `agent -p --output-format json`; generate run specs with `scripts/prepare_cursor_sdk.py`; see `SDK.md` |
-| Cursor CLI bridge | Automatic Workers from a script | Run `scripts/run_multi_agent.py --runtime cursor` (deterministic scripted/CI path) |
-| Manual handoff fallback | `agent` CLI is unavailable | Run `--runtime cursor-desktop` and paste/open prompts in Cursor Agent |
+| Cursor CLI bridge | Scripted Workers from a shell | Run `scripts/run_multi_agent.py --runtime cursor` (needs `agent` CLI + tmux; deterministic CI path) |
+| Manual handoff fallback | No delegation, no `agent` CLI | Run `--runtime cursor-desktop` and paste/open prompts in Cursor Agent |
 
-Cursor App supports native Agent Skills. Cursor 3's Agents Window (`/multitask`,
-`/worktree`) and the Cursor SDK provide native parallel subagents; this adapter's
-current automation path for complete Worker orchestration is the local Cursor
-`agent` CLI bridge (native in-App `/multitask` integration is on the roadmap),
-which stays the deterministic path for scripted/CI runs.
+In Cursor App the **primary** way to dispatch Workers is for the Main agent to
+**spawn subagents directly** (see "How To Dispatch A Worker In Cursor App").
+This does not require the `agent` CLI. The `agent` CLI bridge
+(`run_multi_agent.py --runtime cursor`) is for scripted/CI use and needs both the
+`agent` binary and `tmux` on PATH (on native Windows, run it from WSL).
 
 ## Golden Path
 
 1. Install the package with `scripts/install_native_skills.py --client cursor --scope primary --force`.
 2. Restart/reload Cursor so it discovers `cursor-multi-agent`.
 3. Generate `.codex-multi-agent/` task cards from the target repo.
-4. Check bridge readiness with `scripts/install_native_skills.py --client cursor --check` (or the friendlier `scripts/doctor.py --client cursor`). The bridge needs the Cursor CLI on PATH: `agent` (or legacy alias `cursor-agent`), installable via `curl https://cursor.com/install -fsS | bash` (Windows: `irm 'https://cursor.com/install?win32=true' | iex`).
-5. For full automatic Workers, launch:
+4. **Dispatch each Worker/Reviewer by spawning a Cursor subagent yourself** (primary path; see "How To Dispatch A Worker In Cursor App"). No external CLI required.
+5. Main captures `git diff`, runs scope audit + gate sync, then delivers.
+
+Alternative (scripted/CI) — the `agent` CLI bridge instead of step 4:
 
 ```bash
+# Needs `agent` CLI + tmux on PATH (on native Windows run from WSL):
 python3 /path/to/cursor-multi-agent/scripts/run_multi_agent.py \
   --runtime cursor \
   --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-6. For synchronous debugging, add `--foreground`.
-7. If `agent` is unavailable, use `--runtime cursor-desktop` only as a manual fallback.
-8. Main runs gate sync and scope audit before delivery.
+Install the CLI with `irm 'https://cursor.com/install?win32=true' | iex` (Windows)
+or `curl https://cursor.com/install -fsS | bash`. Check readiness with
+`scripts/doctor.py --client cursor`. If neither delegation nor the CLI is
+available, use `--runtime cursor-desktop` for manual prompt handoff.
 
 ## Skill Routing
 

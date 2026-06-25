@@ -1,6 +1,6 @@
 # multi-agent
 
-[![version](https://img.shields.io/badge/version-0.3.0-blue)](CHANGELOG.md)
+[![version](https://img.shields.io/badge/version-0.3.1-blue)](CHANGELOG.md)
 [![python](https://img.shields.io/badge/python-%3E%3D3.10-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -29,16 +29,16 @@ IDE Panel    = 图形化任务面板、Prompt 生成器和本地集成入口
 
 | 压缩包 | 适用场景 |
 | --- | --- |
-| [`codex-multi-agent-skill-v0.3.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.0/codex-multi-agent-skill-v0.3.0.zip) | Codex App + CLI 原生 skill，包含 Codex custom agents 与 `codex exec` bridge |
-| [`cursor-multi-agent-pack-v0.3.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.0/cursor-multi-agent-pack-v0.3.0.zip) | Cursor App + CLI 原生 skill，含 headless / `@cursor/sdk` 原生编排与本机 `agent` CLI bridge |
-| [`claude-code-multi-agent-pack-v0.3.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.0/claude-code-multi-agent-pack-v0.3.0.zip) | Claude Code App/IDE + CLI 原生 skill，包含 Claude subagents、Agent Teams 映射与 CLI bridge |
-| [`hermes-multi-agent-pack-v0.3.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.0/hermes-multi-agent-pack-v0.3.0.zip) | Hermes 专用，agentskills.io 可移植 skill + 原生 MCP（`~/.hermes/config.yaml`） |
-| [`openclaw-multi-agent-skill-v0.3.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.0/openclaw-multi-agent-skill-v0.3.0.zip) | OpenClaw / Her 专用，推荐 OpenClaw 用户下载这个 |
-| [`multi-agent-coding-skill-v0.3.0.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.0/multi-agent-coding-skill-v0.3.0.zip) | 通用协议包，只包含共享 skill 规则、模板和清单；原生安装请使用客户端专用包 |
+| [`codex-multi-agent-skill-v0.3.1.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.1/codex-multi-agent-skill-v0.3.1.zip) | Codex App + CLI 原生 skill，包含 Codex custom agents 与 `codex exec` bridge |
+| [`cursor-multi-agent-pack-v0.3.1.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.1/cursor-multi-agent-pack-v0.3.1.zip) | Cursor App + CLI 原生 skill，含 headless / `@cursor/sdk` 原生编排与本机 `agent` CLI bridge |
+| [`claude-code-multi-agent-pack-v0.3.1.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.1/claude-code-multi-agent-pack-v0.3.1.zip) | Claude Code App/IDE + CLI 原生 skill，包含 Claude subagents、Agent Teams 映射与 CLI bridge |
+| [`hermes-multi-agent-pack-v0.3.1.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.1/hermes-multi-agent-pack-v0.3.1.zip) | Hermes 专用，agentskills.io 可移植 skill + 原生 MCP（`~/.hermes/config.yaml`） |
+| [`openclaw-multi-agent-skill-v0.3.1.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.1/openclaw-multi-agent-skill-v0.3.1.zip) | OpenClaw / Her 专用，推荐 OpenClaw 用户下载这个 |
+| [`multi-agent-coding-skill-v0.3.1.zip`](https://github.com/yanqing7914/multi-agent/releases/download/v0.3.1/multi-agent-coding-skill-v0.3.1.zip) | 通用协议包，只包含共享 skill 规则、模板和清单；原生安装请使用客户端专用包 |
 
 安装方式：把这个 GitHub 链接发给你的 agent，并说“安装 multi-agent skill”。agent 应优先阅读 [`docs/agent-install.md`](docs/agent-install.md)，按自己的客户端选择对应包。
 
-## v0.3.0 完整支持标准
+## v0.3.1 完整支持标准
 
 “完整使用”不是只生成 prompt，而是同一套 skill 在 App 和 CLI 中都能完成：
 
@@ -52,13 +52,13 @@ IDE Panel    = 图形化任务面板、Prompt 生成器和本地集成入口
 | 客户端 | App 完整模式 | CLI 完整模式 | Worker 编排方式 | 备注 |
 | --- | --- | --- | --- | --- |
 | Codex | ✅ 原生 skill + 原生 subagents | ✅ 原生 skill + subagents / `codex exec` | native subagent 或 `--runtime codex` | Codex App/CLI 都支持 skills；subagents 默认可用 |
-| Cursor | ✅ 原生 skill + `agent` CLI bridge | ✅ 原生 skill + `agent -p` | `--runtime cursor`，tmux/foreground 回收报告 | Cursor 3 的 Agents Window（`/multitask`、`/worktree`）与 Cursor SDK 提供原生并行子代理；本适配器当前自动化走本机 `agent` CLI bridge（App 内 `/multitask` 原生集成在路线图上），CLI bridge 仍是脚本化 / CI 的确定性路径 |
+| Cursor | ✅ 原生 skill + In-App 子 agent 委派 | ✅ 委派 / 可选 `agent -p` bridge | Main 直接 spawn 子 agent；可选 `--runtime cursor` bridge | App 内首选：Main 直接 spawn Cursor 子 agent 当 Worker（不需外部 CLI）；`agent` CLI bridge 为可选脚本/CI 路径，`/multitask` 为用户驱动备选 |
 | Claude Code | ✅ 原生 skill + Claude subagents | ✅ 原生 skill + Claude subagents / `claude --print` | `.claude/agents` 或 `--runtime claude-code` | Claude Code App/IDE 扩展内置 CLI 面板；独立终端自动化需 standalone `claude` |
 | OpenClaw / Her | ✅ `sessions_spawn` / `sessions_send` / `sessions_yield` | ✅ runtime 相关 | `--runtime openclaw` / ACP | mission-control 参考实现，其它适配器复用其门控脚本 |
 | Hermes | ✅ 原生 `SKILL.md`（agentskills.io 标准）+ 原生 MCP 工具 | ✅ 原生 MCP 工具 + mission-control 脚本 | `--runtime hermes`（打印 MCP / handoff 指引） | 自托管持久 agent；复用 OpenClaw core，`~/.hermes/config.yaml` 注册 MCP coordinator |
 | VS Code | scaffold | scaffold | MCP / 任务面板（规划中） | 协议 + 任务面板脚手架，尚未编译发布 |
 
-OpenClaw / Hermes 走原生会话 / MCP 编排（不依赖 CLI bridge）；Codex / Cursor / Claude 在缺少 CLI bridge 时不再宣称“完整自动化”，只能使用 prompt handoff 降级路径。VS Code 目前是脚手架。
+各端的"完整自动化"都不依赖外部 CLI bridge：Codex / Claude 用原生 subagents，Cursor 用 App 内子 agent 委派（Main 直接 spawn），OpenClaw / Hermes 用原生会话 / MCP 编排。`agent` / `codex` / `claude` 这些 CLI 仅用于可选的脚本/CI bridge。只有当某端既无委派/原生 subagent 能力、又没装对应 CLI 时，才退回 prompt handoff 降级路径。VS Code 目前是脚手架。
 
 ## 一键原生安装 / 检查
 
@@ -81,7 +81,7 @@ python3 scripts/doctor.py --client cursor
 python3 scripts/doctor.py --json     # 机器可读
 ```
 
-其中 Cursor 的完整自动 Worker 需要本机 Cursor CLI（命令为 `agent`，旧别名 `cursor-agent` 也可）：
+其中 Cursor 在 App 内首选「Main 直接 spawn 子 agent 当 Worker」（不需任何外部 CLI）。只有当你想用**可选的脚本/CI bridge**（`run_multi_agent.py --runtime cursor`）时，才需安装本机 Cursor CLI（命令为 `agent`，旧别名 `cursor-agent` 也可）：
 
 ```bash
 # macOS / Linux / WSL
@@ -126,7 +126,7 @@ python3 scripts/configure_mcp.py --client cursor --workspace . --write
 ## 当前能力概览
 
 - **Codex：完整 v0.2**，App/CLI 原生 skill + 原生 subagents，CLI bridge 走 `codex exec`。
-- **Cursor：完整 v0.2（带 bridge 条件）**，App/CLI 原生 skill；Cursor 3 的 Agents Window（`/multitask`、`/worktree`）与 Cursor SDK 提供原生并行子代理，本适配器当前 Worker 自动化走本机 `agent` CLI bridge（App 内 `/multitask` 原生集成在路线图上）。
+- **Cursor：完整 v0.3**，App/CLI 原生 skill；App 内首选「Main 直接 spawn 子 agent 当 Worker」（不需外部 CLI）；`agent` CLI bridge 为可选脚本/CI 路径，`/multitask` 与 headless/`@cursor/sdk` 为备选。
 - **Claude Code：完整 v0.2**，App/IDE/CLI 原生 skill + `.claude/agents` subagents，CLI bridge 走 `claude --print`。
 - **OpenClaw / Her：Production v1**，作为 mission-control 参考实现。
 - **Hermes：适配器已落地**，通过 agentskills.io 标准 `SKILL.md` 被原生发现，借助 Hermes 原生 MCP 客户端（`~/.hermes/config.yaml` 的 `mcp_servers`）复用 OpenClaw mission-control core。

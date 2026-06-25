@@ -2,6 +2,14 @@
 
 本文件遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.3.1] - 2026-06-25
+
+### Fixed
+
+- **Cursor App could not dispatch a Worker.** The Cursor skill framed the only automatic-Worker path as the external `agent` CLI bridge (which needs `agent` + tmux), and never told the Cursor Main agent it can dispatch Workers by spawning Cursor subagents directly (in-App delegation, no external CLI). Reworked `adapters/cursor/SKILL.md` to make **in-App subagent delegation the primary path** (with a concrete "How To Dispatch A Worker In Cursor App" section), demoting the `agent` CLI bridge to an optional scripted/CI path. Updated `install_native_skills.py` readiness (`worker_bridge_ready`/`readiness_note`) and `doctor.py` verdict so Cursor is reported **ready once the skill is installed** (the `agent` CLI is optional), instead of the misleading "automatic Worker needs the local Cursor CLI".
+- Propagated the corrected Cursor model across all docs (`adapters/cursor/README.md`, `QUICKSTART.md`, `docs/clients.md`, `docs/agent-install.md`, root `README.md`, and the packaged `.cursor/rules` generator in `build_skill_packages.py`) so no document still presents the `agent` CLI bridge as Cursor's primary/required automation path.
+- Fixed a flaky `update_task_status.py --self-check` (the "scope_audit gate must stay pending when audit has warnings" assertion). Three audit fixtures written within one clock tick could tie on mtime, so `load_latest_audit` non-deterministically picked the wrong "latest" audit under load. The self-check now stamps strictly increasing (future) mtimes on its audit fixtures, making latest-audit selection deterministic without changing product behavior.
+
 ## [0.3.0] - 2026-06-23
 
 ### Added
@@ -144,6 +152,7 @@
 - 许可证：MIT。
 - Hermes / VS Code 扩展仍为文档与脚手架阶段；实时 LLM bench 运行需各客户端 CLI 与配额。
 
+[0.3.1]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.3.1
 [0.3.0]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.3.0
 [0.2.0]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.2.0
 [0.1.5]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.1.5

@@ -15,11 +15,11 @@ Claude Code App/IDE and Claude Code CLI both get:
 5. OpenClaw ACP handoff when Claude participates inside Her/OpenClaw.
 6. Optional Claude Agent Teams orchestration (experimental) mapped to task cards, ownership boundaries, and the scope-audit gate — see [TEAMS.md](TEAMS.md).
 
-Manual prompt generation remains available, but v0.3.0 treats native Claude Code skills + subagents as the full App/CLI path.
+Manual prompt generation remains available, but v0.3.1 treats native Claude Code skills + subagents as the full App/CLI path.
 
 ## Install
 
-From the extracted `claude-code-multi-agent-pack-v0.3.0.zip` root:
+From the extracted `claude-code-multi-agent-pack-v0.3.1.zip` root:
 
 ```bash
 python3 scripts/install_native_skills.py --client claude --scope primary --force

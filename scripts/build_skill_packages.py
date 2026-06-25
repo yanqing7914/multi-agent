@@ -146,8 +146,9 @@ Use this project as a multi-agent mission-control pack.
 - Use `QUICKSTART.md` for the Golden Path.
 - Generate task cards with `adapters/openclaw/scripts/create_task_cards.py`.
 - Cursor App and Cursor CLI both discover this native skill from `.agents/skills`, `.cursor/skills`, or user skill directories.
-- Cursor 3's Agents Window (`/multitask`, `/worktree`) and the Cursor SDK provide native parallel subagents; this pack's current automation path is the local `agent` CLI bridge via `scripts/run_multi_agent.py --runtime cursor` (the deterministic path for scripted/CI runs). Native in-App `/multitask` integration is on the roadmap.
-- Use `--runtime cursor-desktop` only when the user explicitly wants a manual prompt handoff.
+- Primary path (App): the Main agent dispatches each Worker/Reviewer by spawning a Cursor subagent directly (in-App delegation) with the task-card prompt + `allowed_paths`; no external CLI needed.
+- Optional scripted/CI path: the `agent` CLI bridge via `scripts/run_multi_agent.py --runtime cursor` (needs `agent` + tmux). `/multitask` (Cursor 3) is a user-driven alternative.
+- Use `--runtime cursor-desktop` only when neither delegation nor the `agent` CLI is available (manual prompt handoff).
 - Keep `.codex-multi-agent/` local unless the user explicitly asks to commit it.
 - Workers may edit only `allowed_paths`; Reviewers stay read-only.
 - Main must run gate sync and scope audit before final delivery.

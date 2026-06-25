@@ -2,7 +2,7 @@
 
 This project targets a shared multi-agent coordination protocol across **Codex**, **Cursor**, **Claude Code**, **OpenClaw**, Hermes, and VS Code.
 
-**v0.2 status:** Codex, Cursor, and Claude Code now have client-native skill packages. Codex and Claude Code include native subagent definitions. Cursor ships native Agent Skills, and this adapter's current Worker automation path is the local `agent` CLI bridge; Cursor 3's Agents Window (`/multitask`, `/worktree`), headless `agent -p --output-format json|stream-json`, and the `@cursor/sdk` (local/cloud/self-hosted) provide native parallel subagents, with native in-App `/multitask` integration on the roadmap. OpenClaw/Her remains the canonical mission-control reference implementation. Hermes now ships a thin adapter (`hermes-multi-agent`) that reuses the OpenClaw mission-control core through Hermes's native MCP client (`~/.hermes/config.yaml`). VS Code stays a protocol + panel scaffold.
+**Status:** Codex, Cursor, and Claude Code have client-native skill packages. Codex and Claude Code include native subagent definitions. Cursor ships native Agent Skills; in Cursor App the Main agent dispatches Workers by spawning Cursor subagents directly (in-App delegation, no external CLI), with the `agent` CLI bridge, `/multitask`, and headless/`@cursor/sdk` as alternatives. OpenClaw/Her remains the canonical mission-control reference implementation. Hermes ships a thin adapter (`hermes-multi-agent`) that reuses the OpenClaw mission-control core through Hermes's native MCP client (`~/.hermes/config.yaml`). VS Code stays a protocol + panel scaffold.
 
 ## Support layers
 
@@ -33,7 +33,7 @@ Each client may implement spawning, permissions, and tool calls differently.
 | Client | Native skill | App full mode | CLI full mode | Worker launch | Status |
 | --- | --- | --- | --- | --- | --- |
 | Codex | `codex-multi-agent` | Native Codex subagents + bundled custom agents | Native subagents or `codex exec` bridge | `codex-native` / `codex` | **v0.2 in** |
-| Cursor | `cursor-multi-agent` | Native Agent Skill + local `agent` CLI bridge | `agent -p` bridge | `cursor` | **v0.2 in: CLI bridge; App `/multitask` available** |
+| Cursor | `cursor-multi-agent` | Native Agent Skill + in-App subagent delegation | delegation, or optional `agent -p` bridge | `cursor` | **in: in-App delegation; CLI bridge optional** |
 | Claude Code | `claude-code-multi-agent` | Native skill + bundled `.claude/agents` | Native subagents or `claude --print` bridge | `claude-code` | **v0.2 in** |
 | OpenClaw / Her | `openclaw-multi-agent` | `sessions_spawn` / `sessions_send` / `sessions_yield` | Runtime-specific | `openclaw` / ACP | **v1 canonical** |
 | Hermes | `hermes-multi-agent` | Native agentskills.io skill + native MCP tools | Native MCP tools + mission-control scripts | `hermes` (MCP) | **v0.2 in** |
@@ -75,7 +75,7 @@ Source of truth remains root `SKILL.md`, `templates/`, `checklists/`, `examples/
 
 ### Codex
 
-- Install `codex-multi-agent-skill-v0.3.0.zip` or run `scripts/install_native_skills.py --client codex` from the repo.
+- Install `codex-multi-agent-skill-v0.3.1.zip` or run `scripts/install_native_skills.py --client codex` from the repo.
 - Native skill dirs: `~/.agents/skills/codex-multi-agent`, `~/.codex/skills/codex-multi-agent`.
 - Native custom agents: `~/.codex/agents/multi-agent-worker.toml`, `~/.codex/agents/multi-agent-reviewer.toml`.
 - App full mode: Main uses native subagents after the user asks for multi-agent work.
@@ -83,16 +83,17 @@ Source of truth remains root `SKILL.md`, `templates/`, `checklists/`, `examples/
 
 ### Cursor
 
-- Install `cursor-multi-agent-pack-v0.3.0.zip` or run `scripts/install_native_skills.py --client cursor` from the repo.
+- Install `cursor-multi-agent-pack-v0.3.1.zip` or run `scripts/install_native_skills.py --client cursor` from the repo.
 - Native skill dirs: `~/.agents/skills/cursor-multi-agent`, `~/.cursor/skills/cursor-multi-agent`.
-- Scripted full automation (App and CLI) uses the local Cursor CLI for Worker launch; Cursor 3's in-App Agents Window (`/multitask`, `/worktree`) provides native parallel subagents, with native integration on the roadmap. The binary is `agent` (legacy alias `cursor-agent` also works), installed via `curl https://cursor.com/install -fsS | bash` or, on native Windows, `irm 'https://cursor.com/install?win32=true' | iex`. The tmux-based bridge additionally needs `bash` + `tmux` (use WSL on native Windows).
-- Native orchestration paths (Cursor 3): besides the deterministic `agent` CLI bridge, run `adapters/cursor/scripts/prepare_cursor_sdk.py --ownership .codex-multi-agent/ownership.json` to turn `ownership.json` into a run-spec plus one scoped prompt per write-permission Worker. From there use headless `agent -p --output-format json|stream-json` (`--print-commands`) or the `@cursor/sdk` reference launcher `adapters/cursor/sdk/run_workers.mjs` (local / cloud / self-hosted). See `adapters/cursor/SDK.md`. All four paths enforce the same task-card + dual result-report contract; Main still owns gate sync + scope audit.
+- **Primary (App): in-App subagent delegation.** The Main agent dispatches each Worker/Reviewer by spawning a Cursor subagent directly with the task-card prompt + `allowed_paths` + role; it collects the JSON+Markdown reports and runs the scope audit. No external CLI is required. See "How To Dispatch A Worker In Cursor App" in `adapters/cursor/SKILL.md`.
+- Optional scripted/CI bridge: the local Cursor CLI (`agent`, legacy alias `cursor-agent`) via `run_multi_agent.py --runtime cursor`. Install only if needed: `curl https://cursor.com/install -fsS | bash` or, on native Windows, `irm 'https://cursor.com/install?win32=true' | iex`; the tmux-based bridge also needs `bash` + `tmux` (use WSL on native Windows).
+- Other paths: user-driven `/multitask` (Cursor 3 App), and programmatic headless/SDK via `adapters/cursor/scripts/prepare_cursor_sdk.py` → `agent -p --output-format json|stream-json` or `@cursor/sdk` (`adapters/cursor/sdk/run_workers.mjs`, local/cloud/self-hosted). See `adapters/cursor/SDK.md`. All paths enforce the same task-card + dual result-report contract; Main still owns gate sync + scope audit.
 - Run `scripts/doctor.py --client cursor` for a friendly readiness report with Chinese remediation hints.
-- Manual prompt fallback: `--runtime cursor-desktop` only when the Cursor CLI is unavailable or explicitly requested.
+- Manual prompt fallback: `--runtime cursor-desktop` only when neither delegation nor the Cursor CLI is available.
 
 ### Claude Code
 
-- Install `claude-code-multi-agent-pack-v0.3.0.zip` or run `scripts/install_native_skills.py --client claude` from the repo.
+- Install `claude-code-multi-agent-pack-v0.3.1.zip` or run `scripts/install_native_skills.py --client claude` from the repo.
 - Native skill dirs: `~/.claude/skills/claude-code-multi-agent`, `~/.agents/skills/claude-code-multi-agent`.
 - Native subagents: `~/.claude/agents/multi-agent-worker.md`, `multi-agent-reviewer.md`, `multi-agent-verifier.md`.
 - CLI bridge: `scripts/run_multi_agent.py --runtime claude-code --task-card ...`.
@@ -106,7 +107,7 @@ Source of truth remains root `SKILL.md`, `templates/`, `checklists/`, `examples/
 
 ### Hermes
 
-- Install `hermes-multi-agent-pack-v0.3.0.zip` or run `scripts/install_native_skills.py --client hermes` from the repo.
+- Install `hermes-multi-agent-pack-v0.3.1.zip` or run `scripts/install_native_skills.py --client hermes` from the repo.
 - Native skill dirs (agentskills.io standard): `~/.agents/skills/hermes-multi-agent`, `~/.hermes/skills/hermes-multi-agent`.
 - App/CLI full mode: a Hermes Agent loads the portable `SKILL.md` natively and orchestrates Workers through its native MCP tools plus the bundled OpenClaw mission-control scripts (`create_task_cards.py`, `update_task_status.py`, `audit_worker_output.py`, `memory_log.py`). This adapter does not duplicate gate logic.
 - MCP wiring: register the coordinator under `mcp_servers` in `~/.hermes/config.yaml` (stdio or http) — `scripts/configure_mcp.py --client hermes` prints a paste-ready block. Hermes connects every `mcp_servers` entry at startup and injects their tools as native tools.

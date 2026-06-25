@@ -104,17 +104,16 @@ def destination_paths(client: str, scope: str) -> list[Path]:
 
 
 def worker_bridge_ready(client: str, bridge: dict[str, bool]) -> bool:
-    """Whether automatic Worker orchestration is available for this client.
+    """Whether Worker orchestration is available for this client once installed.
 
-    Codex and Claude ship native subagents, so they are always ready once the
-    skill is installed. Cursor relies on the local CLI bridge, where either the
-    current `agent` binary or the backward-compatible `cursor-agent` alias is
-    sufficient (any-of), not both.
+    Codex/Claude ship native subagents; Cursor's Main dispatches Workers by
+    spawning Cursor subagents (in-App delegation) which needs no external CLI;
+    Hermes drives via its native MCP client. For all of these, having the native
+    skill installed is the App path. The Cursor `agent` CLI only powers the
+    optional scripted/CI bridge, so it is not required for readiness.
     """
-    if client in {"codex", "claude", "hermes"}:
+    if client in {"codex", "claude", "hermes", "cursor"}:
         return True
-    if client == "cursor":
-        return any(bridge.values())
     return all(bridge.values())
 
 
@@ -135,18 +134,18 @@ def readiness_note(client: str, bridge: dict[str, bool]) -> str:
             "runs through Hermes's native MCP client plus the bundled OpenClaw mission-control scripts; register "
             "the MCP coordinator with `scripts/configure_mcp.py --client hermes` (adds it to ~/.hermes/config.yaml)."
         )
-    if worker_bridge_ready(client, bridge):
-        return (
-            "Cursor App and CLI can load the native skill. This adapter's current Worker automation path is the "
-            "local Cursor CLI bridge (`agent`, or legacy `cursor-agent`); Cursor 3's Agents Window (`/multitask`, "
-            "`/worktree`) and the Cursor SDK also provide native parallel subagents, with native in-App integration "
-            "on the roadmap."
-        )
+    # Cursor: native skill installed = App path ready. Main dispatches Workers by
+    # spawning Cursor subagents directly (in-App delegation, no external CLI). The
+    # `agent` CLI is OPTIONAL and only powers the scripted/CI bridge.
+    has_cli = any(bridge.values())
+    cli_state = "present" if has_cli else "not installed (optional)"
     return (
-        "Cursor App and CLI can load the native skill, but full Worker automation needs the local Cursor CLI "
-        "(`agent`, or legacy `cursor-agent`). Install it with `curl https://cursor.com/install -fsS | bash` "
-        "(Windows PowerShell: `irm 'https://cursor.com/install?win32=true' | iex`), reopen your shell, then "
-        "re-run --check. Until then only manual prompt handoff is available."
+        "Cursor App and CLI can load the native skill. Primary path: the Main agent dispatches Workers by "
+        "spawning Cursor subagents directly (in-App delegation) — no external CLI needed. The `agent` CLI "
+        f"(`agent`/`cursor-agent`) is OPTIONAL and only powers the scripted/CI bridge `run_multi_agent.py "
+        f"--runtime cursor` (needs `agent` + tmux; use WSL on native Windows). CLI: {cli_state}. "
+        "Install it only if you want the scripted bridge: `irm 'https://cursor.com/install?win32=true' | iex` "
+        "(Windows) or `curl https://cursor.com/install -fsS | bash`."
     )
 
 

@@ -9,12 +9,12 @@ Release base: `https://github.com/yanqing7914/multi-agent/releases/latest`
 
 | Client | Download | Install action | Full Worker mode |
 | --- | --- | --- | --- |
-| Codex App / CLI | `codex-multi-agent-skill-v0.3.0.zip` | Extract, then run `scripts/install_native_skills.py --client codex --scope primary --force` | Native Codex skills + bundled custom agents; `codex` CLI bridge is optional |
-| Cursor App / CLI | `cursor-multi-agent-pack-v0.3.0.zip` | Extract, then run `scripts/install_native_skills.py --client cursor --scope primary --force` | Native Cursor skills + local `agent` CLI bridge for automatic Workers |
-| Claude Code App / IDE / CLI | `claude-code-multi-agent-pack-v0.3.0.zip` | Extract, then run `scripts/install_native_skills.py --client claude --scope primary --force` | Native Claude skills + bundled `.claude/agents`; `claude` CLI bridge is optional for script launch |
-| OpenClaw / Her | `openclaw-multi-agent-skill-v0.3.0.zip` | Extract `openclaw-multi-agent/` into the OpenClaw skills directory | Native OpenClaw `sessions_spawn` / `sessions_send` workflow |
-| Hermes | `hermes-multi-agent-pack-v0.3.0.zip` | Extract, then run `scripts/install_native_skills.py --client hermes --scope primary --force` | Portable agentskills.io skill + native MCP tools (`~/.hermes/config.yaml`) + bundled mission-control scripts |
-| Generic agent | `multi-agent-coding-skill-v0.3.0.zip` | Extract and read `SKILL.md` | Protocol guidance only; use a client pack for native install |
+| Codex App / CLI | `codex-multi-agent-skill-v0.3.1.zip` | Extract, then run `scripts/install_native_skills.py --client codex --scope primary --force` | Native Codex skills + bundled custom agents; `codex` CLI bridge is optional |
+| Cursor App / CLI | `cursor-multi-agent-pack-v0.3.1.zip` | Extract, then run `scripts/install_native_skills.py --client cursor --scope primary --force` | Native Cursor skill; Main dispatches Workers via in-App subagent delegation (no CLI). `agent` CLI bridge optional for scripted/CI |
+| Claude Code App / IDE / CLI | `claude-code-multi-agent-pack-v0.3.1.zip` | Extract, then run `scripts/install_native_skills.py --client claude --scope primary --force` | Native Claude skills + bundled `.claude/agents`; `claude` CLI bridge is optional for script launch |
+| OpenClaw / Her | `openclaw-multi-agent-skill-v0.3.1.zip` | Extract `openclaw-multi-agent/` into the OpenClaw skills directory | Native OpenClaw `sessions_spawn` / `sessions_send` workflow |
+| Hermes | `hermes-multi-agent-pack-v0.3.1.zip` | Extract, then run `scripts/install_native_skills.py --client hermes --scope primary --force` | Portable agentskills.io skill + native MCP tools (`~/.hermes/config.yaml`) + bundled mission-control scripts |
+| Generic agent | `multi-agent-coding-skill-v0.3.1.zip` | Extract and read `SKILL.md` | Protocol guidance only; use a client pack for native install |
 
 After installing, run `python3 scripts/doctor.py` for a per-client readiness report (skill, bundled agents, App/CLI tooling, complete Worker readiness) with Chinese remediation hints.
 
@@ -45,7 +45,7 @@ python3 scripts/install_native_skills.py --client all --check
 
 ## Codex Install
 
-Install package: `codex-multi-agent-skill-v0.3.0.zip`.
+Install package: `codex-multi-agent-skill-v0.3.1.zip`.
 
 Native locations used by the installer:
 
@@ -66,7 +66,7 @@ If `codex` CLI is missing, native App subagents can still be full mode; only the
 
 ## Cursor Install
 
-Install package: `cursor-multi-agent-pack-v0.3.0.zip`.
+Install package: `cursor-multi-agent-pack-v0.3.1.zip`.
 
 Native locations used by the installer:
 
@@ -75,9 +75,9 @@ Native locations used by the installer:
 ~/.cursor/skills/cursor-multi-agent
 ```
 
-Cursor App and Cursor CLI can both discover the skill. Cursor 3's in-App Agents Window (`/multitask`, `/worktree`) and the Cursor SDK provide native parallel subagents; this adapter's current scripted path for Worker orchestration uses the local Cursor CLI binary `agent` (legacy alias `cursor-agent` is also accepted), with native in-App `/multitask` integration on the roadmap.
+Cursor App and Cursor CLI can both discover the skill. **Primary path (App): in-App subagent delegation** — the Main agent dispatches each Worker/Reviewer by spawning a Cursor subagent directly with the task-card prompt + `allowed_paths`; no external CLI is needed. `/multitask` (Cursor 3, user-driven) and the `agent` CLI bridge are alternatives.
 
-Install the Cursor CLI when full Worker automation is required:
+The `agent` CLI is OPTIONAL — install it only for the scripted/CI bridge:
 
 ```bash
 # macOS / Linux / WSL
@@ -88,7 +88,7 @@ irm 'https://cursor.com/install?win32=true' | iex
 
 Then reopen the shell and verify with `agent --version` (add `~/.local/bin` to PATH if not found). The tmux-based bridge also needs `bash` + `tmux`; on native Windows, run the bridge from WSL.
 
-Full Worker bridge:
+Optional scripted Worker bridge:
 
 ```bash
 python3 scripts/run_multi_agent.py --runtime cursor --task-card .codex-multi-agent/tasks/T002-worker-backend.md
@@ -98,7 +98,7 @@ If the Cursor CLI is missing, report: native skill installed, full Worker automa
 
 ## Claude Code Install
 
-Install package: `claude-code-multi-agent-pack-v0.3.0.zip`.
+Install package: `claude-code-multi-agent-pack-v0.3.1.zip`.
 
 Native locations used by the installer:
 
@@ -122,7 +122,7 @@ Claude Code also supports experimental **Agent Teams** (shared task list, auto-u
 
 ## Hermes Install
 
-Install the `hermes-multi-agent-pack-v0.3.0.zip` package or run from the repo:
+Install the `hermes-multi-agent-pack-v0.3.1.zip` package or run from the repo:
 
 ```bash
 python3 scripts/install_native_skills.py --client hermes --scope primary --force

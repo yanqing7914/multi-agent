@@ -185,8 +185,9 @@ def verdict(status: dict) -> dict:
         return {"ready": False, "level": "missing", "headline": "未安装原生 skill"}
     if status["expects_native_agents"] and not status["agents_installed"]:
         return {"ready": False, "level": "partial", "headline": "skill 已安装，但缺少原生 subagent 文件"}
-    if status["client"] == "cursor" and not status["cli_present"]:
-        return {"ready": False, "level": "partial", "headline": "skill 已安装，但自动 Worker 需要本机 Cursor CLI"}
+    # Cursor is ready once the skill is installed: Main dispatches Workers by
+    # spawning Cursor subagents (in-App delegation) — the `agent` CLI is optional
+    # (only for the scripted/CI bridge), so its absence is not a blocker.
     return {"ready": True, "level": "ready", "headline": "就绪"}
 
 
@@ -216,26 +217,15 @@ def remediation(status: dict) -> list[str]:
             steps.append('就绪：在 Codex 里说"用 codex-multi-agent 开 Worker + Reviewer 改一个小 demo"即可触发原生 subagent。')
 
     elif client == "cursor":
+        if verdict(status)["ready"]:
+            steps.append('就绪（首选）：在 Cursor App 里说"用 cursor-multi-agent 拆成任务卡，为每个 Worker/Reviewer spawn 一个 Cursor 子 agent（带 allowed_paths 限制）执行，回收 JSON+Markdown 报告后做 scope 审计"。这条路由 Main 直接派子 agent，不需要任何外部 CLI。')
+        steps.append("（备选，用户驱动）在 Cursor 3 App 里手敲 /multitask 触发原生并行子代理。")
         if not status["cli_present"]:
-            steps.append(
-                "安装 Cursor CLI（自动 Worker 编排所需，App 加载 skill 本身并不需要它）："
-            )
-            steps.append("    Windows PowerShell：irm 'https://cursor.com/install?win32=true' | iex")
-            steps.append("    macOS / Linux / WSL：curl https://cursor.com/install -fsS | bash")
-            steps.append("    安装后重开终端，运行 `agent --version` 验证；若提示找不到命令，把 ~/.local/bin 加入 PATH。")
+            steps.append("（可选）只有想用脚本/CI bridge `run_multi_agent.py --runtime cursor` 时才需装 Cursor CLI：Windows PowerShell `irm 'https://cursor.com/install?win32=true' | iex`；macOS/Linux/WSL `curl https://cursor.com/install -fsS | bash`。该 bridge 另需 tmux（Windows 原生不带，走 WSL）。")
         if status["cli_offpath"]:
             steps.append(
                 "检测到 Cursor CLI 但不在 PATH 上：" + "、".join(status["cli_offpath"]) + "；把其所在目录加入 PATH 后重开终端。"
             )
-        extra = status.get("extra", {})
-        if not extra.get("bash", True) or not extra.get("tmux", True):
-            missing = [name for name in ("bash", "tmux") if not extra.get(name, True)]
-            steps.append(
-                "自动 Worker bridge 还需要 " + " + ".join(missing) + "（Windows 原生不带 tmux，建议在 WSL 里运行 bridge）。"
-            )
-        steps.append("没有 CLI 也能用手动降级：python scripts/run_multi_agent.py --runtime cursor-desktop --task-card ...，再把生成的 prompt 贴进 Cursor Agent。")
-        if verdict(status)["ready"]:
-            steps.append('就绪：在 Cursor 里说"用 cursor-multi-agent 拆成任务卡，并通过本机 agent CLI 跑 Worker，回收报告后做 diff 审计"。')
 
     elif client == "claude":
         if not status["cli_present"]:
@@ -381,13 +371,17 @@ def self_check() -> int:
     if not any("install_native_skills" in s for s in remediation(base)):
         errors.append("missing-skill remediation lacks install hint")
 
-    # 3. Cursor with skill but no CLI -> partial, hint mentions Cursor install URL.
+    # 3. Cursor with skill installed -> READY even without the CLI: in-App
+    #    subagent delegation is the primary path; the `agent` CLI is optional.
     cursor_no_cli = {**base, "skill_installed": True, "skill_paths": ["/x/SKILL.md"]}
-    v_partial = verdict(cursor_no_cli)
-    if v_partial["ready"] or v_partial["level"] != "partial":
-        errors.append(f"cursor-no-cli verdict wrong: {v_partial}")
-    if not any("cursor.com/install" in s for s in remediation(cursor_no_cli)):
-        errors.append("cursor-no-cli remediation lacks Cursor CLI install URL")
+    v_cur = verdict(cursor_no_cli)
+    if not v_cur["ready"]:
+        errors.append(f"cursor-with-skill should be ready without CLI, got {v_cur}")
+    cur_steps = remediation(cursor_no_cli)
+    if not any("子 agent" in s or "subagent" in s for s in cur_steps):
+        errors.append("cursor remediation should describe in-App subagent delegation as primary")
+    if not any("cursor.com/install" in s for s in cur_steps):
+        errors.append("cursor remediation should still mention the optional Cursor CLI install URL")
 
     # 4. Cursor with CLI present -> ready (any-of agent/cursor-agent).
     cursor_ready = {
