@@ -14,7 +14,7 @@ python3 scripts/install_native_skills.py --client codex --check
 Reload Codex. Then ask Codex App or CLI:
 
 ```text
-Use multi-agent. Take the Codex fast path: split this task into scoped task cards, spawn scoped Workers, use ssrd for read-only review if available, wait for results, then audit the diff before final delivery.
+Use multi-agent. Take the Codex fast path: split this task into scoped task cards, spawn scoped Workers and Reviewers, authorize only the skills I explicitly name for each subagent, wait for results, then audit the diff before final delivery.
 ```
 
 Run the Codex doctor when setup looks unclear:
@@ -71,7 +71,7 @@ Role mapping:
 | Verifier | `explorer` |
 | Worker | `multi-agent-worker` or `worker` |
 
-If the task card lists `may_use_skills: [ssrd]`, Main attaches or names `ssrd` for that subagent. If `ssrd` is unavailable, the subagent must report blocked.
+If a task card lists `may_use_skills`, Main attaches or names only those skills for that subagent. For example, if the user explicitly asks Reviewers to use `ssrd`, `ssrd` appears in the Reviewer card; if that skill is unavailable, the subagent must report blocked.
 
 ## 3b. CLI Bridge
 

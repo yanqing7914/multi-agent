@@ -47,7 +47,7 @@ The App execution contract lives in [NATIVE_SUBAGENT_CONTRACT.md](NATIVE_SUBAGEN
 Ask Codex App:
 
 ```text
-Use multi-agent. Split this task into scoped task cards, take the Codex fast path, spawn a Worker for implementation and a Reviewer using ssrd if available, wait for result reports, run gate sync and scope audit, then deliver only after gates pass.
+Use multi-agent. Split this task into scoped task cards, take the Codex fast path, spawn a Worker for implementation and a Reviewer. If I name a skill for a subagent, authorize only that skill in may_use_skills, wait for result reports, run gate sync and scope audit, then deliver only after gates pass.
 ```
 
 Main prepares a full spawn plan:
@@ -73,7 +73,7 @@ python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
   --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-Then Main spawns native Codex subagents with the returned `agent_type` values and prompt contents. If `may_use_skills` contains `ssrd` or another named skill, Main attaches or names that skill for that subagent only.
+Then Main spawns native Codex subagents with the returned `agent_type` values and prompt contents. If `may_use_skills` contains a named skill, Main attaches or names that skill for that subagent only. `ssrd` is just one possible review-skill example, not a dependency.
 
 ## Usage: Codex CLI Bridge
 

@@ -48,12 +48,12 @@ When running in Codex App or Codex CLI, do not spend context on other clients un
 6. If both are unavailable, use `scripts/run_multi_agent.py --runtime codex-desktop --task-card <card>` as manual handoff.
 7. Always run gate sync and scope audit before final delivery.
 
-Use `may_use_skills` from each task card as the only authority for subagent skill use. For example, a request to review with `ssrd` creates read-only Reviewer cards with `may_use_skills: [ssrd]`.
+Use `may_use_skills` from each task card as the only authority for subagent skill use. Workers, Reviewers, Explorers, and Verifiers may use only the skills explicitly authorized for their own task card. `ssrd` is only an example of a user-named review skill, not a dependency of this skill.
 ## Trigger Handling
 
 If the user explicitly asks for multiple agents, parallel agents, subagents, workers, reviewers, planners, or multi-agent review, enter this skill. If the task is small, use the Quick Path and explain that additional agents are unnecessary.
 
-If the user asks for multiple agents to review something, use Review Mode. Create Reviewer agents, not write-capable Workers. If a review skill such as `ssrd` is available or named by the user, authorize it in each Reviewer task card with `may_use_skills: [ssrd]` and `write_permission: false`.
+If the user asks for multiple agents to review something, use Review Mode. Create Reviewer agents, not write-capable Workers. If the user names a review skill such as `ssrd`, authorize that named skill in each Reviewer task card with `may_use_skills` and `write_permission: false`.
 
 ## Default Paths
 
@@ -94,7 +94,7 @@ Scoped write. Implement only within `allowed_paths` and allowed commands. Use on
 
 ### Reviewer
 
-Read-only. Review plans, diffs, code, documents, or designs. Use authorized review skills such as `ssrd` when the task card allows them. Report findings by severity with evidence. Do not edit files or spawn subagents.
+Read-only. Review plans, diffs, code, documents, or designs. Use only review skills authorized in the task card. Report findings by severity with evidence. Do not edit files or spawn subagents.
 
 ### Verifier
 
@@ -182,7 +182,7 @@ The main agent must audit worker results before final delivery:
 - `research`: Main + 1-3 Explorers, no writes, final research report.
 - `implement`: Main + optional Explorers + 1-2 Workers + Reviewer + Verifier.
 - `fix`: Main + Explorer + usually one Worker + Verifier; avoid parallel Workers until root cause is clear.
-- `review`: Main + one or more Reviewers, no writes; use review skills such as `ssrd` when authorized.
+- `review`: Main + one or more Reviewers, no writes; use named review skills only when authorized.
 - `refactor`: Main + impact Explorer + small-batch Workers + Reviewer + Verifier.
 
 ## Final Delivery

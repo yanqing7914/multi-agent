@@ -15,6 +15,7 @@ REPO_ROOT = SCRIPT_DIR.parent.parent.parent
 CREATE_TASK_CARDS = REPO_ROOT / "adapters" / "openclaw" / "scripts" / "create_task_cards.py"
 PREPARE_NATIVE_PLAN = SCRIPT_DIR / "prepare_native_plan.py"
 PREPARE_NATIVE_SUBAGENT = SCRIPT_DIR / "prepare_native_subagent.py"
+EXAMPLE_REVIEW_SKILL = "example-review-skill"
 
 
 def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
@@ -87,7 +88,7 @@ def native_plan_self_check() -> dict:
                 "--runtime",
                 "codex",
                 "--review-skill",
-                "ssrd",
+                EXAMPLE_REVIEW_SKILL,
                 "--workspace-root",
                 str(REPO_ROOT),
                 "--out",
@@ -105,14 +106,17 @@ def native_plan_self_check() -> dict:
         missing = sorted(needed - agent_types)
         reviewer_records = [item for item in payload.get("records", []) if item.get("agent_type") == "multi-agent-reviewer"]
         reviewer_items = reviewer_records[0].get("spawn_agent_payload", {}).get("items", []) if reviewer_records else []
-        has_ssrd_skill_item = any(item.get("type") == "skill" and item.get("name") == "ssrd" for item in reviewer_items)
+        has_example_skill_item = any(
+            item.get("type") == "skill" and item.get("name") == EXAMPLE_REVIEW_SKILL
+            for item in reviewer_items
+        )
         return {
-            "ok": not missing and has_ssrd_skill_item and payload.get("ok") is True,
+            "ok": not missing and has_example_skill_item and payload.get("ok") is True,
             "stage": "native_plan",
             "count": payload.get("count", 0),
             "agent_types": sorted(agent_types),
             "missing_agent_types": missing,
-            "reviewer_has_ssrd_skill_item": has_ssrd_skill_item,
+            "reviewer_has_example_skill_item": has_example_skill_item,
         }
 
 

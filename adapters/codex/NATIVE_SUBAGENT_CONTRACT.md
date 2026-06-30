@@ -9,7 +9,7 @@ Use this contract when the user asks Codex App for multi-agent coding, such as:
 - "use multi-agent"
 - "open workers/reviewers"
 - "spawn several agents"
-- "review this with ssrd"
+- "review this with a named review skill, such as ssrd"
 - "split implementation and review"
 
 Do not use it for small single-agent edits.
@@ -58,9 +58,10 @@ spawn_agent(**record.spawn_agent_payload)
 ## Skill Passing
 
 - If `record.may_use_skills` is empty, do not attach skills.
-- If it lists a skill such as `ssrd`, `record.spawn_agent_payload.items` includes a skill item for that skill.
+- If it lists a skill such as `example-review-skill`, `record.spawn_agent_payload.items` includes a skill item for that skill.
 - If the skill is unavailable inside the subagent, the subagent must report `blocked`.
 - A skill never expands file, shell, network, credential, git, or role permissions.
+- `ssrd` is only an example of a user-requested review skill; this adapter does not implement or depend on it.
 
 ## Fallback Order
 

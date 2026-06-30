@@ -13,6 +13,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parent.parent.parent
 CREATE_TASK_CARDS = REPO_ROOT / "adapters" / "openclaw" / "scripts" / "create_task_cards.py"
+EXAMPLE_REVIEW_SKILL = "example-review-skill"
 
 sys.path.insert(0, str(SCRIPT_DIR))
 from prepare_native_subagent import prepare  # noqa: E402
@@ -153,7 +154,7 @@ def run_self_check() -> int:
                 "--runtime",
                 "codex",
                 "--review-skill",
-                "ssrd",
+                EXAMPLE_REVIEW_SKILL,
                 "--workspace-root",
                 str(REPO_ROOT),
                 "--out",
@@ -179,8 +180,8 @@ def run_self_check() -> int:
             print(json.dumps({"ok": False, "error": "no reviewer record"}, indent=2))
             return 1
         reviewer_items = reviewer_records[0].get("spawn_agent_payload", {}).get("items", [])
-        if not any(item.get("type") == "skill" and item.get("name") == "ssrd" for item in reviewer_items):
-            print(json.dumps({"ok": False, "error": "reviewer spawn_agent_payload should include ssrd skill item"}, indent=2))
+        if not any(item.get("type") == "skill" and item.get("name") == EXAMPLE_REVIEW_SKILL for item in reviewer_items):
+            print(json.dumps({"ok": False, "error": "reviewer spawn_agent_payload should include example review skill item"}, indent=2))
             return 1
         plan_path = Path(payload["plan_path"])
         if "Codex Native Spawn Plan" not in plan_path.read_text(encoding="utf-8"):

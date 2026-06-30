@@ -69,7 +69,7 @@ Role mapping:
 | Task role | Codex agent type | Write policy |
 | --- | --- | --- |
 | Explorer | `explorer` | read-only |
-| Reviewer | `multi-agent-reviewer` or `explorer` | read-only; may use review skills such as `ssrd` only if authorized |
+| Reviewer | `multi-agent-reviewer` or `explorer` | read-only; may use authorized review skills |
 | Verifier | `explorer` | read-only validation |
 | Worker | `multi-agent-worker` or `worker` | scoped writes within `allowed_paths` |
 
@@ -86,7 +86,8 @@ normally be read-only Explorers.
 
 Task cards control skill use with `may_use_skills`.
 
-- If the user says "open multiple agents to review with ssrd", create Reviewer task cards with `may_use_skills: [ssrd]` and `write_permission: false`.
+- If the user asks a subagent to use another skill, put that skill in the task card `may_use_skills` list. Workers and Reviewers may use only their task-card-authorized skills.
+- If the user says "open multiple agents to review with ssrd", treat `ssrd` only as the named review-skill example: create Reviewer task cards with `may_use_skills: [ssrd]` and `write_permission: false`.
 - Include authorized skills in the subagent prompt and attach them if the client supports structured skill input.
 - If an authorized skill is unavailable inside the subagent, the subagent must report `status=blocked`.
 - Workers may use only task-card skills and cannot use skills to expand file, shell, network, credential, git, or role permissions.
