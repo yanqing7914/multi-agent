@@ -36,6 +36,13 @@ def spawn_agent_payload(payload: dict) -> dict:
             },
         ],
         "message_source": payload["prompt_path"],
+        "lifecycle": [
+            "spawn_agent",
+            "wait_agent",
+            "send_input_once_if_reports_missing",
+            "collect_result_reports",
+            "close_agent",
+        ],
     }
 
 
@@ -74,10 +81,14 @@ def write_plan(out_dir: Path, records: list[dict]) -> Path:
             "",
             "After all spawned agents finish:",
             "",
-            "1. Run `adapters/openclaw/scripts/update_task_status.py --state-dir .codex-multi-agent --sync`.",
-            "2. Capture `git diff --name-only` into `.codex-multi-agent/changed-files.txt`.",
-            "3. Run `adapters/openclaw/scripts/audit_worker_output.py --write-audit`.",
-            "4. Deliver only after result reports and ownership audit pass.",
+            "1. Wait for every spawned agent with `wait_agent`.",
+            "2. If required reports are missing, use `send_input` once with the missing evidence request.",
+            "3. Collect result JSON and Markdown reports.",
+            "4. Close each completed/blocked/failed agent with `close_agent` so it does not occupy concurrency slots.",
+            "5. Run `adapters/openclaw/scripts/update_task_status.py --state-dir .codex-multi-agent --sync`.",
+            "6. Capture `git diff --name-only` into `.codex-multi-agent/changed-files.txt`.",
+            "7. Run `adapters/openclaw/scripts/audit_worker_output.py --write-audit`.",
+            "8. Deliver only after result reports and ownership audit pass.",
         ]
     )
     plan_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -130,8 +141,10 @@ def build_plan(state_dir: Path, out_dir: Path | None, role: str | None, skip_pre
         "failures": failures,
         "main_instructions": [
             "Spawn one Codex native subagent per record using spawn_agent_payload.",
+            "Track agent_id for wait_agent/send_input/close_agent lifecycle.",
             "Attach or name only skills listed in may_use_skills; spawn_agent_payload.items includes skill items when present.",
             "Wait for JSON and Markdown result reports before gate sync.",
+            "Close completed agents after collecting their reports.",
             "Run gate sync and scope audit before final delivery.",
         ],
     }

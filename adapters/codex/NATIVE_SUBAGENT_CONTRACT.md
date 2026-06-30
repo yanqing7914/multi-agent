@@ -29,10 +29,20 @@ python scripts/run_multi_agent.py --runtime codex-native-plan --state-dir .codex
 spawn_agent(**record.spawn_agent_payload)
 ```
 
-4. Wait for all spawned agents to finish.
-5. Require both `record.result_json` and `record.result_markdown`.
-6. Run gate sync and scope audit.
-7. Deliver only after Main has reviewed subagent output and audit evidence.
+4. Store each returned `agent_id` next to the matching task record.
+5. Wait for spawned agents with `wait_agent`; do not assume a task is complete from chat text alone.
+6. If a spawned agent is blocked or missing required reports, use `send_input` once with the concrete missing evidence or blocker. Do not loop indefinitely.
+7. Require both `record.result_json` and `record.result_markdown`.
+8. Close completed/failed/blocked agents with `close_agent` after collecting their final message and report files. Completed agents still occupy concurrency slots until closed.
+9. Run finalization:
+
+```bash
+python adapters/codex/scripts/finalize_native_run.py \
+  --state-dir .codex-multi-agent \
+  --workspace-root .
+```
+
+10. Deliver only after Main has reviewed subagent output and audit evidence.
 
 ## Spawn Record Fields
 
@@ -45,6 +55,22 @@ spawn_agent(**record.spawn_agent_payload)
 | `result_markdown` | Required human-readable result report |
 | `workspace_root` | Expected workspace; subagent must `cd` there first |
 | `spawn_agent_payload` | Ready-to-use Codex App spawn payload |
+
+## Lifecycle
+
+Main must track this lifecycle for every record:
+
+```text
+spawn_agent(record.spawn_agent_payload)
+  -> save agent_id
+wait_agent(agent_id)
+  -> if missing report, send_input(agent_id, repair request) once
+  -> wait_agent(agent_id)
+collect result_json + result_markdown
+close_agent(agent_id)
+```
+
+Never leave completed subagents open after collecting their reports. This can exhaust the App's subagent concurrency limit in larger runs.
 
 ## Role Mapping
 

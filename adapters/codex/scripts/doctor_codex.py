@@ -45,6 +45,7 @@ def check() -> dict:
         SCRIPT_DIR / "prepare_native_subagent.py",
         SCRIPT_DIR / "prepare_native_plan.py",
         SCRIPT_DIR / "dogfood_codex_app.py",
+        SCRIPT_DIR / "finalize_native_run.py",
         SCRIPT_DIR / "launch_codex_worker.sh",
     ]
     worker_smoke_state = REPO_ROOT / ".codex-multi-agent" / "dogfood-worker-smoke"
@@ -91,6 +92,7 @@ def check() -> dict:
         and worker_smoke_marker.read_text(encoding="utf-8").strip() == "worker-smoke-ok"
         and worker_smoke_json.is_file(),
         "worker_smoke_state": str(worker_smoke_state),
+        "worker_smoke_note": "optional dogfood evidence; MISS means not run in this checkout, not that native workers are unavailable",
         "recommended_runtime_order": ["codex-native-plan", "codex-native", "codex", "codex-desktop"],
         "codex_app_modes": {
             "native_spawn_plan": "scripts/run_multi_agent.py --runtime codex-native-plan --state-dir .codex-multi-agent",
@@ -112,7 +114,7 @@ def render(payload: dict) -> str:
         f"- codex CLI bridge: {mark(payload['codex_cli']['present'])}",
         f"- repo scripts: {mark(payload['repo_files_ready'])}",
         f"- Codex fast path ready: {mark(payload['codex_fast_path_ready'])}",
-        f"- Worker smoke evidence: {mark(payload['worker_smoke_ready'])}",
+        f"- Worker smoke evidence: {mark(payload['worker_smoke_ready'])}  ({payload['worker_smoke_note']})",
         "- runtime order: codex-native-plan -> codex-native -> codex -> codex-desktop",
         "- next steps:",
     ]

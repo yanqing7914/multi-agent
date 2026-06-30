@@ -9,6 +9,9 @@ entrypoint. The goal is not to make Codex users choose between `multi-agent` and
 `codex-multi-agent`; `multi-agent` should trigger the same Codex fast path, while
 this folder keeps the Codex-specific details small and testable.
 
+Recommended Codex App prompt: say `use multi-agent` for daily work. Mention
+`codex-multi-agent` only when debugging the Codex adapter itself.
+
 ## What This Enables
 
 Codex App and Codex CLI both get, through the `multi-agent` entrypoint:

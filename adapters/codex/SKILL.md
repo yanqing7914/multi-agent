@@ -20,6 +20,10 @@ Use when:
 - the task needs role ownership, path boundaries, result reports, and final diff audit
 - Codex should use native subagents or the optional `codex exec` bridge
 
+Recommended Codex App entrypoint: ask for `multi-agent`. This adapter is the
+Codex fast-path implementation behind that entrypoint; use `codex-multi-agent`
+directly only for adapter debugging.
+
 Do not use when:
 
 - a single Codex session can finish the task cleanly
@@ -78,7 +82,7 @@ Workers must not spawn child agents unless the task card explicitly says
 normally be read-only Explorers.
 
 > Reliable custom `agent_type` selection (e.g. `multi-agent-reviewer`'s read-only
-> sandbox) requires Codex CLI >= 0.139.0. On older versions `spawn_agent` ignores
+> sandbox) depends on Codex App/CLI support for custom agent types. On older versions `spawn_agent` ignores
 > the custom type and falls back to a generic subagent; the role, write-permission,
 > and read-only instructions embedded in the prompt still enforce the boundary.
 
@@ -129,7 +133,7 @@ Open the returned `prompt_path` in a separate Codex App session or task. The Wor
 5. Prefer native Codex subagents via `--runtime codex-native-plan`.
 6. Use CLI bridge when deterministic script launch is desired.
 7. Require every subagent to write JSON and Markdown result reports.
-8. Run scope audit before final delivery.
+8. Run `adapters/codex/scripts/finalize_native_run.py` before final delivery; it checks result reports, gate sync, changed files, and scope audit.
 
 ## Validation
 

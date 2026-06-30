@@ -18,6 +18,7 @@ ADAPTER_CHECKS = [
     ("codex-doctor", REPO_ROOT / "adapters" / "codex" / "scripts" / "doctor_codex.py", ["--self-check"]),
     ("codex-native-plan", REPO_ROOT / "adapters" / "codex" / "scripts" / "prepare_native_plan.py", ["--self-check"]),
     ("codex-app-dogfood", REPO_ROOT / "adapters" / "codex" / "scripts" / "dogfood_codex_app.py", ["--self-check"]),
+    ("codex-finalize-native", REPO_ROOT / "adapters" / "codex" / "scripts" / "finalize_native_run.py", ["--self-check"]),
     ("run-multi-agent", REPO_ROOT / "scripts" / "run_multi_agent.py", ["--self-check"]),
     (
         "claude-code",
