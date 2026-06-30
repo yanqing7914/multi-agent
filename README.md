@@ -6,6 +6,8 @@
 
 `multi-agent` 是一个跨 IDE / 跨 Agent Runtime 的多 Agent 协作契约与任务控制框架。它面向 Codex、Cursor、Claude Code、OpenClaw/Her、Hermes 和 VS Code，目标是让不同 agent 围绕同一套任务卡、权限边界、结果报告、审计门控和评审规则协作。
 
+对 Codex 用户，`multi-agent` 本身就是日常主入口：它会直接走 Codex fast path（native subagents → `codex exec` bridge → manual handoff），而不是要求用户先切换到另一个 Codex-only skill。`adapters/codex/` 是 `multi-agent` 内置的 Codex 实现层。
+
 它不是“开一堆 agent 自由发挥”的 swarm，而是一个 mission-control 风格的工程协作框架：
 
 ```text
@@ -77,6 +79,7 @@ python3 scripts/install_native_skills.py --client all --check
 
 ```bash
 python3 scripts/doctor.py            # 全部客户端，友好中文报告
+python3 adapters/codex/scripts/doctor_codex.py  # Codex fast path 专项体检
 python3 scripts/doctor.py --client cursor
 python3 scripts/doctor.py --json     # 机器可读
 ```
@@ -215,10 +218,14 @@ python3 adapters/hermes/scripts/hermes_self_check.py --self-check
 所有 client adapter 尽量复用 OpenClaw mission-control core，不复制 gate 逻辑。
 
 ```bash
+# Codex App full path: build one native spawn plan for all task cards.
+python3 scripts/run_multi_agent.py --runtime codex-native-plan --state-dir .codex-multi-agent
+
+# Single-card launch / handoff runtimes.
 python3 scripts/run_multi_agent.py --runtime cursor-desktop|cursor|codex-native|codex-desktop|codex|claude-desktop|claude-code|openclaw|hermes --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-Launcher 使用 `pipefail` 和 post-run checks：外部 CLI 失败、quota/error pattern、结果 Markdown 过薄、JSON 缺失等都应该返回非零和 `"ok": false`。`--runtime hermes` 不直接拉起进程，而是打印 Hermes 的 MCP / handoff 指引。
+Launcher 使用 `pipefail` 和 post-run checks：外部 CLI 失败、quota/error pattern、结果 Markdown 过薄、JSON 缺失等都应该返回非零和 `"ok": false`。`--runtime codex-native-plan` 不需要 `--task-card`，它读取 `--state-dir` 下的全部任务卡并生成 Codex App native subagent 分派计划；`--runtime hermes` 不直接拉起进程，而是打印 Hermes 的 MCP / handoff 指引。
 
 ## 受控自纠循环（Loop Engineering）
 

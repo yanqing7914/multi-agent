@@ -7,6 +7,9 @@ description: Codex-specific thin adapter for multi-agent coding. Use when Codex 
 
 Thin Codex adapter over the shared OpenClaw mission-control core. Reuse
 `adapters/openclaw/scripts/*` for task cards, gates, audits, and demos.
+When installed inside the full `multi-agent` package, this adapter powers the
+root `multi-agent-coding` Codex fast path; users can trigger either name, but
+the product goal is that `multi-agent` works as the Codex daily entrypoint.
 
 ## When To Use
 
@@ -34,10 +37,22 @@ Do not use when:
 
 ## Native Subagent Contract
 
+For the complete machine-readable App routine, read
+`adapters/codex/NATIVE_SUBAGENT_CONTRACT.md` before spawning subagents.
+
 Codex App and Codex CLI can run subagent workflows when the user explicitly requests delegation. Main must:
 
 1. Generate task cards and ownership metadata under `.codex-multi-agent/`.
-2. Prepare one native spawn prompt per task card:
+2. For normal App use, prepare a full native spawn plan:
+
+```bash
+python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
+  --runtime codex-native-plan \
+  --state-dir .codex-multi-agent
+```
+
+3. Spawn one native subagent per plan record with `spawn_agent_payload`.
+4. For a single task card, prepare one native spawn prompt:
 
 ```bash
 python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
@@ -45,10 +60,9 @@ python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
   --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-3. Spawn a native subagent with the returned `agent_type` and prompt contents.
-4. Attach or name only skills listed in `may_use_skills`.
-5. Wait for JSON and Markdown result reports.
-6. Run gate sync and scope audit before final delivery.
+5. Attach or name only skills listed in `may_use_skills`; `spawn_agent_payload.items` carries skill items when available.
+6. Wait for JSON and Markdown result reports.
+7. Run gate sync and scope audit before final delivery.
 
 Role mapping:
 
@@ -108,17 +122,19 @@ Open the returned `prompt_path` in a separate Codex App session or task. The Wor
 ## Golden Path
 
 1. Install with `scripts/install_native_skills.py --client codex --scope primary --force`.
-2. Reload Codex so it discovers `codex-multi-agent` and custom agents.
-3. Generate `.codex-multi-agent/` task cards from YAML or CLI args.
-4. Prefer native Codex subagents via `--runtime codex-native`.
-5. Use CLI bridge when deterministic script launch is desired.
-6. Require every subagent to write JSON and Markdown result reports.
-7. Run scope audit before final delivery.
+2. Run `python adapters/codex/scripts/doctor_codex.py` or `python scripts/doctor.py --client codex`.
+3. Reload Codex so it discovers the `multi-agent` / `codex-multi-agent` entry and custom agents.
+4. Generate `.codex-multi-agent/` task cards from YAML or CLI args.
+5. Prefer native Codex subagents via `--runtime codex-native-plan`.
+6. Use CLI bridge when deterministic script launch is desired.
+7. Require every subagent to write JSON and Markdown result reports.
+8. Run scope audit before final delivery.
 
 ## Validation
 
 ```bash
 python3 scripts/install_native_skills.py --client codex --check
+python3 adapters/codex/scripts/doctor_codex.py
 python3 adapters/codex/scripts/codex_self_check.py
 python3 scripts/validate_all_adapters.py
 ```

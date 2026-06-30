@@ -51,8 +51,10 @@ def _parse_nested_scalars(text: str, key: str) -> dict[str, str]:
 
 def parse_task_card(path: Path) -> dict:
     """Parse the YAML-like task card markdown emitted by create_task_cards.py."""
-    text = path.read_text(encoding="utf-8")
+    text = path.read_text(encoding="utf-8-sig")
     result_report_paths = _parse_nested_scalars(text, "result_report_paths")
+    result_json_path = result_report_paths.get("json") or _parse_scalar(text, "result_json_path")
+    result_markdown_path = result_report_paths.get("markdown") or _parse_scalar(text, "result_markdown_path")
     data: dict = {
         "task_id": _parse_scalar(text, "task_id"),
         "session_name": _parse_scalar(text, "session_name"),
@@ -73,8 +75,8 @@ def parse_task_card(path: Path) -> dict:
         "dependencies": _parse_list_block(text, "dependencies"),
         "execution_guidance": _parse_list_block(text, "execution_guidance"),
         "result_report_paths": result_report_paths,
-        "result_json_path": result_report_paths.get("json", ""),
-        "result_markdown_path": result_report_paths.get("markdown", ""),
+        "result_json_path": result_json_path,
+        "result_markdown_path": result_markdown_path,
     }
     return data
 
@@ -119,7 +121,7 @@ def build_worker_prompt(task_card_path: Path, card: dict, workspace_root: Path) 
     preflight_lines = card.get("preflight_command") or []
     json_path = card.get("result_json_path") or ""
     md_path = card.get("result_markdown_path") or ""
-    task_body = task_card_path.read_text(encoding="utf-8").strip()
+    task_body = task_card_path.read_text(encoding="utf-8-sig").strip()
     preflight_block = "\n".join(f"  {line}" for line in preflight_lines)
     return (
         "You are a scoped multi-agent worker. Follow the task card exactly.\n\n"

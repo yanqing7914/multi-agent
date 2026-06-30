@@ -30,6 +30,7 @@ LAUNCHER_RUNTIME_CHOICES: tuple[str, ...] = (
     "hermes",
     "cursor-desktop",
     "cursor",
+    "codex-native-plan",
     "codex-native",
     "codex-desktop",
     "codex",

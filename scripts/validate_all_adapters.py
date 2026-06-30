@@ -15,6 +15,10 @@ ADAPTER_CHECKS = [
     ("openclaw", REPO_ROOT / "adapters" / "openclaw" / "scripts" / "validate_all.py", []),
     ("cursor", REPO_ROOT / "adapters" / "cursor" / "scripts" / "cursor_self_check.py", []),
     ("codex", REPO_ROOT / "adapters" / "codex" / "scripts" / "codex_self_check.py", []),
+    ("codex-doctor", REPO_ROOT / "adapters" / "codex" / "scripts" / "doctor_codex.py", ["--self-check"]),
+    ("codex-native-plan", REPO_ROOT / "adapters" / "codex" / "scripts" / "prepare_native_plan.py", ["--self-check"]),
+    ("codex-app-dogfood", REPO_ROOT / "adapters" / "codex" / "scripts" / "dogfood_codex_app.py", ["--self-check"]),
+    ("run-multi-agent", REPO_ROOT / "scripts" / "run_multi_agent.py", ["--self-check"]),
     (
         "claude-code",
         REPO_ROOT / "adapters" / "claude-code" / "scripts" / "claude_code_self_check.py",

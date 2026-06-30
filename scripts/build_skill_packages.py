@@ -59,7 +59,7 @@ CLIENTS = {
         "root": "codex-multi-agent",
         "zip": "codex-multi-agent-skill",
         "adapter": "adapters/codex",
-        "extra": ["adapters/codex/agents"],
+        "extra": ["adapters/codex/agents", "adapters/codex/scripts/doctor_codex.py"],
     },
     "cursor": {
         "root": "cursor-multi-agent",

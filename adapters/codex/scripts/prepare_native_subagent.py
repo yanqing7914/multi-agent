@@ -206,7 +206,14 @@ def run_self_check() -> int:
             print(json.dumps({"ok": False, "stage": "prepare", "payload": payload}, indent=2))
             return 1
         text = prompt.read_text(encoding="utf-8")
-        required = ["Codex native subagent", "NATIVE SUBAGENT RULES", "AUTHORIZED SKILLS: ssrd", "--- TASK CARD ---"]
+        required = [
+            "Codex native subagent",
+            "NATIVE SUBAGENT RULES",
+            "AUTHORIZED SKILLS: ssrd",
+            "JSON:",
+            "Markdown:",
+            "--- TASK CARD ---",
+        ]
         missing = [item for item in required if item not in text]
         if missing:
             print(json.dumps({"ok": False, "missing": missing}, indent=2))

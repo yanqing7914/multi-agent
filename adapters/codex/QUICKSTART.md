@@ -14,7 +14,13 @@ python3 scripts/install_native_skills.py --client codex --check
 Reload Codex. Then ask Codex App or CLI:
 
 ```text
-Use codex-multi-agent. Split this task into scoped task cards, spawn scoped Workers, use ssrd for read-only review if available, wait for results, then audit the diff before final delivery.
+Use multi-agent. Take the Codex fast path: split this task into scoped task cards, spawn scoped Workers, use ssrd for read-only review if available, wait for results, then audit the diff before final delivery.
+```
+
+Run the Codex doctor when setup looks unclear:
+
+```bash
+python3 /path/to/multi-agent/adapters/codex/scripts/doctor_codex.py
 ```
 
 ## 1. Generate Task Cards
@@ -36,7 +42,17 @@ python3 /path/to/codex-multi-agent/adapters/openclaw/scripts/update_task_status.
 
 ## 3a. Full Mode: Native Codex Subagents
 
-Prepare one spawn prompt per task card:
+Prepare a spawn plan for all task cards:
+
+```bash
+python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
+  --runtime codex-native-plan \
+  --state-dir .codex-multi-agent
+```
+
+Main reads `plan_path` and `records[]`, then spawns one native Codex subagent per record with the returned `agent_type` and prompt contents.
+
+Prepare one spawn prompt for a single task card when needed:
 
 ```bash
 python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
@@ -102,5 +118,6 @@ Main integrates only after reports exist, ownership passes, and validation evide
 
 ```bash
 python3 /path/to/codex-multi-agent/scripts/install_native_skills.py --client codex --check
+python3 /path/to/codex-multi-agent/adapters/codex/scripts/doctor_codex.py
 python3 /path/to/codex-multi-agent/adapters/codex/scripts/codex_self_check.py
 ```

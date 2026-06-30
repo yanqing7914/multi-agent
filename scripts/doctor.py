@@ -23,11 +23,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import shutil
 import sys
 from pathlib import Path
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPTS_DIR.parent
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
@@ -156,6 +158,22 @@ def probe_client(client: str) -> dict:
             "bash": bool(shutil.which("bash")),
             "tmux": bool(shutil.which("tmux")),
         }
+    elif client == "codex":
+        doctor = REPO_ROOT / "adapters" / "codex" / "scripts" / "doctor_codex.py"
+        extra = {"codex_doctor": None}
+        if doctor.is_file():
+            proc = subprocess.run(
+                [sys.executable, str(doctor), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=False,
+            )
+            try:
+                extra["codex_doctor"] = json.loads(proc.stdout) if proc.returncode == 0 else {"ok": False, "output": proc.stderr or proc.stdout}
+            except json.JSONDecodeError:
+                extra["codex_doctor"] = {"ok": False, "output": proc.stderr or proc.stdout}
 
     return {
         "client": client,
@@ -209,6 +227,11 @@ def remediation(status: dict) -> list[str]:
         )
 
     if client == "codex":
+        codex_doctor = status.get("extra", {}).get("codex_doctor") or {}
+        if codex_doctor.get("codex_fast_path_ready"):
+            steps.append("multi-agent Codex fast path 已就绪：优先 native subagents，其次 `codex` CLI bridge，最后 manual handoff。")
+        elif codex_doctor:
+            steps.extend(codex_doctor.get("next_steps", []))
         if not status["cli_present"]:
             steps.append(
                 "（可选）安装 codex CLI 才能用脚本 bridge `--runtime codex`；Codex App 用原生 subagent 不依赖它。"

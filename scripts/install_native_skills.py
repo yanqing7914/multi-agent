@@ -120,8 +120,9 @@ def worker_bridge_ready(client: str, bridge: dict[str, bool]) -> bool:
 def readiness_note(client: str, bridge: dict[str, bool]) -> str:
     if client == "codex":
         return (
-            "Codex App and CLI can load the native skill. Full App mode uses Codex native subagents; "
-            "`codex` CLI is only needed for scripted bridge/runtime `--runtime codex`."
+            "Codex App and CLI can load the multi-agent Codex fast path. Full App mode uses Codex native "
+            "subagents plus bundled custom agents; `codex` CLI is only needed for scripted bridge/runtime "
+            "`--runtime codex`. Run `adapters/codex/scripts/doctor_codex.py` for Codex-only readiness."
         )
     if client == "claude":
         return (

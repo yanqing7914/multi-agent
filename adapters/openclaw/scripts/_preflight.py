@@ -42,7 +42,10 @@ def parse_bool(value: object) -> bool | None:
 
 
 def normalize_path(path: str) -> str:
-    return path.replace("\\", "/").strip().lstrip("./")
+    normalized = path.replace("\\", "/").strip()
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
+    return normalized
 
 
 def path_check_target(pattern: str) -> str:

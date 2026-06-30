@@ -4,9 +4,14 @@ Thin Codex layer over [`adapters/openclaw/`](../openclaw/) mission-control scrip
 
 **Fast path:** [QUICKSTART.md](QUICKSTART.md)
 
+This adapter is the Codex implementation behind the root `multi-agent-coding`
+entrypoint. The goal is not to make Codex users choose between `multi-agent` and
+`codex-multi-agent`; `multi-agent` should trigger the same Codex fast path, while
+this folder keeps the Codex-specific details small and testable.
+
 ## What This Enables
 
-Codex App and Codex CLI both get:
+Codex App and Codex CLI both get, through the `multi-agent` entrypoint:
 
 1. A native `codex-multi-agent` skill.
 2. Bundled Codex custom agents for scoped Worker and read-only Reviewer roles.
@@ -23,6 +28,7 @@ From the extracted `codex-multi-agent-skill-v0.3.1.zip` root:
 ```bash
 python3 scripts/install_native_skills.py --client codex --scope primary --force
 python3 scripts/install_native_skills.py --client codex --check
+python3 adapters/codex/scripts/doctor_codex.py
 ```
 
 The installer writes:
@@ -36,13 +42,30 @@ The installer writes:
 
 ## Usage: Codex App Native Subagents
 
+The App execution contract lives in [NATIVE_SUBAGENT_CONTRACT.md](NATIVE_SUBAGENT_CONTRACT.md).
+
 Ask Codex App:
 
 ```text
-Use codex-multi-agent. Split this task into scoped task cards, spawn a Worker for implementation and a Reviewer using ssrd if available, wait for result reports, run gate sync and scope audit, then deliver only after gates pass.
+Use multi-agent. Split this task into scoped task cards, take the Codex fast path, spawn a Worker for implementation and a Reviewer using ssrd if available, wait for result reports, run gate sync and scope audit, then deliver only after gates pass.
 ```
 
-Main prepares each task-card prompt:
+Main prepares a full spawn plan:
+
+```bash
+python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
+  --runtime codex-native-plan \
+  --state-dir .codex-multi-agent
+```
+
+The JSON output contains `records[]`; each record has:
+
+- `agent_type`: `multi-agent-worker`, `multi-agent-reviewer`, or `explorer`
+- `prompt_path`: prompt content to send to that native subagent
+- `may_use_skills`: the only skills the subagent may use
+- `result_json` and `result_markdown`: reports Main must wait for
+
+For a single task card, Main can prepare one prompt:
 
 ```bash
 python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
@@ -50,7 +73,7 @@ python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
   --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-Then Main spawns a native Codex subagent with the returned `agent_type` and prompt contents. If `may_use_skills` contains `ssrd` or another named skill, Main attaches or names that skill for the subagent.
+Then Main spawns native Codex subagents with the returned `agent_type` values and prompt contents. If `may_use_skills` contains `ssrd` or another named skill, Main attaches or names that skill for that subagent only.
 
 ## Usage: Codex CLI Bridge
 
@@ -102,6 +125,7 @@ Main must run OpenClaw gate sync and scope audit before final delivery.
 ## Self-check
 
 ```bash
+python3 adapters/codex/scripts/doctor_codex.py
 python3 scripts/install_native_skills.py --client codex --check
 python3 adapters/codex/scripts/codex_self_check.py
 ```

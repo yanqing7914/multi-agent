@@ -5,7 +5,7 @@ description: Prompt-guided multi-agent coordination for coding tasks across Code
 
 # multi-agent-coding
 
-Use this skill to coordinate coding work with controlled specialist roles. This is a prompt-guided coordination protocol, not a sandbox, orchestrator, or permission enforcement system. The main agent remains responsible for planning, delegation, integration, verification, and final delivery.
+Use this skill to coordinate coding work with controlled specialist roles. In Codex, treat `multi-agent-coding` as the primary daily entrypoint: take the Codex fast path directly instead of deferring to a separate Codex-only skill. This is a prompt-guided coordination protocol, not a sandbox, orchestrator, or permission enforcement system. The main agent remains responsible for planning, delegation, integration, verification, and final delivery.
 
 ## Core Rules
 
@@ -25,7 +25,7 @@ If the user asks to install this skill from GitHub, read `docs/agent-install.md`
 
 Use client-specific adapters for execution details:
 
-- Codex: use `adapters/codex/`; App and CLI discover the native skill, bundled custom agents provide scoped Worker/Reviewer defaults, native subagents are the full path, and `codex exec` is the optional script bridge.
+- Codex: use the Codex fast path below immediately. `multi-agent-coding` is the primary Codex entrypoint; `adapters/codex/` is its bundled implementation detail, not a competing handoff target. App and CLI use native subagents first, bundled custom agents provide scoped Worker/Reviewer defaults, `codex exec` is the optional script bridge, and manual handoff is the last fallback.
 - Cursor: use `adapters/cursor/`; App and CLI discover the native Agent Skill. Cursor 3's Agents Window (`/multitask`, `/worktree`) and the Cursor SDK provide native parallel subagents; this adapter's current automation path for Worker orchestration is the local Cursor `agent` CLI bridge (native in-App `/multitask` integration is on the roadmap), which stays the deterministic path for scripted/CI runs.
 - Claude Code: use `adapters/claude-code/`; App/IDE and CLI discover the native skill, bundled `.claude/agents` provide Worker/Reviewer/Verifier roles, and `claude --print` is the optional script bridge.
 - OpenClaw: install `adapters/openclaw/` as the standalone skill `openclaw-multi-agent`; map roles to `sessions_spawn`, `sessions_send`, and `sessions_yield`; use the bundled scripts for task cards and scope audit.
@@ -35,6 +35,20 @@ Use client-specific adapters for execution details:
 If a client lacks the required native subagent or CLI bridge, do not claim full automation. Use prompt handoff only as a fallback and clearly report the limitation.
 
 When MCP is available, use it for task state, approvals, findings, and audits. When MCP is unavailable, fall back to the bundled templates and checklists.
+
+## Codex Fast Path
+
+When running in Codex App or Codex CLI, do not spend context on other clients unless the user asks for them. Use this order:
+
+1. Run or recommend `python scripts/doctor.py --client codex` or `python adapters/codex/scripts/doctor_codex.py` to verify readiness.
+2. Generate task cards with `adapters/openclaw/scripts/create_task_cards.py`.
+3. Prepare a Codex native spawn plan with `scripts/run_multi_agent.py --runtime codex-native-plan --state-dir .codex-multi-agent`.
+4. Spawn Codex native subagents from the plan records using `multi-agent-worker` for Workers, `multi-agent-reviewer` for Reviewers, and `explorer` for Explorer/Verifier roles.
+5. If native subagents are unavailable but Codex CLI exists, run `scripts/run_multi_agent.py --runtime codex --task-card <card>`.
+6. If both are unavailable, use `scripts/run_multi_agent.py --runtime codex-desktop --task-card <card>` as manual handoff.
+7. Always run gate sync and scope audit before final delivery.
+
+Use `may_use_skills` from each task card as the only authority for subagent skill use. For example, a request to review with `ssrd` creates read-only Reviewer cards with `may_use_skills: [ssrd]`.
 ## Trigger Handling
 
 If the user explicitly asks for multiple agents, parallel agents, subagents, workers, reviewers, planners, or multi-agent review, enter this skill. If the task is small, use the Quick Path and explain that additional agents are unnecessary.
