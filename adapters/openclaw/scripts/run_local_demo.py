@@ -409,8 +409,13 @@ def demo_missing_worker_report() -> list[str]:
 def run_self_check() -> int:
     errors: list[str] = []
     with tempfile.TemporaryDirectory(prefix="openclaw-demo-") as tmp:
-        state_dir = Path(tmp) / ".codex-multi-agent"
-        outcome = demo_run(state_dir, REPO_ROOT.resolve(), keep=True)
+        tmp_path = Path(tmp)
+        state_dir = tmp_path / ".codex-multi-agent"
+        # Hermetic workspace: --summarize appends to <workspace>/MEMORY.md, so
+        # pointing at REPO_ROOT would dirty the repo's own MEMORY.md on every check.
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        outcome = demo_run(state_dir, workspace.resolve(), keep=True)
         if not outcome["ok"]:
             errors.extend(outcome["errors"])
 
@@ -439,14 +444,22 @@ def main() -> int:
         "--out",
         help="State directory for demo artifacts (default: system temp dir outside adapter package)",
     )
-    parser.add_argument("--workspace-root", help="Target repo root (default: repo root)")
+    parser.add_argument(
+        "--workspace-root",
+        help="Target repo root (default: throwaway temp workspace; demo summarize writes MEMORY.md there)",
+    )
     parser.add_argument("--keep", action="store_true", help="Keep state dir after run (for inspection)")
     args = parser.parse_args()
 
     if args.self_check:
         return run_self_check()
 
-    workspace_root = Path(args.workspace_root).resolve() if args.workspace_root else REPO_ROOT.resolve()
+    temp_ws: tempfile.TemporaryDirectory[str] | None = None
+    if args.workspace_root:
+        workspace_root = Path(args.workspace_root).resolve()
+    else:
+        temp_ws = tempfile.TemporaryDirectory(prefix="openclaw-demo-ws-")
+        workspace_root = Path(temp_ws.name).resolve()
     temp_state: tempfile.TemporaryDirectory[str] | None = None
     if args.out:
         state_dir = Path(args.out)
@@ -467,6 +480,8 @@ def main() -> int:
                 temp_state.cleanup()
             elif args.out and Path(args.out).exists():
                 shutil.rmtree(args.out, ignore_errors=True)
+        if temp_ws is not None:
+            temp_ws.cleanup()
     return exit_code
 
 

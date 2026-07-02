@@ -89,7 +89,7 @@ Main audits scope before delivery (`ok=true` counts as passed only when the audi
 gate is `passed`, exit 0):
 
 ```bash
-git diff --name-only > .codex-multi-agent/changed-files.txt
+python3 adapters/openclaw/scripts/capture_changed_files.py --state-dir .codex-multi-agent  # staged + unstaged + untracked
 python3 /path/to/hermes-multi-agent/adapters/openclaw/scripts/audit_worker_output.py \
   --ownership .codex-multi-agent/ownership.json \
   --results .codex-multi-agent/results \

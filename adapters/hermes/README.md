@@ -88,7 +88,7 @@ python3 .../adapters/openclaw/scripts/create_task_cards.py \
 python3 .../adapters/openclaw/scripts/update_task_status.py --state-dir .codex-multi-agent --sync
 
 # 3. Scope audit before delivery
-git diff --name-only > .codex-multi-agent/changed-files.txt
+python3 adapters/openclaw/scripts/capture_changed_files.py --state-dir .codex-multi-agent  # staged + unstaged + untracked
 python3 .../adapters/openclaw/scripts/audit_worker_output.py \
   --ownership .codex-multi-agent/ownership.json \
   --results .codex-multi-agent/results \

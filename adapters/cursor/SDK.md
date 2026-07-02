@@ -141,7 +141,7 @@ After the runs, collect the result reports and audit:
 
 ```bash
 python adapters/openclaw/scripts/update_task_status.py --state-dir .codex-multi-agent --sync
-git diff --name-only > .codex-multi-agent/changed-files.txt
+python3 adapters/openclaw/scripts/capture_changed_files.py --state-dir .codex-multi-agent  # staged + unstaged + untracked
 python adapters/openclaw/scripts/audit_worker_output.py \
   --ownership .codex-multi-agent/ownership.json \
   --results .codex-multi-agent/results \

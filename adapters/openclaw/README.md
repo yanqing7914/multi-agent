@@ -1,4 +1,4 @@
-﻿# OpenClaw Multi-Agent Adapter
+# OpenClaw Multi-Agent Adapter
 
 This folder is a self-contained OpenClaw/Her skill. Install or symlink it into your OpenClaw skills directory and invoke `$openclaw-multi-agent` without reading the rest of the root repository.
 
@@ -143,7 +143,7 @@ python scripts/update_task_status.py --state-dir .codex-multi-agent --sync
 7. Capture changed files and audit Worker scope:
 
 ```bash
-git diff --name-only > .codex-multi-agent/changed-files.txt
+python3 adapters/openclaw/scripts/capture_changed_files.py --state-dir .codex-multi-agent  # staged + unstaged + untracked
 
 python scripts/audit_worker_output.py \
   --ownership .codex-multi-agent/ownership.json \

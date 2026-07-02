@@ -4,12 +4,17 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **堵住 scope 审计盲区（安全修复）**：此前 changed-files 用 `git diff --name-only` 捕获，不包含 untracked 新文件——Worker 在 `allowed_paths` 之外**新建**文件时审计完全看不到。新增 `adapters/openclaw/scripts/capture_changed_files.py`（staged + unstaged + untracked 的并集，自动排除 state 目录，带 `--self-check`），并把任务卡 `after_result`、`finalize_native_run.py`、run-plan、audit 提示语以及全部 adapter 文档（cursor/codex/hermes/openclaw QUICKSTART、SKILL、README、TEAMS、SDK、examples）切换到新命令。发布包校验新增该脚本为 codex/cursor/openclaw 包的必备文件。
+- **自检不再污染仓库**：`run_local_demo.py`（被 `validate_all_adapters.py` 间接调用）以前默认把 REPO_ROOT 当 workspace，`--summarize` 每次都会往仓库跟踪的 `MEMORY.md` 追加一行 dogfood 记录，导致每跑一次验证工作区就脏一次。demo/self-check 现在默认使用一次性临时 workspace。
+- **Windows PowerShell 兼容**：任务卡 `preflight_command` 由 `cd "<root>" && pwd` 拆分为两条独立命令（旧版 PowerShell 不支持 `&&`）；同步修正 `prepare_cursor_sdk.py` 与 `templates/task-card.md`。
+- 修复 `pyproject.toml` 带 UTF-8 BOM 导致 `pip install -e .` 直接解析失败的问题。
+
 ### Added
 
-- Added product-grade GitHub workflows: fast CI, full CI, Codex native review checklist, and tag/manual release packaging.
-- Added `scripts/verify_release_packages.py` to ensure generated client zips contain required Codex App native files, custom agents, and shared scripts.
-- Added `docs/development.md` with branch model, CI layers, Codex App native acceptance criteria, release checklist, and runtime-state rules.
-- Replaced the PR template with a product checklist covering client impact, Codex App native lifecycle, release impact, and safety gates.
+- 新增 `tests/` 核心脚本单元测试（pytest，9 例）：覆盖审计盲区回归（untracked 越界文件必须 fail strict 审计）、越界 files_changed 拒绝、任务卡不含 `&&`、发布包 forbidden 匹配规则等，并接入 `ci-fast`、`ci-full` 与 `make test`。
+- `validate_all_adapters.py` 并行执行自检（`--jobs`，默认 min(8, CPU)），带 `[n/total]` 进度和每项耗时；本机实测从约 5 分钟降至约 1 分钟。所有自检均为临时目录内的封闭操作，可安全并行。
 
 ## [0.3.1] - 2026-06-25
 

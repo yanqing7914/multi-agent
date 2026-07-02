@@ -35,6 +35,7 @@ CHECKS = [
     ("create_task_cards", "create_task_cards.py"),
     ("update_task_status", "update_task_status.py"),
     ("audit_worker_output", "audit_worker_output.py"),
+    ("capture_changed_files", "capture_changed_files.py"),
     ("verify_workspace", "verify_workspace.py"),
     ("run_local_demo", "run_local_demo.py"),
     ("run_loop", "run_loop.py"),

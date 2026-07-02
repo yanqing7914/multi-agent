@@ -306,8 +306,10 @@ def preflight_commands(workspace_root: Path, required_paths: list[str]) -> list[
     verify_script = adapter_script("verify_workspace.py")
     py = python_invocation()
     paths_arg = " ".join(f'"{item}"' for item in required_paths if item not in {"**/*", "**"})
+    # Two separate commands: `&&` breaks on Windows PowerShell 5.x.
     lines = [
-        f'cd "{root}" && pwd',
+        f'cd "{root}"',
+        "pwd",
     ]
     if paths_arg:
         lines.append(
@@ -369,10 +371,12 @@ def main_commands_for_task(
         f"{status_script} --state-dir {rel_state} --sync",
     ]
 
+    capture_script = f'{py} "{adapter_script("capture_changed_files.py")}"'
     if role == "Worker":
         after_result.extend(
             [
-                f"git diff --name-only > {rel_state}/changed-files.txt",
+                # Includes staged + unstaged + untracked; `git diff --name-only` alone misses new files.
+                f'{capture_script} --workspace-root "{workspace_root}" --state-dir {rel_state}',
                 (
                     f"{audit_script} --ownership {rel_state}/ownership.json "
                     f"--results {rel_state}/results "
@@ -710,6 +714,10 @@ def write_run_plan(state_dir: Path, tasks: list[dict]) -> Path:
             {
                 "phase": "scope_audit",
                 "role": "Main",
+                "main_capture_command": (
+                    f"python adapters/openclaw/scripts/capture_changed_files.py "
+                    f"--state-dir {state_dir}"
+                ),
                 "main_gate_command": (
                     f"python adapters/openclaw/scripts/audit_worker_output.py "
                     f"--ownership {state_dir}/ownership.json "

@@ -449,8 +449,8 @@ def main_next_steps(
         if warnings:
             steps.append(f"Address {len(warnings)} warning(s) — missing reports or unowned paths.")
         steps.append(
-            "Capture: git diff --name-only > .codex-multi-agent/changed-files.txt "
-            "then rerun audit_worker_output.py --write-audit"
+            "Capture: python adapters/openclaw/scripts/capture_changed_files.py --state-dir .codex-multi-agent "
+            "(includes untracked files) then rerun audit_worker_output.py --write-audit"
         )
         return steps
     steps = ["Scope audit failed. Main must triage before final delivery."]
@@ -461,7 +461,7 @@ def main_next_steps(
     if warnings and not strict:
         steps.append(f"Review {len(warnings)} warning(s); rerun with --strict to fail on warnings.")
     steps.append(
-        "After fixes: git diff --name-only > .codex-multi-agent/changed-files.txt "
+        "After fixes: python adapters/openclaw/scripts/capture_changed_files.py --state-dir .codex-multi-agent "
         "and rerun audit_worker_output.py --write-audit"
     )
     return steps

@@ -1,4 +1,4 @@
-﻿# Cursor Multi-Agent Quickstart
+# Cursor Multi-Agent Quickstart
 
 Dependency-free Python 3. Reuses OpenClaw mission-control scripts.
 
@@ -102,7 +102,7 @@ Open or paste the returned `prompt_path` into Cursor Agent in the target workspa
 python3 /path/to/cursor-multi-agent/adapters/openclaw/scripts/update_task_status.py \
   --state-dir .codex-multi-agent --sync
 
-git diff --name-only > .codex-multi-agent/changed-files.txt
+python3 adapters/openclaw/scripts/capture_changed_files.py --state-dir .codex-multi-agent  # staged + unstaged + untracked
 python3 /path/to/cursor-multi-agent/adapters/openclaw/scripts/audit_worker_output.py \
   --ownership .codex-multi-agent/ownership.json \
   --results .codex-multi-agent/results \

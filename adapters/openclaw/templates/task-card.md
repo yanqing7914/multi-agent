@@ -12,7 +12,8 @@ target_repo:
 workspace_note: OpenClaw may ignore sessions_spawn cwd — child MUST cd to workspace_root (absolute) before reading files.
 dependencies: []
 preflight_command:
-  - 'cd "<workspace_root>" && pwd'
+  - 'cd "<workspace_root>"'
+  - pwd
   - python adapters/openclaw/scripts/verify_workspace.py --workspace-root "<workspace_root>" --required-paths "<path>"
 write_permission: false
 allowed_paths: []

@@ -69,12 +69,26 @@ def report_checks(records: list[dict]) -> list[dict]:
 
 
 def write_changed_files(state_dir: Path, workspace_root: Path) -> Path:
+    """Capture staged + unstaged + untracked changes via the shared helper.
+
+    Plain `git diff --name-only` misses untracked files, which would let new
+    files created outside allowed_paths escape the scope audit.
+    """
     changed_path = state_dir / "changed-files.txt"
-    proc = run(["git", "diff", "--name-only"], cwd=workspace_root)
-    if proc.returncode != 0:
+    capture_script = REPO_ROOT / "adapters" / "openclaw" / "scripts" / "capture_changed_files.py"
+    proc = run(
+        [
+            sys.executable,
+            str(capture_script),
+            "--workspace-root",
+            str(workspace_root),
+            "--state-dir",
+            str(state_dir),
+        ],
+        cwd=workspace_root,
+    )
+    if proc.returncode != 0 or not changed_path.exists():
         changed_path.write_text("", encoding="utf-8")
-        return changed_path
-    changed_path.write_text(proc.stdout, encoding="utf-8")
     return changed_path
 
 

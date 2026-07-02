@@ -5,8 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -36,6 +39,11 @@ ADAPTER_CHECKS = [
     ("repo_index_tool", REPO_ROOT / "tools" / "repo_index_tool.py", ["--self-check"]),
     ("worktree_tool", REPO_ROOT / "tools" / "worktree_tool.py", ["--self-check"]),
     ("run_graph", REPO_ROOT / "adapters" / "openclaw" / "scripts" / "run_graph.py", ["--self-check"]),
+    (
+        "capture_changed_files",
+        REPO_ROOT / "adapters" / "openclaw" / "scripts" / "capture_changed_files.py",
+        ["--self-check"],
+    ),
     ("native_skill_installer", REPO_ROOT / "scripts" / "install_native_skills.py", ["--self-check"]),
     ("release-package-verifier", REPO_ROOT / "scripts" / "verify_release_packages.py", ["--self-check"]),
     ("doctor", REPO_ROOT / "scripts" / "doctor.py", ["--self-check"]),
@@ -63,50 +71,73 @@ ADAPTER_CHECKS = [
 ]
 
 
+def run_check(name: str, script: Path, extra_args: list[str]) -> dict:
+    if not script.exists():
+        return {"name": name, "script": str(script), "ok": False, "error": "script missing"}
+    started = time.monotonic()
+    proc = subprocess.run(
+        [sys.executable, str(script), *extra_args],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    ok = proc.returncode == 0
+    entry = {
+        "name": name,
+        "script": str(script),
+        "ok": ok,
+        "returncode": proc.returncode,
+        "duration_s": round(time.monotonic() - started, 2),
+    }
+    if not ok:
+        entry["output"] = (proc.stderr or proc.stdout or "").strip()[:500]
+    return entry
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true", help="Emit JSON summary")
+    parser.add_argument(
+        "--jobs",
+        type=int,
+        default=min(8, os.cpu_count() or 4),
+        help="Parallel check processes (default: min(8, cpu_count)); use 1 for serial",
+    )
     args = parser.parse_args()
 
-    results: list[dict] = []
-    errors: list[str] = []
-
-    for name, script, extra_args in ADAPTER_CHECKS:
-        if not script.exists():
-            entry = {"name": name, "script": str(script), "ok": False, "error": "script missing"}
-            errors.append(f"{name}: script missing")
-            results.append(entry)
-            continue
-        proc = subprocess.run(
-            [sys.executable, str(script), *extra_args],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        ok = proc.returncode == 0
-        entry = {
-            "name": name,
-            "script": str(script),
-            "ok": ok,
-            "returncode": proc.returncode,
+    total = len(ADAPTER_CHECKS)
+    results_by_name: dict[str, dict] = {}
+    done = 0
+    # Every self-check is hermetic (temp-dir state), so they can run in parallel.
+    with ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:
+        futures = {
+            pool.submit(run_check, name, script, extra_args): name
+            for name, script, extra_args in ADAPTER_CHECKS
         }
-        if not ok:
-            snippet = (proc.stderr or proc.stdout or "").strip()[:500]
-            entry["output"] = snippet
-            errors.append(f"{name}: {snippet or 'failed'}")
-        results.append(entry)
+        for future in as_completed(futures):
+            entry = future.result()
+            results_by_name[entry["name"]] = entry
+            done += 1
+            if not args.json:
+                status = "PASS" if entry["ok"] else "FAIL"
+                duration = entry.get("duration_s")
+                suffix = f" ({duration}s)" if duration is not None else ""
+                print(f"[{done}/{total}] [{status}] {entry['name']}{suffix}", flush=True)
+
+    results = [results_by_name[name] for name, _script, _args in ADAPTER_CHECKS]
+    errors = [
+        f"{item['name']}: {item.get('output') or item.get('error') or 'failed'}"
+        for item in results
+        if not item["ok"]
+    ]
 
     payload = {"ok": not errors, "checks": results, "errors": errors}
     if args.json:
         print(json.dumps(payload, indent=2))
-    else:
-        for item in results:
-            status = "PASS" if item["ok"] else "FAIL"
-            print(f"[{status}] {item['name']}")
-        if errors:
-            print("\nFailures:", file=sys.stderr)
-            for err in errors:
-                print(f"  - {err}", file=sys.stderr)
+    elif errors:
+        print("\nFailures:", file=sys.stderr)
+        for err in errors:
+            print(f"  - {err}", file=sys.stderr)
     return 0 if payload["ok"] else 1
 
 

@@ -24,12 +24,14 @@ REQUIRED_BY_PACKAGE = {
         "codex-multi-agent/adapters/codex/agents/multi-agent-reviewer.toml",
         "codex-multi-agent/scripts/run_multi_agent.py",
         "codex-multi-agent/scripts/doctor.py",
+        "codex-multi-agent/adapters/openclaw/scripts/capture_changed_files.py",
     ],
     "cursor-multi-agent-pack": [
         "cursor-multi-agent/SKILL.md",
         "cursor-multi-agent/INSTALL.json",
         "cursor-multi-agent/cursor-rules.md",
         "cursor-multi-agent/scripts/run_multi_agent.py",
+        "cursor-multi-agent/adapters/openclaw/scripts/capture_changed_files.py",
     ],
     "claude-code-multi-agent-pack": [
         "claude-code-multi-agent/SKILL.md",
@@ -47,6 +49,7 @@ REQUIRED_BY_PACKAGE = {
         "openclaw-multi-agent/README.md",
         "openclaw-multi-agent/scripts/create_task_cards.py",
         "openclaw-multi-agent/scripts/audit_worker_output.py",
+        "openclaw-multi-agent/scripts/capture_changed_files.py",
         "openclaw-multi-agent/templates/task-card.md",
     ],
     "multi-agent-coding-skill": [

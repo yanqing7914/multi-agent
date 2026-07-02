@@ -34,7 +34,8 @@ Worker/Reviewer task card:
    Instruct a Worker to edit only within `allowed_paths`; instruct a
    Reviewer/Explorer/Verifier to stay read-only (`files_changed` empty).
 3. Wait for each subagent to write its JSON + Markdown result report.
-4. As Main: capture `git diff --name-only > .codex-multi-agent/changed-files.txt`,
+4. As Main: capture changed files (staged + unstaged + untracked) with
+   `python3 adapters/openclaw/scripts/capture_changed_files.py --state-dir .codex-multi-agent`,
    run the scope audit, sync gates, then deliver.
 
 This is the same controlled loop other clients run; in Cursor the role

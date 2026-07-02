@@ -86,7 +86,7 @@ def write_plan(out_dir: Path, records: list[dict]) -> Path:
             "3. Collect result JSON and Markdown reports.",
             "4. Close each completed/blocked/failed agent with `close_agent` so it does not occupy concurrency slots.",
             "5. Run `adapters/openclaw/scripts/update_task_status.py --state-dir .codex-multi-agent --sync`.",
-            "6. Capture `git diff --name-only` into `.codex-multi-agent/changed-files.txt`.",
+            "6. Capture changed files (incl. untracked) with `adapters/openclaw/scripts/capture_changed_files.py --state-dir .codex-multi-agent`.",
             "7. Run `adapters/openclaw/scripts/audit_worker_output.py --write-audit`.",
             "8. Deliver only after result reports and ownership audit pass.",
         ]

@@ -1,4 +1,4 @@
-﻿---
+---
 name: openclaw-multi-agent
 description: OpenClaw/Her-specific multi-agent coding workflow for complex multi-role collaboration. Use when OpenClaw should coordinate sessions_spawn/sessions_send workers for research, scoped implementation, read-only review, SSRD/security review, verification, and diff audit. Do not use for simple coding, explicit single-agent coding-agent tasks, direct ACP routing handled by acp-router, or batch homogeneous jobs better handled by parallel-claude.
 ---
@@ -157,7 +157,7 @@ python adapters/openclaw/scripts/update_task_status.py --state-dir .codex-multi-
 10. Collect Worker changed paths from result reports and/or:
 
 ```bash
-git diff --name-only > .codex-multi-agent/changed-files.txt
+python3 adapters/openclaw/scripts/capture_changed_files.py --state-dir .codex-multi-agent  # staged + unstaged + untracked
 ```
 
 11. Audit scope and write audit JSON:

@@ -280,7 +280,7 @@ PROMPT_TEXT = {
         "Use templates/final-delivery.md for user-facing delivery."
     ),
     "audit_before_final_delivery": (
-        "Main: capture git diff to .codex-multi-agent/changed-files.txt,\n"
+        "Main: capture changed files (incl. untracked) via capture_changed_files.py,\n"
         "then run audit_scope MCP tool. Fix violations before final_delivery gate.\n"
         "Re-sync with update_task_status via --sync if using scripts directly."
     ),

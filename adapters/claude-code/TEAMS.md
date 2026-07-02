@@ -111,7 +111,7 @@ schema against your installed Claude Code version; assume no more than the docum
         "hooks": [
           {
             "type": "command",
-            "command": "git diff --name-only > .codex-multi-agent/changed-files.txt && python3 adapters/openclaw/scripts/audit_worker_output.py --ownership .codex-multi-agent/ownership.json --results .codex-multi-agent/results --changed-files .codex-multi-agent/changed-files.txt --write-audit --state-dir .codex-multi-agent"
+            "command": "python3 adapters/openclaw/scripts/capture_changed_files.py --state-dir .codex-multi-agent && python3 adapters/openclaw/scripts/audit_worker_output.py --ownership .codex-multi-agent/ownership.json --results .codex-multi-agent/results --changed-files .codex-multi-agent/changed-files.txt --write-audit --state-dir .codex-multi-agent"
           }
         ]
       }

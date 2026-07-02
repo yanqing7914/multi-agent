@@ -12,7 +12,7 @@ bench/swebench-lite/results/*
 !bench/swebench-lite/results/README.md
 *.vsix
 ide/extensions/*/out/
-dist/*-v0.0.0-ci*.zip
+dist/*-v0.0.0-*.zip
 
 !.codex-multi-agent-relay/**
 multi_agent_coding.egg-info/
