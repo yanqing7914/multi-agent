@@ -18,7 +18,7 @@ In Cursor App the **primary** path is in-App subagent delegation (step 3 above):
 
 ## Install
 
-From the extracted `cursor-multi-agent-pack-v0.3.1.zip` root:
+From the extracted `cursor-multi-agent-pack-v0.4.0.zip` root:
 
 ```bash
 python3 scripts/install_native_skills.py --client cursor --scope primary --force

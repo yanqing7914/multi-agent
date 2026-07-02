@@ -2,7 +2,7 @@
 
 本文件遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [Unreleased]
+## [0.4.0] - 2026-07-02
 
 ### Fixed
 
@@ -20,6 +20,10 @@
 - **并行 Worker 的 git worktree 物理隔离改为默认开启**：`create_task_cards.py` 检测到 2 个及以上有写权限的 Worker 时（`--worktrees auto`，默认值），自动生成 `worktree-plan.json`，每张 Worker 卡带 `worktree:` 块（分支、路径、create/capture/merge/remove 完整命令，基于 `tools/worktree_tool.py`）；卡片的 preflight/before_spawn/after_result 自动改指各自的 worktree 路径，ownership.json 与 run-plan.json 同步记录分支与合并指引。单 Worker 无并行覆写风险则自动跳过，`--worktrees off` 可显式关闭、`always` 强制开启。openclaw 独立包现在随包携带 `tools/`（worktree_tool 及其依赖），三个发布包校验将 `tools/worktree_tool.py` 列为必备文件。新增 pytest 回归（默认出计划/off 关闭/单 Worker 跳过）与 self-check 断言，SKILL.md（根、openclaw、cursor）同步更新默认策略。
 - 新增 `tests/` 核心脚本单元测试（pytest，10 例）：覆盖审计盲区回归（untracked 越界文件必须 fail strict 审计）、越界 files_changed 拒绝、任务卡不含 `&&`、发布包 forbidden 匹配规则、**多进程并发更新任务状态不丢更新**等，并接入 `ci-fast`、`ci-full` 与 `make test`。
 - `validate_all_adapters.py` 并行执行自检（`--jobs`，默认 min(8, CPU)），带 `[n/total]` 进度和每项耗时；本机实测从约 5 分钟降至约 1 分钟。所有自检均为临时目录内的封闭操作，可安全并行。
+
+### Changed
+
+- `release-pypi.yml` 的 publish 作业改为受仓库变量 `PYPI_TRUSTED_PUBLISHING=enabled` 门控：在 pypi.org 配置好 Trusted Publisher 之前，打 tag 只构建并冒烟验证 wheel/sdist（产物存为 artifact），不会因发布失败挂红。配置完成后设置该变量即可自动发布。
 
 ## [0.3.1] - 2026-06-25
 
@@ -171,6 +175,7 @@
 - 许可证：MIT。
 - Hermes / VS Code 扩展仍为文档与脚手架阶段；实时 LLM bench 运行需各客户端 CLI 与配额。
 
+[0.4.0]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.4.0
 [0.3.1]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.3.1
 [0.3.0]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.3.0
 [0.2.0]: https://github.com/yanqing7914/multi-agent/releases/tag/v0.2.0

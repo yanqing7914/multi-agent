@@ -75,7 +75,7 @@ Source of truth remains root `SKILL.md`, `templates/`, `checklists/`, `examples/
 
 ### Codex
 
-- Install `codex-multi-agent-skill-v0.3.1.zip` or run `scripts/install_native_skills.py --client codex` from the repo.
+- Install `codex-multi-agent-skill-v0.4.0.zip` or run `scripts/install_native_skills.py --client codex` from the repo.
 - Native skill dirs: `~/.agents/skills/codex-multi-agent`, `~/.codex/skills/codex-multi-agent`.
 - Native custom agents: `~/.codex/agents/multi-agent-worker.toml`, `~/.codex/agents/multi-agent-reviewer.toml`.
 - App full mode: Main uses native subagents after the user asks for multi-agent work.
@@ -83,7 +83,7 @@ Source of truth remains root `SKILL.md`, `templates/`, `checklists/`, `examples/
 
 ### Cursor
 
-- Install `cursor-multi-agent-pack-v0.3.1.zip` or run `scripts/install_native_skills.py --client cursor` from the repo.
+- Install `cursor-multi-agent-pack-v0.4.0.zip` or run `scripts/install_native_skills.py --client cursor` from the repo.
 - Native skill dirs: `~/.agents/skills/cursor-multi-agent`, `~/.cursor/skills/cursor-multi-agent`.
 - **Primary (App): in-App subagent delegation.** The Main agent dispatches each Worker/Reviewer by spawning a Cursor subagent directly with the task-card prompt + `allowed_paths` + role; it collects the JSON+Markdown reports and runs the scope audit. No external CLI is required. See "How To Dispatch A Worker In Cursor App" in `adapters/cursor/SKILL.md`.
 - Optional scripted/CI bridge: the local Cursor CLI (`agent`, legacy alias `cursor-agent`) via `run_multi_agent.py --runtime cursor`. Install only if needed: `curl https://cursor.com/install -fsS | bash` or, on native Windows, `irm 'https://cursor.com/install?win32=true' | iex`; the tmux-based bridge also needs `bash` + `tmux` (use WSL on native Windows).
@@ -93,7 +93,7 @@ Source of truth remains root `SKILL.md`, `templates/`, `checklists/`, `examples/
 
 ### Claude Code
 
-- Install `claude-code-multi-agent-pack-v0.3.1.zip` or run `scripts/install_native_skills.py --client claude` from the repo.
+- Install `claude-code-multi-agent-pack-v0.4.0.zip` or run `scripts/install_native_skills.py --client claude` from the repo.
 - Native skill dirs: `~/.claude/skills/claude-code-multi-agent`, `~/.agents/skills/claude-code-multi-agent`.
 - Native subagents: `~/.claude/agents/multi-agent-worker.md`, `multi-agent-reviewer.md`, `multi-agent-verifier.md`.
 - CLI bridge: `scripts/run_multi_agent.py --runtime claude-code --task-card ...`.
@@ -107,7 +107,7 @@ Source of truth remains root `SKILL.md`, `templates/`, `checklists/`, `examples/
 
 ### Hermes
 
-- Install `hermes-multi-agent-pack-v0.3.1.zip` or run `scripts/install_native_skills.py --client hermes` from the repo.
+- Install `hermes-multi-agent-pack-v0.4.0.zip` or run `scripts/install_native_skills.py --client hermes` from the repo.
 - Native skill dirs (agentskills.io standard): `~/.agents/skills/hermes-multi-agent`, `~/.hermes/skills/hermes-multi-agent`.
 - App/CLI full mode: a Hermes Agent loads the portable `SKILL.md` natively and orchestrates Workers through its native MCP tools plus the bundled OpenClaw mission-control scripts (`create_task_cards.py`, `update_task_status.py`, `audit_worker_output.py`, `memory_log.py`). This adapter does not duplicate gate logic.
 - MCP wiring: register the coordinator under `mcp_servers` in `~/.hermes/config.yaml` (stdio or http) — `scripts/configure_mcp.py --client hermes` prints a paste-ready block. Hermes connects every `mcp_servers` entry at startup and injects their tools as native tools.

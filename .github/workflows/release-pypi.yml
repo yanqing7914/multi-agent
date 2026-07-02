@@ -53,6 +53,9 @@ jobs:
   publish:
     name: Publish to PyPI (trusted publishing)
     needs: build
+    # Off until the PyPI trusted publisher is configured; then set repo variable
+    # PYPI_TRUSTED_PUBLISHING=enabled (Settings -> Secrets and variables -> Variables).
+    if: vars.PYPI_TRUSTED_PUBLISHING == 'enabled'
     runs-on: ubuntu-latest
     environment: pypi
     permissions:

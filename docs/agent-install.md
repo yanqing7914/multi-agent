@@ -9,12 +9,12 @@ Release base: `https://github.com/yanqing7914/multi-agent/releases/latest`
 
 | Client | Download | Install action | Full Worker mode |
 | --- | --- | --- | --- |
-| Codex App / CLI | `codex-multi-agent-skill-v0.3.1.zip` | Extract, then run `scripts/install_native_skills.py --client codex --scope primary --force` | Native Codex skills + bundled custom agents; `codex` CLI bridge is optional |
-| Cursor App / CLI | `cursor-multi-agent-pack-v0.3.1.zip` | Extract, then run `scripts/install_native_skills.py --client cursor --scope primary --force` | Native Cursor skill; Main dispatches Workers via in-App subagent delegation (no CLI). `agent` CLI bridge optional for scripted/CI |
-| Claude Code App / IDE / CLI | `claude-code-multi-agent-pack-v0.3.1.zip` | Extract, then run `scripts/install_native_skills.py --client claude --scope primary --force` | Native Claude skills + bundled `.claude/agents`; `claude` CLI bridge is optional for script launch |
-| OpenClaw / Her | `openclaw-multi-agent-skill-v0.3.1.zip` | Extract `openclaw-multi-agent/` into the OpenClaw skills directory | Native OpenClaw `sessions_spawn` / `sessions_send` workflow |
-| Hermes | `hermes-multi-agent-pack-v0.3.1.zip` | Extract, then run `scripts/install_native_skills.py --client hermes --scope primary --force` | Portable agentskills.io skill + native MCP tools (`~/.hermes/config.yaml`) + bundled mission-control scripts |
-| Generic agent | `multi-agent-coding-skill-v0.3.1.zip` | Extract and read `SKILL.md` | Protocol guidance only; use a client pack for native install |
+| Codex App / CLI | `codex-multi-agent-skill-v0.4.0.zip` | Extract, then run `scripts/install_native_skills.py --client codex --scope primary --force` | Native Codex skills + bundled custom agents; `codex` CLI bridge is optional |
+| Cursor App / CLI | `cursor-multi-agent-pack-v0.4.0.zip` | Extract, then run `scripts/install_native_skills.py --client cursor --scope primary --force` | Native Cursor skill; Main dispatches Workers via in-App subagent delegation (no CLI). `agent` CLI bridge optional for scripted/CI |
+| Claude Code App / IDE / CLI | `claude-code-multi-agent-pack-v0.4.0.zip` | Extract, then run `scripts/install_native_skills.py --client claude --scope primary --force` | Native Claude skills + bundled `.claude/agents`; `claude` CLI bridge is optional for script launch |
+| OpenClaw / Her | `openclaw-multi-agent-skill-v0.4.0.zip` | Extract `openclaw-multi-agent/` into the OpenClaw skills directory | Native OpenClaw `sessions_spawn` / `sessions_send` workflow |
+| Hermes | `hermes-multi-agent-pack-v0.4.0.zip` | Extract, then run `scripts/install_native_skills.py --client hermes --scope primary --force` | Portable agentskills.io skill + native MCP tools (`~/.hermes/config.yaml`) + bundled mission-control scripts |
+| Generic agent | `multi-agent-coding-skill-v0.4.0.zip` | Extract and read `SKILL.md` | Protocol guidance only; use a client pack for native install |
 
 After installing, run `python3 scripts/doctor.py` for a per-client readiness report (skill, bundled agents, App/CLI tooling, complete Worker readiness) with Chinese remediation hints.
 
@@ -45,7 +45,7 @@ python3 scripts/install_native_skills.py --client all --check
 
 ## Codex Install
 
-Install package: `codex-multi-agent-skill-v0.3.1.zip`.
+Install package: `codex-multi-agent-skill-v0.4.0.zip`.
 
 Native locations used by the installer:
 
@@ -66,7 +66,7 @@ If `codex` CLI is missing, native App subagents can still be full mode; only the
 
 ## Cursor Install
 
-Install package: `cursor-multi-agent-pack-v0.3.1.zip`.
+Install package: `cursor-multi-agent-pack-v0.4.0.zip`.
 
 Native locations used by the installer:
 
@@ -98,7 +98,7 @@ If the Cursor CLI is missing, report: native skill installed, full Worker automa
 
 ## Claude Code Install
 
-Install package: `claude-code-multi-agent-pack-v0.3.1.zip`.
+Install package: `claude-code-multi-agent-pack-v0.4.0.zip`.
 
 Native locations used by the installer:
 
@@ -122,7 +122,7 @@ Claude Code also supports experimental **Agent Teams** (shared task list, auto-u
 
 ## Hermes Install
 
-Install the `hermes-multi-agent-pack-v0.3.1.zip` package or run from the repo:
+Install the `hermes-multi-agent-pack-v0.4.0.zip` package or run from the repo:
 
 ```bash
 python3 scripts/install_native_skills.py --client hermes --scope primary --force

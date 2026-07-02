@@ -6,4 +6,4 @@ CLI that forwards to the bundled scripts, so `pip install multi-agent-coding`
 is enough to run doctor/install/task-card workflows anywhere.
 """
 
-__version__ = "0.3.1"
+__version__ = "0.4.0"

@@ -1,4 +1,4 @@
-﻿task_id: T___
+task_id: T___
 session_name:
 runtime: acp | subagent | native
 mode: research | implement | fix | review | refactor
