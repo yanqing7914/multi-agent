@@ -1,6 +1,6 @@
-# Roadmap (v1 → v6)
+# Roadmap (v1 → v7)
 
-This repository evolves in layered milestones. Each layer keeps **Main accountable**, uses **task cards as the portable contract**, and treats **handoffs as logic gates** rather than vague suggestions. v1–v6 are all landed; the remaining forward-looking item is per-Worker branch → PR → CI failure feedback (see v6).
+This repository evolves in layered milestones. Each layer keeps **Main accountable**, uses **task cards as the portable contract**, and treats **handoffs as logic gates** rather than vague suggestions. v1–v7 are all landed; the remaining forward-looking item is automatic PR-open + CI failure feedback on top of the per-Worker branches (see v7).
 
 ## v1 — Prompt + scripts (current)
 
@@ -25,7 +25,8 @@ This repository evolves in layered milestones. Each layer keeps **Main accountab
   approvals/           # skill-use approvals (manual in v1)
   audits/              # scope audit JSON from audit_worker_output.py
   summary/             # run-summary.md from update_task_status.py --summarize
-  changed-files.txt    # optional git diff capture
+  changed-files.txt    # capture_changed_files.py output (staged + unstaged + untracked)
+  worktree-plan.json   # per-Worker worktree/branch plan (emitted by create_task_cards.py, v7)
 ```
 
 **v1 scripts (dependency-free Python):**
@@ -120,6 +121,7 @@ v3  Mission-control task panel (in)            ← ide/multi-agent-panel/
 v4  Tools / memory / bench (in)                ← tools/ (git/test/lint/shell/repo-index/worktree) + MEMORY.md + bench/
 v5  SWE-bench Lite + extensions (in)           ← bench/swebench-lite/ + ide/extensions/
 v6  Loop + Hermes + native orchestration (in)  ← adapters/openclaw/scripts/run_loop.py + adapters/hermes/ + adapters/cursor/{scripts/prepare_cursor_sdk.py,sdk/,SDK.md} + scripts/{doctor,configure_mcp}.py
+v7  Parallel hardening & distribution (in)     ← default worktree isolation in create_task_cards.py + capture_changed_files.py + _locking.py + multi_agent_coding pip package + tests/
 ```
 
 Client-specific adapters (OpenClaw, Cursor, Codex, Claude Code) stay thin: they translate native session/spawn APIs into task cards and result reports. The contract stays stable across clients.
@@ -206,7 +208,7 @@ bash scripts/full_validate.sh
 - Hermes has since landed as a thin adapter (`adapters/hermes/`, see v6) that reuses the OpenClaw core via its native MCP client; it ships no bespoke session-launcher binary (Workers run through MCP tools + mission-control scripts).
 - Live multi-agent on `case-study-flask-cli` requires Codex CLI auth (documented caveat).
 
-## v6 — Loop engineering, Hermes, native orchestration & ops (latest)
+## v6 — Loop engineering, Hermes, native orchestration & ops (2026-06)
 
 **Status: in** ✅ (dependency-free; each ships a `--self-check` wired into `scripts/validate_all_adapters.py`)
 
@@ -225,12 +227,32 @@ Self-check (all of v6, plus the rest):
 python3 scripts/validate_all_adapters.py
 ```
 
+## v7 — Parallel hardening & distribution (2026-07)
+
+**Status: in** ✅ (parallel-safety fixes + pip/PyPI distribution + regression tests)
+
+| Component | Purpose | Status |
+| --- | --- | --- |
+| Default worktree isolation ([`create_task_cards.py`](../adapters/openclaw/scripts/create_task_cards.py) `--worktrees auto\|always\|off`) | `auto` (default) kicks in with 2+ write-permitted Workers: emits `worktree-plan.json` plus a `worktree:` block per Worker card (branch, path, create/capture/merge/remove commands via [`tools/worktree_tool.py`](../tools/worktree_tool.py)); preflight/before_spawn/after_result retarget to each Worker's worktree; `ownership.json` / `run-plan.json` record branches and merge guidance | ✅ pytest + self-check |
+| [`capture_changed_files.py`](../adapters/openclaw/scripts/capture_changed_files.py) | Fixes the scope-audit blind spot: captures staged + unstaged + **untracked** files (excludes the state dir), replacing the raw `git diff --name-only` that missed newly created out-of-scope files | ✅ `--self-check` |
+| [`_locking.py`](../adapters/openclaw/scripts/_locking.py) | Cross-platform advisory lock (msvcrt/fcntl) + atomic `os.replace` writes; all `update_task_status.py` mutation entrypoints and `audit_worker_output.py --write-audit` run inside the state-dir lock — concurrent Workers no longer lose updates | ✅ concurrency pytest |
+| `multi_agent_coding` package + `multi-agent-coding` CLI | pip/PyPI distribution: hatchling wheel bundles the skill tree under `_bundle/`; subcommands `doctor / install / cards / status / capture / audit / worktree / run`; [`release-pypi.yml`](../.github/workflows/release-pypi.yml) publishes on tag via PyPI Trusted Publishing | ✅ wheel install verified |
+| [`tests/test_core_scripts.py`](../tests/test_core_scripts.py) | 17 pytest cases (audit blind spot, out-of-scope rejection, concurrency, packaging, CLI); wired into ci-fast/ci-full and `make test`; `validate_all_adapters.py` now runs self-checks in parallel (`--jobs`) | ✅ CI |
+
+Self-check:
+
+```bash
+python3 -m pytest tests -q
+python3 scripts/validate_all_adapters.py
+```
+
 **Naming note:** earlier drafts loosely called "worktree / PR / CI" a single "v4"
 item. That conflicts with v4 (tools / memory / bench), which already includes the
 landed physical-isolation tool [`tools/worktree_tool.py`](../tools/worktree_tool.py).
 The remaining forward-looking work is the automation on top of it.
 
-**Forward-looking (next):** per-Worker branch → PR review → CI failure feedback
-loop. The physical isolation foundation (`worktree_tool.py`) and a self-correcting
-loop engine (`run_loop.py`) are already landed; wiring them into an
-automatic PR/CI cycle is the next step.
+**Forward-looking (next):** default worktree orchestration has landed in v7 —
+`create_task_cards.py` now plans and wires one isolated worktree + branch per
+write-permitted Worker automatically. The remaining forward-looking work narrows
+to automatic PR-open + CI-failure feedback on top of those per-Worker branches
+(the loop engine `run_loop.py` is the natural home for the feedback cycle).
