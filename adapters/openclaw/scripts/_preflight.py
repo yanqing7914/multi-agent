@@ -12,21 +12,34 @@ def normalize_workspace_path(path: str) -> str:
     return str(Path(path).expanduser().resolve())
 
 
-def workspace_mismatch_reason(result_data: dict, expected_workspace: str | None) -> str | None:
-    """Block completed reports when pwd after cd does not match target workspace_root."""
+def workspace_mismatch_reason(
+    result_data: dict,
+    expected_workspace: str | None,
+    allowed_workspaces: list[str] | None = None,
+) -> str | None:
+    """Block completed reports when pwd after cd does not match target workspace_root.
+
+    With worktree isolation (default for parallel Workers) the Worker's legitimate
+    working directory is its own worktree, so callers pass that path via
+    `allowed_workspaces` (from ownership task `worktree.path`).
+    """
     reported = str(result_data.get("status", "")).strip()
     if reported != "completed" or not expected_workspace:
         return None
     observed = str(result_data.get("workspace_observed", "")).strip()
     if not observed:
         return None
-    try:
-        if normalize_workspace_path(observed) != normalize_workspace_path(expected_workspace):
-            return f"workspace_mismatch: observed={observed} expected={expected_workspace}"
-    except OSError:
-        if observed.rstrip("/") != expected_workspace.rstrip("/"):
-            return f"workspace_mismatch: observed={observed} expected={expected_workspace}"
-    return None
+    candidates = [expected_workspace, *(allowed_workspaces or [])]
+    for candidate in candidates:
+        if not candidate:
+            continue
+        try:
+            if normalize_workspace_path(observed) == normalize_workspace_path(candidate):
+                return None
+        except OSError:
+            if observed.rstrip("/") == str(candidate).rstrip("/"):
+                return None
+    return f"workspace_mismatch: observed={observed} expected={expected_workspace}"
 
 
 def parse_bool(value: object) -> bool | None:
@@ -132,9 +145,10 @@ def effective_status_issues(
     result_data: dict,
     required_paths: list[str] | None = None,
     expected_workspace: str | None = None,
+    allowed_workspaces: list[str] | None = None,
 ) -> tuple[str | None, dict]:
     """Return effective status override (blocked) and metadata, or (None, {})."""
-    mismatch_reason = workspace_mismatch_reason(result_data, expected_workspace)
+    mismatch_reason = workspace_mismatch_reason(result_data, expected_workspace, allowed_workspaces)
     false_reason = false_completion_reason(result_data)
     thin_reason = thin_evidence_reason(result_data, required_paths)
 

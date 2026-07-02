@@ -290,7 +290,9 @@ def audit(ownership: dict, result_changes: dict[str, dict], global_changed: list
                 if k not in merged or merged.get(k) in (None, [], '', False):
                     merged[k] = v
         if merged:
-            mismatch_reason = workspace_mismatch_reason(merged, expected_workspace)
+            # Worktree-isolated Workers legitimately observe their own worktree path.
+            allowed_ws = [p for p in [(task.get("worktree") or {}).get("path")] if p]
+            mismatch_reason = workspace_mismatch_reason(merged, expected_workspace, allowed_ws)
             if not mismatch_reason:
                 false_reason = false_completion_reason(merged)
             if not mismatch_reason and not false_reason:

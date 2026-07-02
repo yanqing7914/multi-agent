@@ -145,6 +145,7 @@ def effective_status_from_result(
     result_path: Path,
     required_paths: list[str] | None = None,
     expected_workspace: str | None = None,
+    allowed_workspaces: list[str] | None = None,
 ) -> tuple[str | None, dict]:
     data = load_result_data(result_path)
     if not data:
@@ -161,7 +162,9 @@ def effective_status_from_result(
             "reason": f"invalid_status_token: {raw_status!r} is not in {sorted(VALID_STATUSES)}",
         }
 
-    blocked_status, meta = effective_status_issues(data, required_paths, expected_workspace)
+    blocked_status, meta = effective_status_issues(
+        data, required_paths, expected_workspace, allowed_workspaces
+    )
     if blocked_status:
         return blocked_status, meta
 
@@ -462,8 +465,10 @@ def sync_status(state_dir: Path) -> dict:
         json_path = Path(task.get("result_report_json", ""))
         md_path = Path(task.get("result_report_markdown", ""))
         req_paths = task.get("required_paths") or []
-        json_status, json_meta = effective_status_from_result(json_path, req_paths, expected_workspace)
-        md_status, md_meta = effective_status_from_result(md_path, req_paths, expected_workspace)
+        # Worktree-isolated Workers legitimately observe their own worktree path.
+        allowed_ws = [p for p in [(task.get("worktree") or {}).get("path")] if p]
+        json_status, json_meta = effective_status_from_result(json_path, req_paths, expected_workspace, allowed_ws)
+        md_status, md_meta = effective_status_from_result(md_path, req_paths, expected_workspace, allowed_ws)
         inferred = None
         preflight_meta: dict = {}
         if json_path.exists() and json_status and not json_meta:

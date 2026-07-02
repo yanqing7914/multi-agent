@@ -6,6 +6,7 @@
 
 ### Fixed
 
+- **worktree 隔离下的 workspace 误报（dogfood 发现）**：默认 worktree 隔离落地后，Worker 的 `workspace_observed` 合法地指向自己的 worktree 路径，但 `_preflight.workspace_mismatch_reason` 只认主 `workspace_root`，导致审计/同步把所有隔离 Worker 判为 workspace mismatch 违规——即默认隔离必然过不了自己的审计门。现在 `audit_worker_output.py` 与 `update_task_status.py --sync` 会把 ownership 任务里的 `worktree.path` 视为合法工作目录（其他路径仍然违规），并新增 pytest 回归。该缺陷是在用本 skill 真实编排一次双 Worker 文档更新（Cursor App 内 spawn Explorer×2 / Worker×2 / Reviewer，worktree 隔离 + capture + audit + merge 全流程）时由审计门自己拦出来的。
 - **堵住 scope 审计盲区（安全修复）**：此前 changed-files 用 `git diff --name-only` 捕获，不包含 untracked 新文件——Worker 在 `allowed_paths` 之外**新建**文件时审计完全看不到。新增 `adapters/openclaw/scripts/capture_changed_files.py`（staged + unstaged + untracked 的并集，自动排除 state 目录，带 `--self-check`），并把任务卡 `after_result`、`finalize_native_run.py`、run-plan、audit 提示语以及全部 adapter 文档（cursor/codex/hermes/openclaw QUICKSTART、SKILL、README、TEAMS、SDK、examples）切换到新命令。发布包校验新增该脚本为 codex/cursor/openclaw 包的必备文件。
 - **自检不再污染仓库**：`run_local_demo.py`（被 `validate_all_adapters.py` 间接调用）以前默认把 REPO_ROOT 当 workspace，`--summarize` 每次都会往仓库跟踪的 `MEMORY.md` 追加一行 dogfood 记录，导致每跑一次验证工作区就脏一次。demo/self-check 现在默认使用一次性临时 workspace。
 - **Windows PowerShell 兼容**：任务卡 `preflight_command` 由 `cd "<root>" && pwd` 拆分为两条独立命令（旧版 PowerShell 不支持 `&&`）；同步修正 `prepare_cursor_sdk.py` 与 `templates/task-card.md`。

@@ -237,7 +237,7 @@ python3 scripts/validate_all_adapters.py
 | [`capture_changed_files.py`](../adapters/openclaw/scripts/capture_changed_files.py) | Fixes the scope-audit blind spot: captures staged + unstaged + **untracked** files (excludes the state dir), replacing the raw `git diff --name-only` that missed newly created out-of-scope files | ✅ `--self-check` |
 | [`_locking.py`](../adapters/openclaw/scripts/_locking.py) | Cross-platform advisory lock (msvcrt/fcntl) + atomic `os.replace` writes; all `update_task_status.py` mutation entrypoints and `audit_worker_output.py --write-audit` run inside the state-dir lock — concurrent Workers no longer lose updates | ✅ concurrency pytest |
 | `multi_agent_coding` package + `multi-agent-coding` CLI | pip/PyPI distribution: hatchling wheel bundles the skill tree under `_bundle/`; subcommands `doctor / install / cards / status / capture / audit / worktree / run`; [`release-pypi.yml`](../.github/workflows/release-pypi.yml) publishes on tag via PyPI Trusted Publishing | ✅ wheel install verified |
-| [`tests/test_core_scripts.py`](../tests/test_core_scripts.py) | 17 pytest cases (audit blind spot, out-of-scope rejection, concurrency, packaging, CLI); wired into ci-fast/ci-full and `make test`; `validate_all_adapters.py` now runs self-checks in parallel (`--jobs`) | ✅ CI |
+| [`tests/test_core_scripts.py`](../tests/test_core_scripts.py) | pytest regression suite (audit blind spot, out-of-scope rejection, worktree-aware audit, concurrency, packaging, CLI); wired into ci-fast/ci-full and `make test`; `validate_all_adapters.py` now runs self-checks in parallel (`--jobs`) | ✅ CI |
 
 Self-check:
 

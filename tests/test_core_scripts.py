@@ -267,6 +267,37 @@ class TestAuditWorkerOutput:
         returncode, payload = self.run_audit(paths)
         assert returncode != 0 and not payload.get("ok"), payload
 
+    def test_worktree_workspace_observed_is_not_a_mismatch(self, tmp_path: Path) -> None:
+        """A worktree-isolated Worker reports its own worktree path as workspace_observed.
+
+        The audit must accept ownership task `worktree.path` as a legitimate
+        workspace, otherwise default worktree isolation always fails the audit.
+        """
+        worktree_path = tmp_path.parent / f"{tmp_path.name}.worktrees" / "multi-agent-T001-worker-backend"
+        worktree_path.mkdir(parents=True)
+        paths = self.write_state(tmp_path, ["backend/api.py"], ["backend/api.py"])
+
+        ownership = json.loads(paths["ownership"].read_text(encoding="utf-8"))
+        ownership["tasks"][0]["worktree"] = {
+            "branch": "multi-agent/T001-worker-backend",
+            "path": str(worktree_path),
+        }
+        paths["ownership"].write_text(json.dumps(ownership, indent=2), encoding="utf-8")
+
+        report_path = paths["results"] / "T001-worker-backend.json"
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+        report["workspace_observed"] = str(worktree_path)
+        report_path.write_text(json.dumps(report), encoding="utf-8")
+
+        returncode, payload = self.run_audit(paths)
+        assert returncode == 0 and payload.get("ok"), payload
+
+        # A path that is neither workspace_root nor the assigned worktree must still fail.
+        report["workspace_observed"] = str(tmp_path.parent / "somewhere-else")
+        report_path.write_text(json.dumps(report), encoding="utf-8")
+        returncode, payload = self.run_audit(paths)
+        assert returncode != 0 and not payload.get("ok"), payload
+
 
 class TestConcurrentStatusUpdates:
     def test_parallel_task_updates_are_not_lost(self, tmp_path: Path) -> None:

@@ -100,7 +100,7 @@ update_task_status.py --sync  →  门控 + preflight_issues（state_lock 内）
 audit_worker_output.py --write-audit  →  audits/*.json（state_lock 内，
                                           ok 仅当 gate.status=passed）
         ↓
-审计通过后 git merge --no-ff multi-agent/* 分支，并 remove worktree
+审计通过后 Main 按卡片命令 git merge --no-ff multi-agent/* 分支，并 remove worktree
         ↓
 update_task_status.py --summarize  →  summary/ + MEMORY.md 追加
 ```
