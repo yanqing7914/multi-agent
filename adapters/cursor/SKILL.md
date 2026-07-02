@@ -40,8 +40,10 @@ Worker/Reviewer task card:
 
 This is the same controlled loop other clients run; in Cursor the role
 write-permission is enforced by the task-card instructions plus the post-hoc
-scope audit (`audit_worker_output.py`), and can be hardened with one git
-worktree per Worker (`tools/worktree_tool.py`). If your Cursor agent cannot
+scope audit (`audit_worker_output.py`). With 2+ parallel Workers, task cards
+default to one git worktree per Worker (`worktree:` block generated via
+`tools/worktree_tool.py`): create it before spawning the Worker, let the Worker
+edit inside it, then capture/audit/merge per branch. If your Cursor agent cannot
 delegate to subagents, fall back to `/multitask` (user-driven), the `agent` CLI
 bridge, or manual handoff — see Execution Modes.
 

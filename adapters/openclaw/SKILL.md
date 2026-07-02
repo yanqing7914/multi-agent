@@ -134,6 +134,8 @@ python adapters/openclaw/scripts/create_task_cards.py \
 
 3b. **Workspace rule:** Every task card includes absolute `workspace_root` / `target_repo`. Child sessions must `cd` there first and run `preflight_command`. OpenClaw may ignore `sessions_spawn` cwd — never assume the child started in the target repo.
 
+3c. **Worktree isolation (default for parallel Workers):** With 2+ write-permitted Workers, `create_task_cards.py` also writes `worktree-plan.json` and each Worker card carries a `worktree:` block. Main runs the card's `create` command before spawning that Worker; the Worker works inside its worktree path; after its report, Main runs the card's `capture` command, audits, then `merge_after_audit` and `remove`. Pass `--worktrees off` only when the user explicitly wants shared-tree edits.
+
 4. Before each spawn wave, sync gates:
 
 ```bash
@@ -159,6 +161,8 @@ python adapters/openclaw/scripts/update_task_status.py --state-dir .codex-multi-
 ```bash
 python3 adapters/openclaw/scripts/capture_changed_files.py --state-dir .codex-multi-agent  # staged + unstaged + untracked
 ```
+
+With worktree isolation, run each Worker card's `worktree.capture` command instead (it points `--workspace-root` at that Worker's worktree).
 
 11. Audit scope and write audit JSON:
 

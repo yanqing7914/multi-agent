@@ -5,7 +5,7 @@ description: Prompt-guided multi-agent coordination for coding tasks across Code
 
 # multi-agent-coding
 
-Use this skill to coordinate coding work with controlled specialist roles. In Codex, treat `multi-agent-coding` as the primary daily entrypoint: take the Codex fast path directly instead of deferring to a separate Codex-only skill. This is a prompt-guided coordination protocol, not a sandbox, orchestrator, or permission enforcement system. The main agent remains responsible for planning, delegation, integration, verification, and final delivery.
+Use this skill to coordinate coding work with controlled specialist roles. This is a prompt-guided coordination protocol, not a sandbox, orchestrator, or permission enforcement system. The main agent remains responsible for planning, delegation, integration, verification, and final delivery.
 
 ## Core Rules
 
@@ -25,7 +25,7 @@ If the user asks to install this skill from GitHub, read `docs/agent-install.md`
 
 Use client-specific adapters for execution details:
 
-- Codex: use the Codex fast path below immediately. `multi-agent-coding` is the primary Codex entrypoint; `adapters/codex/` is its bundled implementation detail, not a competing handoff target. App and CLI use native subagents first, bundled custom agents provide scoped Worker/Reviewer defaults, `codex exec` is the optional script bridge, and manual handoff is the last fallback.
+- Codex: use `adapters/codex/`; App and CLI discover the native skill, bundled custom agents provide scoped Worker/Reviewer defaults, native subagents are the full path, and `codex exec` is the optional script bridge.
 - Cursor: use `adapters/cursor/`; App and CLI discover the native Agent Skill. Cursor 3's Agents Window (`/multitask`, `/worktree`) and the Cursor SDK provide native parallel subagents; this adapter's current automation path for Worker orchestration is the local Cursor `agent` CLI bridge (native in-App `/multitask` integration is on the roadmap), which stays the deterministic path for scripted/CI runs.
 - Claude Code: use `adapters/claude-code/`; App/IDE and CLI discover the native skill, bundled `.claude/agents` provide Worker/Reviewer/Verifier roles, and `claude --print` is the optional script bridge.
 - OpenClaw: install `adapters/openclaw/` as the standalone skill `openclaw-multi-agent`; map roles to `sessions_spawn`, `sessions_send`, and `sessions_yield`; use the bundled scripts for task cards and scope audit.
@@ -35,25 +35,11 @@ Use client-specific adapters for execution details:
 If a client lacks the required native subagent or CLI bridge, do not claim full automation. Use prompt handoff only as a fallback and clearly report the limitation.
 
 When MCP is available, use it for task state, approvals, findings, and audits. When MCP is unavailable, fall back to the bundled templates and checklists.
-
-## Codex Fast Path
-
-When running in Codex App or Codex CLI, do not spend context on other clients unless the user asks for them. Use this order:
-
-1. Run or recommend `python scripts/doctor.py --client codex` or `python adapters/codex/scripts/doctor_codex.py` to verify readiness.
-2. Generate task cards with `adapters/openclaw/scripts/create_task_cards.py`.
-3. Prepare a Codex native spawn plan with `scripts/run_multi_agent.py --runtime codex-native-plan --state-dir .codex-multi-agent`.
-4. Spawn Codex native subagents from the plan records using `multi-agent-worker` for Workers, `multi-agent-reviewer` for Reviewers, and `explorer` for Explorer/Verifier roles.
-5. If native subagents are unavailable but Codex CLI exists, run `scripts/run_multi_agent.py --runtime codex --task-card <card>`.
-6. If both are unavailable, use `scripts/run_multi_agent.py --runtime codex-desktop --task-card <card>` as manual handoff.
-7. Always run gate sync and scope audit before final delivery.
-
-Use `may_use_skills` from each task card as the only authority for subagent skill use. Workers, Reviewers, Explorers, and Verifiers may use only the skills explicitly authorized for their own task card. `ssrd` is only an example of a user-named review skill, not a dependency of this skill.
 ## Trigger Handling
 
 If the user explicitly asks for multiple agents, parallel agents, subagents, workers, reviewers, planners, or multi-agent review, enter this skill. If the task is small, use the Quick Path and explain that additional agents are unnecessary.
 
-If the user asks for multiple agents to review something, use Review Mode. Create Reviewer agents, not write-capable Workers. If the user names a review skill such as `ssrd`, authorize that named skill in each Reviewer task card with `may_use_skills` and `write_permission: false`.
+If the user asks for multiple agents to review something, use Review Mode. Create Reviewer agents, not write-capable Workers. If a review skill such as `ssrd` is available or named by the user, authorize it in each Reviewer task card with `may_use_skills: [ssrd]` and `write_permission: false`.
 
 ## Default Paths
 
@@ -94,7 +80,7 @@ Scoped write. Implement only within `allowed_paths` and allowed commands. Use on
 
 ### Reviewer
 
-Read-only. Review plans, diffs, code, documents, or designs. Use only review skills authorized in the task card. Report findings by severity with evidence. Do not edit files or spawn subagents.
+Read-only. Review plans, diffs, code, documents, or designs. Use authorized review skills such as `ssrd` when the task card allows them. Report findings by severity with evidence. Do not edit files or spawn subagents.
 
 ### Verifier
 
@@ -167,6 +153,10 @@ Create `.codex-multi-agent/` only for larger tasks that need persistent coordina
 
 Before modifying files, inspect dirty worktree state when available. Do not overwrite user changes. If unexpected changes appear, stop and ask the user how to proceed.
 
+## Parallel Worker Isolation (Default)
+
+When two or more write-permitted Workers run in parallel, physical isolation via git worktrees is the default, not an option. `create_task_cards.py` emits `worktree-plan.json` plus a `worktree:` block on each Worker card (branch, path, create/capture/merge/remove commands). Main creates each worktree before spawning the Worker; the Worker edits inside its own worktree; Main captures changed files per worktree, audits, merges each `multi-agent/*` branch, then removes the worktree. Disable only deliberately with `--worktrees off` (single-Worker runs skip isolation automatically).
+
 ## Conflict Handling
 
 The main agent must audit worker results before final delivery:
@@ -182,7 +172,7 @@ The main agent must audit worker results before final delivery:
 - `research`: Main + 1-3 Explorers, no writes, final research report.
 - `implement`: Main + optional Explorers + 1-2 Workers + Reviewer + Verifier.
 - `fix`: Main + Explorer + usually one Worker + Verifier; avoid parallel Workers until root cause is clear.
-- `review`: Main + one or more Reviewers, no writes; use named review skills only when authorized.
+- `review`: Main + one or more Reviewers, no writes; use review skills such as `ssrd` when authorized.
 - `refactor`: Main + impact Explorer + small-batch Workers + Reviewer + Verifier.
 
 ## Final Delivery

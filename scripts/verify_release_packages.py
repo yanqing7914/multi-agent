@@ -25,6 +25,7 @@ REQUIRED_BY_PACKAGE = {
         "codex-multi-agent/scripts/run_multi_agent.py",
         "codex-multi-agent/scripts/doctor.py",
         "codex-multi-agent/adapters/openclaw/scripts/capture_changed_files.py",
+        "codex-multi-agent/tools/worktree_tool.py",
     ],
     "cursor-multi-agent-pack": [
         "cursor-multi-agent/SKILL.md",
@@ -32,6 +33,7 @@ REQUIRED_BY_PACKAGE = {
         "cursor-multi-agent/cursor-rules.md",
         "cursor-multi-agent/scripts/run_multi_agent.py",
         "cursor-multi-agent/adapters/openclaw/scripts/capture_changed_files.py",
+        "cursor-multi-agent/tools/worktree_tool.py",
     ],
     "claude-code-multi-agent-pack": [
         "claude-code-multi-agent/SKILL.md",
@@ -52,6 +54,7 @@ REQUIRED_BY_PACKAGE = {
         "openclaw-multi-agent/scripts/capture_changed_files.py",
         "openclaw-multi-agent/scripts/_locking.py",
         "openclaw-multi-agent/templates/task-card.md",
+        "openclaw-multi-agent/tools/worktree_tool.py",
     ],
     "multi-agent-coding-skill": [
         "multi-agent-coding/SKILL.md",

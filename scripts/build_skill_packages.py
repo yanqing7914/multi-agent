@@ -43,6 +43,8 @@ OPENCLAW_FILES = [
     "adapters/openclaw/examples",
     "adapters/openclaw/scripts",
     "adapters/openclaw/templates",
+    # Task cards reference tools/worktree_tool.py for Worker isolation; ship it.
+    "tools",
 ]
 
 CLIENT_SHARED = [

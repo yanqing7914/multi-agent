@@ -131,6 +131,80 @@ def python_invocation() -> str:
     return sys.executable
 
 
+def worktree_tool_script() -> str:
+    """Absolute path to tools/worktree_tool.py across layouts.
+
+    Repo + client packages keep tools/ at REPO_ROOT; the standalone openclaw
+    package strips the adapters/openclaw prefix, so ADAPTER_ROOT is the package
+    root there and tools/ sits next to scripts/.
+    """
+    for base in (REPO_ROOT, ADAPTER_ROOT):
+        candidate = base / "tools" / "worktree_tool.py"
+        if candidate.is_file():
+            return str(candidate.resolve())
+    return str((REPO_ROOT / "tools" / "worktree_tool.py").resolve())
+
+
+def _branch_segment(value: str) -> str:
+    # Mirrors tools/worktree_tool.py sanitize_segment so plans and tool agree.
+    safe = "".join(ch if ch.isalnum() or ch in {"-", "_", "."} else "-" for ch in (value or "").strip())
+    return safe.strip("-") or "task"
+
+
+def worktree_plan_for_tasks(
+    tasks: list[dict],
+    workspace_root: Path,
+    state_dir: Path,
+    mode: str = "auto",
+) -> dict[str, dict]:
+    """Physical isolation plan: one git worktree + branch per write-permitted Worker.
+
+    Default policy ("auto"): enabled as soon as MORE THAN ONE write-permitted
+    Worker exists, because that is exactly when parallel Workers can overwrite
+    each other's files and post-hoc scope audit alone is not enough.
+    """
+    if mode == "off":
+        return {}
+    workers = [
+        task
+        for task in tasks
+        if ROLE_CONSTRAINTS.get(task["role"], ROLE_CONSTRAINTS["Worker"])["write_permission"]
+    ]
+    if mode == "auto" and len(workers) < 2:
+        return {}
+
+    py = python_invocation()
+    tool = worktree_tool_script()
+    worktrees_root = workspace_root.parent / f"{workspace_root.name}.worktrees"
+    capture = adapter_script("capture_changed_files.py")
+
+    plan: dict[str, dict] = {}
+    for task in workers:
+        tid = task["task_id"]
+        session = task["session_name"]
+        branch = f"multi-agent/{_branch_segment(tid)}-{_branch_segment(session)}"
+        path = worktrees_root / branch.replace("/", "-")
+        plan[tid] = {
+            "task_id": tid,
+            "session_name": session,
+            "branch": branch,
+            "worktree_path": str(path),
+            "create_command": (
+                f'{py} "{tool}" --action create --repo-root "{workspace_root}" '
+                f"--task-id {tid} --session-name {session}"
+            ),
+            "capture_command": (
+                f'{py} "{capture}" --workspace-root "{path}" --state-dir {state_dir}'
+            ),
+            "merge_after_audit": f'git -C "{workspace_root}" merge --no-ff {branch}',
+            "remove_command": (
+                f'{py} "{tool}" --action remove --repo-root "{workspace_root}" '
+                f'--path "{path}" --delete-branch'
+            ),
+        }
+    return plan
+
+
 def task_id(index: int) -> str:
     return f"T{index:03d}"
 
@@ -421,6 +495,7 @@ def write_card(
     state_dir: Path,
     all_tasks: list[dict],
     workspace_root: Path,
+    worktree: dict | None = None,
 ) -> None:
     role = task["role"]
     constraints = ROLE_CONSTRAINTS.get(role, ROLE_CONSTRAINTS["Worker"])
@@ -430,8 +505,43 @@ def write_card(
     commands = main_commands_for_task(state_dir, task, all_tasks, workspace_root)
     required_paths = task.get("required_paths") or required_paths_for_task(task, all_tasks)
     guidance = execution_guidance_for_task(role)
+    if worktree:
+        wt_path = worktree["worktree_path"]
+
+        def _retarget(command: str) -> str:
+            # Point the Worker's working dir at its isolated worktree, not the shared tree.
+            return command.replace(
+                f'cd "{workspace_root}"', f'cd "{wt_path}"'
+            ).replace(
+                f'--workspace-root "{workspace_root}"', f'--workspace-root "{wt_path}"'
+            )
+
+        guidance = [
+            (
+                "Worktree isolation (parallel Workers): Main creates the worktree below before spawning "
+                "you; do all reads and edits inside worktree.path (cd there instead of workspace_root), "
+                "with allowed_paths/required_paths relative to the worktree root. Main captures changed "
+                "files from the worktree, audits, then merges the branch."
+            ),
+            *guidance,
+        ]
+        commands["before_spawn"] = [
+            "# Worktree isolation (create before spawn):",
+            worktree["create_command"],
+            *(_retarget(item) for item in commands["before_spawn"]),
+        ]
+        commands["after_result"] = [_retarget(item) for item in commands["after_result"]]
+        commands["after_result"].extend(
+            [
+                "# After audit passes, merge and clean up:",
+                worktree["merge_after_audit"],
+                worktree["remove_command"],
+            ]
+        )
     target_repo = task.get("target_repo", str(workspace_root))
     preflight = preflight_commands(workspace_root, required_paths)
+    if worktree:
+        preflight = [_retarget(item) for item in preflight]
     context_block = task.get("context") or memory_context_tail(workspace_root)
     tools_used = tools_for_task(task)
 
@@ -451,7 +561,11 @@ def write_card(
         [
             f"workspace_root: {workspace_root}",
             f"target_repo: {target_repo}",
-            "workspace_note: OpenClaw may ignore sessions_spawn cwd — child MUST cd to workspace_root (absolute) before reading files.",
+            (
+                "workspace_note: Worktree isolation active — child MUST cd to worktree.path (absolute, see worktree block) before reading files; workspace_root is the shared tree Main merges into."
+                if worktree
+                else "workspace_note: OpenClaw may ignore sessions_spawn cwd — child MUST cd to workspace_root (absolute) before reading files."
+            ),
             "dependencies:",
         ]
     )
@@ -505,6 +619,23 @@ def write_card(
             "result_report_paths:",
             f"  json: {report_paths['json']}",
             f"  markdown: {report_paths['markdown']}",
+        ]
+    )
+    if worktree:
+        lines.extend(
+            [
+                "worktree:",
+                "  policy: isolated (default when multiple write-permitted Workers run in parallel)",
+                f"  branch: {worktree['branch']}",
+                f"  path: {worktree['worktree_path']}",
+                f"  create: {worktree['create_command']}",
+                f"  capture: {worktree['capture_command']}",
+                f"  merge_after_audit: {worktree['merge_after_audit']}",
+                f"  remove: {worktree['remove_command']}",
+            ]
+        )
+    lines.extend(
+        [
             "main_commands:",
             "  before_spawn:",
         ]
@@ -695,7 +826,7 @@ def write_status_json(state_dir: Path, task_title: str, tasks: list[dict], works
     return status_path
 
 
-def write_run_plan(state_dir: Path, tasks: list[dict]) -> Path:
+def write_run_plan(state_dir: Path, tasks: list[dict], worktree_plan: dict[str, dict] | None = None) -> Path:
     phases = []
     for role in ROLE_ORDER:
         role_tasks = [task for task in tasks if task["role"] == role]
@@ -736,11 +867,26 @@ def write_run_plan(state_dir: Path, tasks: list[dict]) -> Path:
             },
         ]
     )
+    if worktree_plan:
+        for phase in phases:
+            if phase["phase"] == "workers_complete":
+                phase["worktree_isolation"] = (
+                    "Default for parallel Workers: create each Worker's worktree "
+                    "(see worktree-plan.json) before spawn; Workers edit inside their worktree."
+                )
+            if phase["phase"] == "scope_audit":
+                phase["worktree_note"] = (
+                    "Run main_capture_command once per Worker worktree with "
+                    '--workspace-root "<worktree_path>" (paths in worktree-plan.json), '
+                    "audit, then merge each multi-agent/* branch and remove the worktree."
+                )
     plan = {
         "schema_version": 1,
         "workflow": "Explorer -> Worker -> Reviewer -> Verifier -> Main audit -> final delivery",
         "phases": phases,
     }
+    if worktree_plan:
+        plan["worktree_plan"] = str(state_dir / "worktree-plan.json")
     plan_path = state_dir / "run-plan.json"
     plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
     return plan_path
@@ -752,6 +898,7 @@ def write_outputs(
     task_title: str,
     runtime: str,
     workspace_root: Path,
+    worktrees_mode: str = "auto",
 ) -> dict:
     out_dir = state_dir / "tasks"
     results_dir = state_dir / "results"
@@ -763,9 +910,35 @@ def write_outputs(
     for directory in (out_dir, results_dir, findings_dir, approvals_dir, audits_dir, summary_dir):
         directory.mkdir(parents=True, exist_ok=True)
 
+    worktree_plan = worktree_plan_for_tasks(tasks, workspace_root, state_dir, worktrees_mode)
+    worktree_plan_path: Path | None = None
+    if worktree_plan:
+        worktree_plan_path = state_dir / "worktree-plan.json"
+        worktree_plan_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "generated_at": utc_now(),
+                    "policy": "one isolated git worktree + branch per write-permitted Worker",
+                    "workspace_root": str(workspace_root),
+                    "workers": list(worktree_plan.values()),
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
     for task in tasks:
         task.setdefault("target_repo", str(workspace_root))
-        write_card(out_dir / f"{task['task_id']}-{task['session_name']}.md", task, state_dir, tasks, workspace_root)
+        write_card(
+            out_dir / f"{task['task_id']}-{task['session_name']}.md",
+            task,
+            state_dir,
+            tasks,
+            workspace_root,
+            worktree=worktree_plan.get(task["task_id"]),
+        )
 
     ownership = {
         "schema_version": 1,
@@ -786,33 +959,38 @@ def write_outputs(
     for item in tasks:
         paths = result_paths(state_dir, item)
         constraints = ROLE_CONSTRAINTS.get(item["role"], ROLE_CONSTRAINTS["Worker"])
-        ownership["tasks"].append(
-            {
-                "task_id": item["task_id"],
-                "session_name": item["session_name"],
-                "role": item["role"],
-                "mode": item["mode"],
-                "runtime": runtime,
-                "write_permission": constraints["write_permission"],
-                "allowed_paths": item["allowed_paths"],
-                "required_paths": item.get("required_paths") or required_paths_for_task(item, tasks),
-                "blocked_paths": item["blocked_paths"],
-                # Persist the static dependency graph so sync can surface
-                # ready_to_spawn / blocked_by at runtime (auto-unblock).
-                "dependencies": prerequisite_ids(tasks, item),
-                "result_report_json": paths["json"],
-                "result_report_markdown": paths["markdown"],
-                "tools_used": tools_for_task(item),
-                "status": item["status"],
+        entry = {
+            "task_id": item["task_id"],
+            "session_name": item["session_name"],
+            "role": item["role"],
+            "mode": item["mode"],
+            "runtime": runtime,
+            "write_permission": constraints["write_permission"],
+            "allowed_paths": item["allowed_paths"],
+            "required_paths": item.get("required_paths") or required_paths_for_task(item, tasks),
+            "blocked_paths": item["blocked_paths"],
+            # Persist the static dependency graph so sync can surface
+            # ready_to_spawn / blocked_by at runtime (auto-unblock).
+            "dependencies": prerequisite_ids(tasks, item),
+            "result_report_json": paths["json"],
+            "result_report_markdown": paths["markdown"],
+            "tools_used": tools_for_task(item),
+            "status": item["status"],
+        }
+        plan_entry = worktree_plan.get(item["task_id"])
+        if plan_entry:
+            entry["worktree"] = {
+                "branch": plan_entry["branch"],
+                "path": plan_entry["worktree_path"],
             }
-        )
+        ownership["tasks"].append(entry)
 
     ownership_path = state_dir / "ownership.json"
     ownership_path.write_text(json.dumps(ownership, indent=2) + "\n", encoding="utf-8")
     status_path = write_status_json(state_dir, task_title, tasks, workspace_root)
-    plan_path = write_run_plan(state_dir, tasks)
+    plan_path = write_run_plan(state_dir, tasks, worktree_plan)
 
-    return {
+    summary = {
         "tasks": len(tasks),
         "out": str(out_dir),
         "ownership": str(ownership_path),
@@ -823,6 +1001,10 @@ def write_outputs(
         "approvals": str(approvals_dir),
         "audits": str(audits_dir),
     }
+    if worktree_plan_path:
+        summary["worktree_plan"] = str(worktree_plan_path)
+        summary["worktree_isolated_workers"] = len(worktree_plan)
+    return summary
 
 
 def run_self_check() -> int:
@@ -878,6 +1060,25 @@ def run_self_check() -> int:
         ):
             if needle not in card_text:
                 errors.append(f"task card missing {needle}")
+
+        # Worktree isolation is on by default when 2+ write-permitted Workers exist.
+        if "worktree_plan" not in summary:
+            errors.append("2 parallel Workers must produce a worktree plan by default")
+        elif not Path(summary["worktree_plan"]).is_file():
+            errors.append("worktree-plan.json not written")
+        else:
+            wt_plan = json.loads(Path(summary["worktree_plan"]).read_text(encoding="utf-8"))
+            if len(wt_plan.get("workers", [])) != len(workers):
+                errors.append("worktree plan must cover every write-permitted Worker")
+        if "worktree:" not in card_text or "multi-agent/" not in card_text:
+            errors.append("Worker card missing worktree isolation block")
+        if any("worktree" not in worker for worker in workers):
+            errors.append("ownership Worker entries missing worktree branch/path")
+
+        off_dir = Path(tmp) / "state-off"
+        off_summary = write_outputs(tasks, off_dir, args.task, args.runtime, workspace_root, worktrees_mode="off")
+        if "worktree_plan" in off_summary:
+            errors.append("--worktrees off must not generate a worktree plan")
 
         adapter_args = argparse.Namespace(
             task="Dogfood openclaw adapter",
@@ -1079,6 +1280,16 @@ def main() -> int:
         "--workspace-root",
         help="Absolute path to target repo (default: current working directory, resolved)",
     )
+    parser.add_argument(
+        "--worktrees",
+        default="auto",
+        choices=["auto", "always", "off"],
+        help=(
+            "Physical git worktree isolation for write-permitted Workers: "
+            "auto = default, enabled when 2+ Workers run in parallel; "
+            "always = one worktree per Worker; off = logical isolation only"
+        ),
+    )
     args = parser.parse_args()
 
     if args.self_check:
@@ -1117,7 +1328,14 @@ def main() -> int:
     state_dir = Path(args.out)
     workspace_root = resolve_workspace_root(args.workspace_root)
     tasks, path_warnings = build_tasks(args)
-    summary = write_outputs(tasks, state_dir, args.task, args.runtime, workspace_root)
+    summary = write_outputs(
+        tasks,
+        state_dir,
+        args.task,
+        args.runtime,
+        workspace_root,
+        worktrees_mode=getattr(args, "worktrees", "auto"),
+    )
     output = {"ok": True, "workspace_root": str(workspace_root), **summary}
     if path_warnings:
         output["warnings"] = path_warnings

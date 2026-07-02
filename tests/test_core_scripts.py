@@ -86,6 +86,71 @@ class TestCreateTaskCards:
         assert "capture_changed_files.py" in text
         assert "git diff --name-only >" not in text
 
+    def test_single_worker_run_has_no_worktree_plan(self, task_card_run: dict) -> None:
+        """auto policy: one Worker = no parallel overwrite risk = no worktree overhead."""
+        assert not (task_card_run["state_dir"] / "worktree-plan.json").exists()
+
+    @staticmethod
+    def create_cards(workspace: Path, state_dir: Path, *extra: str) -> None:
+        proc = run_script(
+            CREATE_TASK_CARDS,
+            "--task",
+            "Parallel feature",
+            "--mode",
+            "implement",
+            "--modules",
+            "backend",
+            "frontend",
+            "--runtime",
+            "subagent",
+            "--reviewers",
+            "correctness",
+            "--workspace-root",
+            str(workspace),
+            "--out",
+            str(state_dir),
+            *extra,
+        )
+        assert proc.returncode == 0, proc.stderr or proc.stdout
+
+    def test_parallel_workers_get_worktree_isolation_by_default(self, tmp_path: Path) -> None:
+        """2+ write-permitted Workers must produce a worktree plan without any flag."""
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        state_dir = workspace / ".codex-multi-agent"
+        self.create_cards(workspace, state_dir)
+
+        plan_path = state_dir / "worktree-plan.json"
+        assert plan_path.is_file(), "worktree-plan.json missing for parallel Workers"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        ownership = json.loads((state_dir / "ownership.json").read_text(encoding="utf-8-sig"))
+        workers = [t for t in ownership["tasks"] if t["role"] == "Worker"]
+        assert len(plan["workers"]) == len(workers) == 2
+        branches = {entry["branch"] for entry in plan["workers"]}
+        assert len(branches) == 2, "each Worker needs its own branch"
+        for worker in workers:
+            assert worker.get("worktree", {}).get("branch") in branches
+
+        worker_cards = list((state_dir / "tasks").glob("*worker*.md"))
+        assert worker_cards
+        for card in worker_cards:
+            text = card.read_text(encoding="utf-8")
+            assert "worktree:" in text
+            assert "worktree_tool.py" in text
+            assert "merge --no-ff multi-agent/" in text
+            # Preflight must target the isolated worktree, not the shared tree.
+            assert f'cd "{workspace}"\n' not in text.replace("\r\n", "\n") + "\n"
+
+    def test_worktrees_off_disables_isolation(self, tmp_path: Path) -> None:
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        state_dir = workspace / ".codex-multi-agent"
+        self.create_cards(workspace, state_dir, "--worktrees", "off")
+        assert not (state_dir / "worktree-plan.json").exists()
+        worker_cards = list((state_dir / "tasks").glob("*worker*.md"))
+        assert worker_cards
+        assert "worktree:" not in worker_cards[0].read_text(encoding="utf-8")
+
 
 class TestCaptureChangedFiles:
     def test_includes_untracked_and_staged(self, tmp_path: Path) -> None:
