@@ -50,6 +50,7 @@ REQUIRED_BY_PACKAGE = {
         "openclaw-multi-agent/scripts/create_task_cards.py",
         "openclaw-multi-agent/scripts/audit_worker_output.py",
         "openclaw-multi-agent/scripts/capture_changed_files.py",
+        "openclaw-multi-agent/scripts/_locking.py",
         "openclaw-multi-agent/templates/task-card.md",
     ],
     "multi-agent-coding-skill": [

@@ -12,6 +12,7 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from _locking import atomic_write_text, state_lock
 from _preflight import (
     changed_files_metadata,
     false_completion_reason,
@@ -483,9 +484,9 @@ def write_audit_report(
         **inputs,
         **report,
     }
-    audit_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    latest_path = audits_dir / "latest.json"
-    latest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    text = json.dumps(payload, indent=2) + "\n"
+    atomic_write_text(audit_path, text)
+    atomic_write_text(audits_dir / "latest.json", text)
     return audit_path
 
 
@@ -902,7 +903,8 @@ def main() -> int:
     audit_path = None
     if args.write_audit:
         changed_path = Path(args.changed_files) if args.changed_files else Path(args.state_dir) / "changed-files.txt"
-        audit_path = write_audit_report(report, Path(args.state_dir), changed_files_path=changed_path)
+        with state_lock(Path(args.state_dir)):
+            audit_path = write_audit_report(report, Path(args.state_dir), changed_files_path=changed_path)
         report = {**report, "audit_path": str(audit_path), "latest_audit_path": str(Path(args.state_dir) / "audits" / "latest.json")}
     print(json.dumps(report, indent=2))
     return 0 if report["ok"] else 2

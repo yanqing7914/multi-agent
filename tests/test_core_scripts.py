@@ -15,6 +15,7 @@ OPENCLAW_SCRIPTS = REPO_ROOT / "adapters" / "openclaw" / "scripts"
 CREATE_TASK_CARDS = OPENCLAW_SCRIPTS / "create_task_cards.py"
 AUDIT_WORKER_OUTPUT = OPENCLAW_SCRIPTS / "audit_worker_output.py"
 CAPTURE_CHANGED_FILES = OPENCLAW_SCRIPTS / "capture_changed_files.py"
+UPDATE_TASK_STATUS = OPENCLAW_SCRIPTS / "update_task_status.py"
 
 
 def run_script(script: Path, *args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
@@ -199,6 +200,75 @@ class TestAuditWorkerOutput:
         paths = self.write_state(tmp_path, ["backend/api.py"], ["backend/api.py", "sneaky.py"])
         returncode, payload = self.run_audit(paths)
         assert returncode != 0 and not payload.get("ok"), payload
+
+
+class TestConcurrentStatusUpdates:
+    def test_parallel_task_updates_are_not_lost(self, tmp_path: Path) -> None:
+        """Parallel Workers updating different tasks must not clobber each other.
+
+        Without the state lock, concurrent read-modify-write of ownership.json /
+        status.json makes the last writer silently discard earlier updates.
+        """
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        state_dir = workspace / ".codex-multi-agent"
+        proc = run_script(
+            CREATE_TASK_CARDS,
+            "--task",
+            "Concurrency check",
+            "--mode",
+            "implement",
+            "--modules",
+            "alpha",
+            "beta",
+            "gamma",
+            "--runtime",
+            "subagent",
+            "--reviewers",
+            "correctness",
+            "--workspace-root",
+            str(workspace),
+            "--out",
+            str(state_dir),
+        )
+        assert proc.returncode == 0, proc.stderr or proc.stdout
+
+        ownership = json.loads((state_dir / "ownership.json").read_text(encoding="utf-8-sig"))
+        task_ids = [task["task_id"] for task in ownership["tasks"]]
+        assert len(task_ids) >= 6
+
+        procs = [
+            subprocess.Popen(
+                [
+                    sys.executable,
+                    str(UPDATE_TASK_STATUS),
+                    "--state-dir",
+                    str(state_dir),
+                    "--task-id",
+                    task_id,
+                    "--status",
+                    "running",
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            for task_id in task_ids
+        ]
+        failures = []
+        for popen, task_id in zip(procs, task_ids):
+            stdout, stderr = popen.communicate(timeout=120)
+            if popen.returncode != 0:
+                failures.append(f"{task_id}: rc={popen.returncode} {stderr or stdout}")
+        assert not failures, failures
+
+        status_doc = json.loads((state_dir / "status.json").read_text(encoding="utf-8-sig"))
+        lost = [
+            task_id
+            for task_id in task_ids
+            if status_doc.get("tasks", {}).get(task_id, {}).get("status") != "running"
+        ]
+        assert not lost, f"lost concurrent updates for: {lost}"
 
 
 class TestVerifyReleasePackages:

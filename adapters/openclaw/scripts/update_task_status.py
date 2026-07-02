@@ -12,6 +12,7 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from _locking import StateLockTimeout, atomic_write_text, state_lock
 from _preflight import (
     audit_stale_reason,
     changed_files_digest,
@@ -85,8 +86,8 @@ def read_json(path: Path) -> dict:
 
 
 def write_json(path: Path, data: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    # Atomic replace so a concurrent reader never observes torn JSON.
+    atomic_write_text(path, json.dumps(data, indent=2) + "\n")
 
 
 def parse_bool(value: object) -> bool | None:
@@ -1444,12 +1445,15 @@ def main() -> int:
 
     state_dir = Path(args.state_dir)
 
+    # Serialize all state mutations: parallel Workers may call this CLI at the
+    # same time, and every operation is a read-modify-write of whole JSON docs.
     if args.task_id:
         if not args.status:
             parser.error("--status is required when --task-id is set")
         try:
-            report = update_task(state_dir, args.task_id, args.status, args.note)
-        except (FileNotFoundError, KeyError, ValueError) as exc:
+            with state_lock(state_dir):
+                report = update_task(state_dir, args.task_id, args.status, args.note)
+        except (FileNotFoundError, KeyError, ValueError, StateLockTimeout) as exc:
             print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
             return 1
         print(json.dumps({"ok": True, "updated": args.task_id, "status": report}, indent=2))
@@ -1457,8 +1461,9 @@ def main() -> int:
 
     if args.summarize:
         try:
-            report = summarize_run(state_dir, Path(args.summary_out) if args.summary_out else None)
-        except FileNotFoundError as exc:
+            with state_lock(state_dir):
+                report = summarize_run(state_dir, Path(args.summary_out) if args.summary_out else None)
+        except (FileNotFoundError, StateLockTimeout) as exc:
             print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
             return 1
         print(json.dumps(report, indent=2))
@@ -1470,8 +1475,9 @@ def main() -> int:
 
     if args.ready:
         try:
-            report = sync_status(state_dir)
-        except FileNotFoundError as exc:
+            with state_lock(state_dir):
+                report = sync_status(state_dir)
+        except (FileNotFoundError, StateLockTimeout) as exc:
             print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
             return 1
         readiness = readiness_report(report)
@@ -1480,8 +1486,9 @@ def main() -> int:
 
     if args.sync:
         try:
-            report = sync_status(state_dir)
-        except FileNotFoundError as exc:
+            with state_lock(state_dir):
+                report = sync_status(state_dir)
+        except (FileNotFoundError, StateLockTimeout) as exc:
             print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
             return 1
         print(json.dumps({"ok": True, "status": report}, indent=2))

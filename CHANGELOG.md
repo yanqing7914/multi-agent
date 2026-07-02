@@ -11,9 +11,11 @@
 - **Windows PowerShell 兼容**：任务卡 `preflight_command` 由 `cd "<root>" && pwd` 拆分为两条独立命令（旧版 PowerShell 不支持 `&&`）；同步修正 `prepare_cursor_sdk.py` 与 `templates/task-card.md`。
 - 修复 `pyproject.toml` 带 UTF-8 BOM 导致 `pip install -e .` 直接解析失败的问题。
 
+- **修复并行 Worker 状态竞态**：多个 `update_task_status.py` 进程并发更新 `ownership.json` / `status.json` 时是整文档的 read-modify-write，后写者会静默丢弃先写者的更新。新增 `adapters/openclaw/scripts/_locking.py`（msvcrt/fcntl 跨平台建议锁 + 临时文件原子替换写入），`update_task_status.py` 的全部 CLI 变更入口与 `audit_worker_output.py --write-audit` 均在 state 目录锁内执行；JSON 写入改为原子替换，读者不会再读到半截文件。
+
 ### Added
 
-- 新增 `tests/` 核心脚本单元测试（pytest，9 例）：覆盖审计盲区回归（untracked 越界文件必须 fail strict 审计）、越界 files_changed 拒绝、任务卡不含 `&&`、发布包 forbidden 匹配规则等，并接入 `ci-fast`、`ci-full` 与 `make test`。
+- 新增 `tests/` 核心脚本单元测试（pytest，10 例）：覆盖审计盲区回归（untracked 越界文件必须 fail strict 审计）、越界 files_changed 拒绝、任务卡不含 `&&`、发布包 forbidden 匹配规则、**多进程并发更新任务状态不丢更新**等，并接入 `ci-fast`、`ci-full` 与 `make test`。
 - `validate_all_adapters.py` 并行执行自检（`--jobs`，默认 min(8, CPU)），带 `[n/total]` 进度和每项耗时；本机实测从约 5 分钟降至约 1 分钟。所有自检均为临时目录内的封闭操作，可安全并行。
 
 ## [0.3.1] - 2026-06-25
