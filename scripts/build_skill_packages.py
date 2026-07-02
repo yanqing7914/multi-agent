@@ -20,7 +20,13 @@ COMMON_GENERIC = [
     "SKILL.md",
     "agents",
     "checklists",
-    "docs",
+    "docs/agent-install.md",
+    "docs/architecture.md",
+    "docs/clients.md",
+    "docs/mcp-format.md",
+    "docs/product.md",
+    "docs/roadmap.md",
+    "docs/safety-rules.md",
     "examples/README.md",
     "examples/bugfix.md",
     "examples/end-to-end-agent-install",
@@ -180,6 +186,9 @@ def build_client(stage: Path, version: str, client: str) -> Path:
     copy_path(config["adapter"] + "/SKILL.md", root, "SKILL.md")
     copy_path(config["adapter"] + "/README.md", root, "README.md")
     copy_path(config["adapter"] + "/QUICKSTART.md", root, "QUICKSTART.md")
+    native_contract = REPO_ROOT / config["adapter"] / "NATIVE_SUBAGENT_CONTRACT.md"
+    if native_contract.exists():
+        copy_path(config["adapter"] + "/NATIVE_SUBAGENT_CONTRACT.md", root, "NATIVE_SUBAGENT_CONTRACT.md")
     copy_path(config["adapter"], root, config["adapter"])
     for item in CLIENT_SHARED + config["extra"]:
         copy_path(item, root, item)

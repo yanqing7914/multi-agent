@@ -1,0 +1,38 @@
+name: CI Full
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  full:
+    name: Full product validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+      - name: Project validation
+        run: python3 scripts/validate_all_adapters.py
+      - name: OpenClaw local demo
+        run: python3 adapters/openclaw/scripts/run_local_demo.py --out /tmp/openclaw-demo-ci --keep
+      - name: Bench self-check
+        run: python3 bench/run_bench.py --self-check --dry-runtime
+      - name: SWE-bench Lite self-check
+        run: python3 bench/swebench-lite/run_swebench_lite.py --self-check
+      - name: Build packages
+        run: python3 scripts/build_skill_packages.py --version 0.0.0-ci
+      - name: Verify package contents
+        run: python3 scripts/verify_release_packages.py --version 0.0.0-ci
+      - name: Codex native install smoke
+        run: |
+          python3 scripts/install_native_skills.py --self-check
+          python3 scripts/install_native_skills.py --client codex --scope "$RUNNER_TEMP/codex-multi-agent" --force

@@ -1,15 +1,38 @@
-# 贡献指南
+# Contributing
 
-感谢参与 **multi-agent-coding** 项目。本仓库以协议、脚本与文档为主，请保持变更**可复现、可自测、无密钥**。
+Thanks for improving **multi-agent**. This repository is maintained as a product-quality multi-agent coding framework: changes should be scoped, reproducible, auditable, and safe to package.
 
-## 开发环境
+## Start Here
+
+- Product definition: [`docs/product.md`](docs/product.md)
+- Governance: [`docs/governance.md`](docs/governance.md)
+- Content governance: [`docs/content-governance.md`](docs/content-governance.md)
+- Development and release process: [`docs/development.md`](docs/development.md)
+- Client support model: [`docs/clients.md`](docs/clients.md)
+
+## Branch Flow
+
+Use:
+
+```text
+feature/<short-name> -> dev -> main -> tag vX.Y.Z -> GitHub Release
+```
+
+- Target `dev` for normal features and product work.
+- Target `main` only for release hotfixes.
+- Do not force-push shared branches.
+- Release tags must be created from `main`.
+
+## Local Setup
+
+The project intentionally uses Python stdlib for runtime scripts.
 
 ```bash
 cd /path/to/multi-agent-coding
-python3 -m pip install -e .
+python3 -V
 ```
 
-若 `pip install -e .` 因 PEP 668「externally-managed-environment」失败，请使用虚拟环境：
+Optional editable install:
 
 ```bash
 python3 -m venv .venv
@@ -17,68 +40,80 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e .
 ```
 
-亦可直接用系统 `python3` 运行脚本（全部 stdlib，无第三方运行时依赖）。安装包主要用于版本元数据与 CI 对齐。
+## Required Checks
 
-验证安装（可选）：
+Before opening a PR:
 
 ```bash
-python3 -c "import importlib.metadata as m; print(m.version('multi-agent-coding'))"
+make fast
 ```
 
-## 全仓库校验
+For release-impacting changes:
 
 ```bash
-make validate
-# 或
+make full
+make release-check
+```
+
+Equivalent commands:
+
+```bash
 python3 scripts/validate_all_adapters.py
-python3 adapters/openclaw/scripts/validate_all.py
-bash scripts/ci_smoke.sh
+python3 scripts/verify_release_packages.py --self-check
+python3 scripts/build_skill_packages.py --version 0.0.0-local
+python3 scripts/verify_release_packages.py --version 0.0.0-local
 ```
 
-OpenClaw 适配器单独自检：
+## Pull Requests
 
-```bash
-cd adapters/openclaw
-python3 scripts/validate_all.py
-python3 scripts/run_local_demo.py --self-check
-```
+Use the PR template and include:
 
-## 添加客户端适配器
+- user-visible summary
+- affected clients
+- checks run
+- release impact
+- Codex App native-path review when relevant
 
-1. 在 `adapters/<client>/` 新建目录：`README.md`、`QUICKSTART.md`、`scripts/` 启动脚本。
-2. **复用** OpenClaw 核心：`create_task_cards.py`、`update_task_status.py`、`audit_worker_output.py`（勿复制门控逻辑）。
-3. 在 `scripts/run_multi_agent.py` 注册 `--runtime`（见 `adapters/openclaw/scripts/_runtimes.py`）。
-4. 更新 `docs/clients.md` 与根 `README.md` 客户端矩阵。
-5. 添加 `adapters/<client>/scripts/*_self_check.py` 并挂到 `scripts/validate_all_adapters.py`。
+Required review areas:
 
-## 添加案例研究
+- `SKILL.md` and adapter `SKILL.md` files
+- native subagent contracts
+- install/package scripts
+- CI/CD workflows
+- content governance and release packaging
 
-1. 在 `examples/case-study-<name>/` 放置 `README.md`、`task.yaml`（或 JSON）、可选 `app/` / `tests/`。
-2. 用 `create_task_cards.py` 生成 `.codex-multi-agent/`（勿提交；已在 `.gitignore`）。
-3. 在 `examples/README.md` 增加索引行。
-4. 运行 `validate_all.py` 确保无回归。
+## Adding A Client Adapter
 
-## 运行基准
+1. Add `adapters/<client>/SKILL.md`, `README.md`, `QUICKSTART.md`, and scripts.
+2. Reuse OpenClaw mission-control scripts instead of copying gate logic.
+3. Register the runtime in `scripts/run_multi_agent.py`.
+4. Add a deterministic self-check and wire it into `scripts/validate_all_adapters.py`.
+5. Update `docs/clients.md`, `README.md`, and package building rules.
+6. Add package verification requirements in `scripts/verify_release_packages.py`.
 
-```bash
-python3 bench/run_bench.py --self-check --dry-runtime
-python3 bench/swebench-lite/run_swebench_lite.py --self-check
-python3 bench/swebench-lite/run_swebench_lite.py --runtime dry-runtime
-```
+## Package And Content Rules
 
-历史分数：`bench/swebench-lite/results/README.md`。
+Client release packages are curated products, not full source snapshots.
 
-## 提交 Issue / Pull Request
+- Use allowlists in `scripts/build_skill_packages.py`.
+- Use required-file and forbidden-file checks in `scripts/verify_release_packages.py`.
+- Keep developer-only docs out of client packages.
+- Keep runtime state and generated artifacts out of git.
 
-- **Bug**：使用 [Bug 报告模板](.github/ISSUE_TEMPLATE/bug_report.md)，附复现命令与 `validate_all` 输出。
-- **功能**：使用 [功能请求模板](.github/ISSUE_TEMPLATE/feature_request.md)。
-- **PR**：填写 [PR 模板](.github/PULL_REQUEST_TEMPLATE.md)；确保 `python3 adapters/openclaw/scripts/validate_all.py` 通过。
-- **不要**提交 `.codex-multi-agent*/`、密钥、`.env` 或大段专有代码摘录。
+Never commit:
 
-## 文档与门控
+- `.codex-multi-agent*/`
+- `.env*`
+- auth files, tokens, private keys, certificates
+- large private logs or proprietary code excerpts
+- generated CI/test zip packages
 
-- 架构：[`docs/architecture.md`](docs/architecture.md)
-- 安全门控注册表：[`docs/safety-rules.md`](docs/safety-rules.md)
-- MCP 契约：[`docs/mcp-format.md`](docs/mcp-format.md)
+## Issues
 
-维护者：龚晨昊（[@gongchenhao](https://github.com/gongchenhao)）
+- Use `.github/ISSUE_TEMPLATE/bug_report.md` for bugs.
+- Use `.github/ISSUE_TEMPLATE/feature_request.md` for feature requests.
+- Include reproduction commands and relevant doctor/validation output when possible.
+
+## Maintainers
+
+Maintainer: [@yanqing7914](https://github.com/yanqing7914)

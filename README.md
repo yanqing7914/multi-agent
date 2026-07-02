@@ -40,6 +40,9 @@ IDE Panel    = 图形化任务面板、Prompt 生成器和本地集成入口
 
 安装方式：把这个 GitHub 链接发给你的 agent，并说“安装 multi-agent skill”。agent 应优先阅读 [`docs/agent-install.md`](docs/agent-install.md)，按自己的客户端选择对应包。
 
+开发、CI/CD、分支和发布流程见 [`docs/development.md`](docs/development.md)，仓库治理与评审规则见 [`docs/governance.md`](docs/governance.md)。项目按产品化流程维护：PR 必须过 fast CI，`main` 发布前跑 full CI，`vX.Y.Z` tag 触发 release zip 构建与包内容校验。
+产品定义、能力边界和 v1.0 验收标准见 [`docs/product.md`](docs/product.md)。内容开放边界、开发者文档和 release zip 禁带规则见 [`docs/content-governance.md`](docs/content-governance.md)。一句话：客户端专用 zip 是用户安装入口，根仓库是源码、协议和发布工程。
+
 ## v0.3.1 完整支持标准
 
 “完整使用”不是只生成 prompt，而是同一套 skill 在 App 和 CLI 中都能完成：

@@ -1,0 +1,38 @@
+name: Codex Review Checklist
+
+on:
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  checklist:
+    name: Native-path review checklist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate review checklist
+        run: |
+          mkdir -p artifacts
+          cat > artifacts/codex-review-checklist.md <<'EOF'
+          # Codex Review Checklist
+
+          This repository uses multi-agent review as a product contract. A human or Codex reviewer should verify:
+
+          - [ ] Codex App path still supports `codex-native-plan`.
+          - [ ] `spawn_agent_payload` includes `agent_type`, prompt source, lifecycle, and authorized skill items.
+          - [ ] Worker/Reviewer result reports are checked before final delivery.
+          - [ ] `finalize_native_run.py` still blocks missing JSON/Markdown result reports.
+          - [ ] `allowed_paths`, `blocked_commands`, and `may_use_skills` remain scoped and are not described as OS-level isolation.
+          - [ ] `.codex-multi-agent*/` and secret files are not committed.
+          - [ ] Release package contents include Codex native files and custom agents.
+          - [ ] README/CHANGELOG/docs are updated when behavior changes.
+          EOF
+      - name: Validate Codex native checks
+        run: |
+          python3 adapters/codex/scripts/prepare_native_plan.py --self-check
+          python3 adapters/codex/scripts/finalize_native_run.py --self-check
+          python3 scripts/verify_release_packages.py --self-check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codex-review-checklist
+          path: artifacts/codex-review-checklist.md

@@ -1,0 +1,24 @@
+# Product ownership
+* @yanqing7914
+
+# Core skill contracts
+/SKILL.md @yanqing7914
+/adapters/**/SKILL.md @yanqing7914
+/templates/** @yanqing7914
+/checklists/** @yanqing7914
+
+# Codex native path
+/adapters/codex/** @yanqing7914
+
+# Release, install, and package safety
+/scripts/build_skill_packages.py @yanqing7914
+/scripts/verify_release_packages.py @yanqing7914
+/scripts/install_native_skills.py @yanqing7914
+/scripts/doctor.py @yanqing7914
+/dist/README.md @yanqing7914
+
+# CI/CD and repository governance
+/.github/** @yanqing7914
+/docs/governance.md @yanqing7914
+/docs/content-governance.md @yanqing7914
+/docs/development.md @yanqing7914

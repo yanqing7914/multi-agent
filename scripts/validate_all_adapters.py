@@ -37,6 +37,7 @@ ADAPTER_CHECKS = [
     ("worktree_tool", REPO_ROOT / "tools" / "worktree_tool.py", ["--self-check"]),
     ("run_graph", REPO_ROOT / "adapters" / "openclaw" / "scripts" / "run_graph.py", ["--self-check"]),
     ("native_skill_installer", REPO_ROOT / "scripts" / "install_native_skills.py", ["--self-check"]),
+    ("release-package-verifier", REPO_ROOT / "scripts" / "verify_release_packages.py", ["--self-check"]),
     ("doctor", REPO_ROOT / "scripts" / "doctor.py", ["--self-check"]),
     ("configure_mcp", REPO_ROOT / "scripts" / "configure_mcp.py", ["--self-check"]),
     ("hermes", REPO_ROOT / "adapters" / "hermes" / "scripts" / "hermes_self_check.py", ["--self-check"]),

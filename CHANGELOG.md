@@ -2,6 +2,15 @@
 
 本文件遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### Added
+
+- Added product-grade GitHub workflows: fast CI, full CI, Codex native review checklist, and tag/manual release packaging.
+- Added `scripts/verify_release_packages.py` to ensure generated client zips contain required Codex App native files, custom agents, and shared scripts.
+- Added `docs/development.md` with branch model, CI layers, Codex App native acceptance criteria, release checklist, and runtime-state rules.
+- Replaced the PR template with a product checklist covering client impact, Codex App native lifecycle, release impact, and safety gates.
+
 ## [0.3.1] - 2026-06-25
 
 ### Fixed
