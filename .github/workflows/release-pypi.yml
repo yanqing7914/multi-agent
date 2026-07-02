@@ -1,0 +1,65 @@
+name: Release PyPI
+
+# Publishes the pip package via PyPI Trusted Publishing (OIDC, no token in repo).
+# One-time setup on pypi.org: project "multi-agent-coding" -> Publishing ->
+# add GitHub publisher (owner: yanqing7914, repo: multi-agent,
+# workflow: release-pypi.yml, environment: pypi).
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build sdist and wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check tag matches package version
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          PKG_VERSION="$(python3 -c "import re,pathlib;print(re.search(r'__version__ = \"([^\"]+)\"', pathlib.Path('multi_agent_coding/__init__.py').read_text()).group(1))")"
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [[ "$PKG_VERSION" != "$TAG_VERSION" ]]; then
+            echo "package version $PKG_VERSION != tag $TAG_VERSION" >&2
+            exit 1
+          fi
+      - name: Build
+        run: |
+          python3 -m pip install build
+          python3 -m build
+      - name: Smoke test wheel
+        run: |
+          python3 -m venv /tmp/smoke
+          /tmp/smoke/bin/pip install dist/multi_agent_coding-*.whl
+          /tmp/smoke/bin/multi-agent-coding self-check
+          /tmp/smoke/bin/multi-agent-coding cards --self-check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+
+  publish:
+    name: Publish to PyPI (trusted publishing)
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-dist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1

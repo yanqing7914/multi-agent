@@ -6,8 +6,6 @@
 
 `multi-agent` 是一个跨 IDE / 跨 Agent Runtime 的多 Agent 协作契约与任务控制框架。它面向 Codex、Cursor、Claude Code、OpenClaw/Her、Hermes 和 VS Code，目标是让不同 agent 围绕同一套任务卡、权限边界、结果报告、审计门控和评审规则协作。
 
-对 Codex 用户，`multi-agent` 本身就是日常主入口：它会直接走 Codex fast path（native subagents → `codex exec` bridge → manual handoff），而不是要求用户先切换到另一个 Codex-only skill。`adapters/codex/` 是 `multi-agent` 内置的 Codex 实现层。
-
 它不是“开一堆 agent 自由发挥”的 swarm，而是一个 mission-control 风格的工程协作框架：
 
 ```text
@@ -40,8 +38,21 @@ IDE Panel    = 图形化任务面板、Prompt 生成器和本地集成入口
 
 安装方式：把这个 GitHub 链接发给你的 agent，并说“安装 multi-agent skill”。agent 应优先阅读 [`docs/agent-install.md`](docs/agent-install.md)，按自己的客户端选择对应包。
 
-开发、CI/CD、分支和发布流程见 [`docs/development.md`](docs/development.md)，仓库治理与评审规则见 [`docs/governance.md`](docs/governance.md)。项目按产品化流程维护：PR 必须过 fast CI，`main` 发布前跑 full CI，`vX.Y.Z` tag 触发 release zip 构建与包内容校验。
-产品定义、能力边界和 v1.0 验收标准见 [`docs/product.md`](docs/product.md)。内容开放边界、开发者文档和 release zip 禁带规则见 [`docs/content-governance.md`](docs/content-governance.md)。一句话：客户端专用 zip 是用户安装入口，根仓库是源码、协议和发布工程。
+## pip 安装（CLI）
+
+也可以直接用 pip 安装（wheel 内打包了完整技能树，无需 clone 仓库）：
+
+```bash
+pip install multi-agent-coding
+
+multi-agent-coding self-check   # 验证安装
+multi-agent-coding doctor       # 各客户端就绪报告
+multi-agent-coding install --client all --check
+multi-agent-coding cards --task "..." --mode implement --modules backend frontend
+multi-agent-coding path         # 打印内置技能树根目录（SKILL.md 所在）
+```
+
+子命令一一对应仓库脚本：`doctor` / `install` / `cards` / `status` / `capture` / `audit` / `worktree` / `run`，其余参数原样透传（都支持 `--help` 与 `--self-check`）。
 
 ## v0.3.1 完整支持标准
 
@@ -82,7 +93,6 @@ python3 scripts/install_native_skills.py --client all --check
 
 ```bash
 python3 scripts/doctor.py            # 全部客户端，友好中文报告
-python3 adapters/codex/scripts/doctor_codex.py  # Codex fast path 专项体检
 python3 scripts/doctor.py --client cursor
 python3 scripts/doctor.py --json     # 机器可读
 ```
@@ -221,14 +231,10 @@ python3 adapters/hermes/scripts/hermes_self_check.py --self-check
 所有 client adapter 尽量复用 OpenClaw mission-control core，不复制 gate 逻辑。
 
 ```bash
-# Codex App full path: build one native spawn plan for all task cards.
-python3 scripts/run_multi_agent.py --runtime codex-native-plan --state-dir .codex-multi-agent
-
-# Single-card launch / handoff runtimes.
 python3 scripts/run_multi_agent.py --runtime cursor-desktop|cursor|codex-native|codex-desktop|codex|claude-desktop|claude-code|openclaw|hermes --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-Launcher 使用 `pipefail` 和 post-run checks：外部 CLI 失败、quota/error pattern、结果 Markdown 过薄、JSON 缺失等都应该返回非零和 `"ok": false`。`--runtime codex-native-plan` 不需要 `--task-card`，它读取 `--state-dir` 下的全部任务卡并生成 Codex App native subagent 分派计划；`--runtime hermes` 不直接拉起进程，而是打印 Hermes 的 MCP / handoff 指引。
+Launcher 使用 `pipefail` 和 post-run checks：外部 CLI 失败、quota/error pattern、结果 Markdown 过薄、JSON 缺失等都应该返回非零和 `"ok": false`。`--runtime hermes` 不直接拉起进程，而是打印 Hermes 的 MCP / handoff 指引。
 
 ## 受控自纠循环（Loop Engineering）
 

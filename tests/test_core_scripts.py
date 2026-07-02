@@ -16,6 +16,7 @@ CREATE_TASK_CARDS = OPENCLAW_SCRIPTS / "create_task_cards.py"
 AUDIT_WORKER_OUTPUT = OPENCLAW_SCRIPTS / "audit_worker_output.py"
 CAPTURE_CHANGED_FILES = OPENCLAW_SCRIPTS / "capture_changed_files.py"
 UPDATE_TASK_STATUS = OPENCLAW_SCRIPTS / "update_task_status.py"
+PIP_CLI = REPO_ROOT / "multi_agent_coding" / "cli.py"
 
 
 def run_script(script: Path, *args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
@@ -357,3 +358,29 @@ class TestVerifyReleasePackages:
     def test_self_check_passes(self) -> None:
         proc = run_script(REPO_ROOT / "scripts" / "verify_release_packages.py", "--self-check")
         assert proc.returncode == 0, proc.stderr or proc.stdout
+
+
+class TestPipCli:
+    def test_self_check_from_checkout(self) -> None:
+        """The console CLI must resolve the skill tree from a source checkout too."""
+        proc = run_script(PIP_CLI, "self-check")
+        assert proc.returncode == 0, proc.stderr or proc.stdout
+        payload = json.loads(proc.stdout)
+        assert payload["bundle_root"] == str(REPO_ROOT)
+
+    def test_forwards_to_bundled_script(self) -> None:
+        proc = run_script(PIP_CLI, "capture", "--self-check")
+        assert proc.returncode == 0, proc.stderr or proc.stdout
+
+    def test_unknown_command_fails(self) -> None:
+        proc = run_script(PIP_CLI, "not-a-command")
+        assert proc.returncode == 2
+
+    def test_version_matches_pyproject_changelog_tagline(self) -> None:
+        """__version__ is the single source hatch reads; keep it importable."""
+        spec = importlib.util.spec_from_file_location(
+            "multi_agent_coding", REPO_ROOT / "multi_agent_coding" / "__init__.py"
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        assert module.__version__

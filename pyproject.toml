@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "multi-agent-coding"
-version = "0.3.1"
+dynamic = ["version"]
 description = "多 Agent 编码协作框架：任务卡、权限边界、审计门控与跨客户端适配器"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -22,13 +22,40 @@ classifiers = [
 ]
 dependencies = []
 
+[project.scripts]
+multi-agent-coding = "multi_agent_coding.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/yanqing7914/multi-agent"
 Changelog = "https://github.com/yanqing7914/multi-agent/blob/main/CHANGELOG.md"
 Documentation = "https://github.com/yanqing7914/multi-agent/blob/main/README.md"
 
-[tool.setuptools]
-packages = []
+[tool.hatch.version]
+path = "multi_agent_coding/__init__.py"
 
-[tool.setuptools.package-data]
-"*" = ["*.md", "*.yaml", "*.json"]
+[tool.hatch.build.targets.wheel]
+packages = ["multi_agent_coding"]
+
+# Bundle the skill tree (single source of truth stays at repo root) so the
+# installed CLI can forward to the exact same scripts a repo checkout uses.
+[tool.hatch.build.targets.wheel.force-include]
+"SKILL.md" = "multi_agent_coding/_bundle/SKILL.md"
+"README.md" = "multi_agent_coding/_bundle/README.md"
+"CHANGELOG.md" = "multi_agent_coding/_bundle/CHANGELOG.md"
+"agents" = "multi_agent_coding/_bundle/agents"
+"adapters" = "multi_agent_coding/_bundle/adapters"
+"checklists" = "multi_agent_coding/_bundle/checklists"
+"docs" = "multi_agent_coding/_bundle/docs"
+"examples" = "multi_agent_coding/_bundle/examples"
+"scripts" = "multi_agent_coding/_bundle/scripts"
+"templates" = "multi_agent_coding/_bundle/templates"
+"tools" = "multi_agent_coding/_bundle/tools"
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "dist",
+    ".github",
+    ".runs",
+    "bench",
+    "terminals",
+]

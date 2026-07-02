@@ -13,6 +13,8 @@ bench/swebench-lite/results/*
 *.vsix
 ide/extensions/*/out/
 dist/*-v0.0.0-*.zip
+dist/*.whl
+dist/*.tar.gz
 
 !.codex-multi-agent-relay/**
 multi_agent_coding.egg-info/

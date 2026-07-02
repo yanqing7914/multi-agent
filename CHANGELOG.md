@@ -15,6 +15,7 @@
 
 ### Added
 
+- **pip/PyPI 分发就绪**：新增 `multi_agent_coding` 包与 `multi-agent-coding` 控制台命令（hatchling 构建，`force-include` 把整棵技能树打进 wheel 的 `_bundle/`，仓库内仍是单一事实来源）。子命令 `doctor / install / cards / status / capture / audit / worktree / run` 一一转发到打包脚本，源码 checkout 与 pip 安装两种形态都能解析技能树；`self-check` 与 `path` 用于验证与定位。已在干净 venv 里完成 wheel 安装 + `cards/doctor/capture --self-check` 端到端验证。新增 `release-pypi.yml`（tag 触发，PyPI Trusted Publishing，含 tag/版本一致性检查与 wheel 冒烟测试）——发布前需在 pypi.org 侧配置一次 GitHub 可信发布者。`pip-cli` 自检接入 `validate_all_adapters.py`，pytest 新增 4 例 CLI 回归。
 - **并行 Worker 的 git worktree 物理隔离改为默认开启**：`create_task_cards.py` 检测到 2 个及以上有写权限的 Worker 时（`--worktrees auto`，默认值），自动生成 `worktree-plan.json`，每张 Worker 卡带 `worktree:` 块（分支、路径、create/capture/merge/remove 完整命令，基于 `tools/worktree_tool.py`）；卡片的 preflight/before_spawn/after_result 自动改指各自的 worktree 路径，ownership.json 与 run-plan.json 同步记录分支与合并指引。单 Worker 无并行覆写风险则自动跳过，`--worktrees off` 可显式关闭、`always` 强制开启。openclaw 独立包现在随包携带 `tools/`（worktree_tool 及其依赖），三个发布包校验将 `tools/worktree_tool.py` 列为必备文件。新增 pytest 回归（默认出计划/off 关闭/单 Worker 跳过）与 self-check 断言，SKILL.md（根、openclaw、cursor）同步更新默认策略。
 - 新增 `tests/` 核心脚本单元测试（pytest，10 例）：覆盖审计盲区回归（untracked 越界文件必须 fail strict 审计）、越界 files_changed 拒绝、任务卡不含 `&&`、发布包 forbidden 匹配规则、**多进程并发更新任务状态不丢更新**等，并接入 `ci-fast`、`ci-full` 与 `make test`。
 - `validate_all_adapters.py` 并行执行自检（`--jobs`，默认 min(8, CPU)），带 `[n/total]` 进度和每项耗时；本机实测从约 5 分钟降至约 1 分钟。所有自检均为临时目录内的封闭操作，可安全并行。

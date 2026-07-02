@@ -45,6 +45,7 @@ ADAPTER_CHECKS = [
         ["--self-check"],
     ),
     ("native_skill_installer", REPO_ROOT / "scripts" / "install_native_skills.py", ["--self-check"]),
+    ("pip-cli", REPO_ROOT / "multi_agent_coding" / "cli.py", ["self-check"]),
     ("release-package-verifier", REPO_ROOT / "scripts" / "verify_release_packages.py", ["--self-check"]),
     ("doctor", REPO_ROOT / "scripts" / "doctor.py", ["--self-check"]),
     ("configure_mcp", REPO_ROOT / "scripts" / "configure_mcp.py", ["--self-check"]),
