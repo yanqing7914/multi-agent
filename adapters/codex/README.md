@@ -65,6 +65,8 @@ The JSON output contains `records[]`; each record has:
 
 - `agent_type`: `multi-agent-worker`, `multi-agent-reviewer`, or `explorer`
 - `prompt_path`: prompt content to send to that native subagent
+- `spawn_agent_args`: the only object to pass to `spawn_agent`
+- `spawn_agent_metadata`: Main-side bookkeeping such as prompt source and lifecycle; do not pass this to `spawn_agent`
 - `may_use_skills`: the only skills the subagent may use
 - `result_json` and `result_markdown`: reports Main must wait for
 
@@ -76,7 +78,7 @@ python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
   --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-Then Main spawns native Codex subagents with the returned `agent_type` values and prompt contents. If `may_use_skills` contains a named skill, Main attaches or names that skill for that subagent only. `ssrd` is just one possible review-skill example, not a dependency.
+Then Main spawns native Codex subagents with the returned `spawn_agent_args`. If `may_use_skills` contains a named skill, Main attaches or names that skill for that subagent only. `ssrd` is just one possible review-skill example, not a dependency.
 
 ## Usage: Codex CLI Bridge
 

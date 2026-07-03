@@ -35,9 +35,15 @@ def launcher_cmd(launcher: Path, args: list[str]) -> list[str]:
 
 
 def self_check() -> int:
-    missing = [name for name, path in RUNTIMES.items() if path.suffix in {".py", ".sh"} and not path.is_file()]
-    if missing:
-        print(json.dumps({"ok": False, "missing_runtimes": missing}, indent=2))
+    available = {
+        name: path
+        for name, path in RUNTIMES.items()
+        if path.is_file() or (path.suffix not in {".py", ".sh"} and path.exists())
+    }
+    required = {"codex-native-plan", "codex-native", "codex-desktop"}
+    missing_required = sorted(name for name in required if name not in available)
+    if missing_required:
+        print(json.dumps({"ok": False, "missing_required_runtimes": missing_required}, indent=2))
         return 1
     with tempfile.TemporaryDirectory(prefix="run-multi-agent-") as tmp:
         state_dir = Path(tmp) / ".codex-multi-agent"
@@ -50,7 +56,7 @@ def self_check() -> int:
                 "--mode",
                 "review",
                 "--modules",
-                "docs",
+                "codex_adapter",
                 "--runtime",
                 "codex",
                 "--workspace-root",
@@ -78,7 +84,7 @@ def self_check() -> int:
         if not payload.get("ok") or not payload.get("records"):
             print(json.dumps({"ok": False, "stage": "parse_plan", "payload": payload}, indent=2))
             return 1
-    print(json.dumps({"ok": True, "runtimes": sorted(RUNTIMES)}, indent=2))
+    print(json.dumps({"ok": True, "runtimes": sorted(available), "skipped_missing_optional": sorted(set(RUNTIMES) - set(available))}, indent=2))
     return 0
 
 

@@ -55,7 +55,7 @@ python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
   --state-dir .codex-multi-agent
 ```
 
-3. Spawn one native subagent per plan record with `spawn_agent_payload`.
+3. Spawn one native subagent per plan record with `spawn_agent_args`.
 4. For a single task card, prepare one native spawn prompt:
 
 ```bash
@@ -64,7 +64,7 @@ python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
   --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-5. Attach or name only skills listed in `may_use_skills`; `spawn_agent_payload.items` carries skill items when available.
+5. Attach or name only skills listed in `may_use_skills`; `spawn_agent_args.items` carries skill items when available. Keep `spawn_agent_metadata` as Main-side bookkeeping and do not pass it to `spawn_agent`.
 6. Wait for JSON and Markdown result reports.
 7. Run gate sync and scope audit before final delivery.
 
@@ -141,5 +141,5 @@ Open the returned `prompt_path` in a separate Codex App session or task. The Wor
 python3 scripts/install_native_skills.py --client codex --check
 python3 adapters/codex/scripts/doctor_codex.py
 python3 adapters/codex/scripts/codex_self_check.py
-python3 scripts/validate_all_adapters.py
+python3 scripts/run_multi_agent.py --self-check
 ```

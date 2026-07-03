@@ -40,6 +40,7 @@ MODULE_PATHS = {
     "tests": ["tests/**", "test/**", "__tests__/**", "**/*.test.*", "**/*.spec.*"],
     "docs": ["docs/**", "README.md"],
     "openclaw_adapter": ["adapters/openclaw/**"],
+    "codex_adapter": ["adapters/codex/**"],
 }
 
 PREFLIGHT_GUIDANCE = (
@@ -1275,7 +1276,11 @@ def main() -> int:
     parser.add_argument("--out", default=".codex-multi-agent", help="Coordination state directory")
     parser.add_argument("--runtime", default="acp", choices=list(TASK_CARD_RUNTIME_CHOICES))
     parser.add_argument("--reviewers", nargs="*", default=["correctness", "security"], help="Reviewer focus areas")
-    parser.add_argument("--review-skill", default="ssrd", help="Review skill to authorize for reviewers")
+    parser.add_argument(
+        "--review-skill",
+        default="",
+        help="Optional review skill to authorize for reviewers; empty by default, e.g. ssrd only when explicitly requested",
+    )
     parser.add_argument(
         "--workspace-root",
         help="Absolute path to target repo (default: current working directory, resolved)",

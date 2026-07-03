@@ -151,11 +151,27 @@ def prepare(
         **record,
         "spawn_instruction": {
             "agent_type": agent_type,
-            "message_source": str(prompt_path),
             "fork_context": False,
+            "items": [
+                {
+                    "type": "text",
+                    "text": f"Read and follow this Codex native subagent prompt exactly: {prompt_path}",
+                }
+            ],
+        },
+        "spawn_metadata": {
+            "message_source": str(prompt_path),
+            "lifecycle": [
+                "spawn_agent",
+                "wait_agent",
+                "send_input_once_if_reports_missing",
+                "collect_result_reports",
+                "close_agent",
+            ],
         },
         "instructions": [
-            "If Codex Desktop exposes native subagent tools, spawn a subagent with agent_type and the prompt file contents.",
+            "If Codex exposes native subagent tools, call spawn_agent with spawn_instruction only.",
+            "Use spawn_metadata for Main-side bookkeeping; do not pass metadata keys to spawn_agent.",
             "Attach or name only the skills listed in may_use_skills; do not let the subagent use unrelated skills.",
             "Wait for the subagent result, then run update_task_status.py --sync and audit_worker_output.py.",
             "If native subagent tools are unavailable, use --runtime codex-desktop handoff mode instead.",
@@ -179,11 +195,11 @@ def run_self_check() -> int:
                 "--mode",
                 "review",
                 "--modules",
-                "docs",
+                "codex_adapter",
                 "--runtime",
                 "codex",
                 "--review-skill",
-                "ssrd",
+                "example-review-skill",
                 "--workspace-root",
                 str(REPO_ROOT),
                 "--out",
@@ -209,7 +225,7 @@ def run_self_check() -> int:
         required = [
             "Codex native subagent",
             "NATIVE SUBAGENT RULES",
-            "AUTHORIZED SKILLS: ssrd",
+            "AUTHORIZED SKILLS: example-review-skill",
             "JSON:",
             "Markdown:",
             "--- TASK CARD ---",

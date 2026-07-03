@@ -130,7 +130,7 @@ def run_self_check() -> int:
                 "--mode",
                 "implement",
                 "--modules",
-                "docs",
+                "codex_adapter",
                 "--runtime",
                 "codex",
                 "--workspace-root",

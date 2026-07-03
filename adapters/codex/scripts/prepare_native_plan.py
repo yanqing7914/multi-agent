@@ -23,7 +23,7 @@ def skill_items(skill_names: list[str]) -> list[dict]:
     return [{"type": "skill", "name": name} for name in skill_names if name]
 
 
-def spawn_agent_payload(payload: dict) -> dict:
+def spawn_agent_args(payload: dict) -> dict:
     skills = payload.get("may_use_skills", []) or []
     return {
         "agent_type": payload["agent_type"],
@@ -35,6 +35,11 @@ def spawn_agent_payload(payload: dict) -> dict:
                 "text": f"Read and follow this Codex native subagent prompt exactly: {payload['prompt_path']}",
             },
         ],
+    }
+
+
+def spawn_agent_metadata(payload: dict) -> dict:
+    return {
         "message_source": payload["prompt_path"],
         "lifecycle": [
             "spawn_agent",
@@ -108,7 +113,8 @@ def build_plan(state_dir: Path, out_dir: Path | None, role: str | None, skip_pre
     for card in cards:
         payload = prepare(card, state, native_dir, skip_preflight=skip_preflight, include_prompt=False)
         if payload.get("ok"):
-            spawn_payload = spawn_agent_payload(payload)
+            spawn_args = spawn_agent_args(payload)
+            spawn_metadata = spawn_agent_metadata(payload)
             records.append(
                 {
                     "task_id": payload["task_id"],
@@ -122,7 +128,9 @@ def build_plan(state_dir: Path, out_dir: Path | None, role: str | None, skip_pre
                     "result_markdown": payload["result_markdown"],
                     "may_use_skills": payload.get("may_use_skills", []),
                     "spawn_instruction": payload["spawn_instruction"],
-                    "spawn_agent_payload": spawn_payload,
+                    "spawn_agent_args": spawn_args,
+                    "spawn_agent_metadata": spawn_metadata,
+                    "spawn_agent_payload": spawn_args,
                 }
             )
         else:
@@ -140,9 +148,10 @@ def build_plan(state_dir: Path, out_dir: Path | None, role: str | None, skip_pre
         "records": records,
         "failures": failures,
         "main_instructions": [
-            "Spawn one Codex native subagent per record using spawn_agent_payload.",
+            "Spawn one Codex native subagent per record using spawn_agent_args only.",
+            "Use spawn_agent_metadata for Main-side bookkeeping; do not pass metadata keys to spawn_agent.",
             "Track agent_id for wait_agent/send_input/close_agent lifecycle.",
-            "Attach or name only skills listed in may_use_skills; spawn_agent_payload.items includes skill items when present.",
+            "Attach or name only skills listed in may_use_skills; spawn_agent_args.items includes skill items when present.",
             "Wait for JSON and Markdown result reports before gate sync.",
             "Close completed agents after collecting their reports.",
             "Run gate sync and scope audit before final delivery.",
@@ -163,7 +172,7 @@ def run_self_check() -> int:
                 "--mode",
                 "implement",
                 "--modules",
-                "docs",
+                "codex_adapter",
                 "--runtime",
                 "codex",
                 "--review-skill",
@@ -192,9 +201,18 @@ def run_self_check() -> int:
         if not reviewer_records:
             print(json.dumps({"ok": False, "error": "no reviewer record"}, indent=2))
             return 1
-        reviewer_items = reviewer_records[0].get("spawn_agent_payload", {}).get("items", [])
+        reviewer = reviewer_records[0]
+        reviewer_items = reviewer.get("spawn_agent_args", {}).get("items", [])
         if not any(item.get("type") == "skill" and item.get("name") == EXAMPLE_REVIEW_SKILL for item in reviewer_items):
-            print(json.dumps({"ok": False, "error": "reviewer spawn_agent_payload should include example review skill item"}, indent=2))
+            print(json.dumps({"ok": False, "error": "reviewer spawn_agent_args should include example review skill item"}, indent=2))
+            return 1
+        illegal_keys = {"message_source", "lifecycle"} & set(reviewer.get("spawn_agent_args", {}))
+        if illegal_keys:
+            print(json.dumps({"ok": False, "error": "spawn_agent_args contains metadata-only keys", "keys": sorted(illegal_keys)}, indent=2))
+            return 1
+        metadata = reviewer.get("spawn_agent_metadata", {})
+        if "message_source" not in metadata or "lifecycle" not in metadata:
+            print(json.dumps({"ok": False, "error": "spawn_agent_metadata missing bookkeeping keys"}, indent=2))
             return 1
         plan_path = Path(payload["plan_path"])
         if "Codex Native Spawn Plan" not in plan_path.read_text(encoding="utf-8"):

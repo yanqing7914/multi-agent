@@ -23,11 +23,13 @@ Do not use it for small single-agent edits.
 python scripts/run_multi_agent.py --runtime codex-native-plan --state-dir .codex-multi-agent
 ```
 
-3. For every `records[]` item in the JSON output, call Codex App native subagent spawn with `record.spawn_agent_payload`:
+3. For every `records[]` item in the JSON output, call Codex App native subagent spawn with `record.spawn_agent_args` only:
 
 ```text
-spawn_agent(**record.spawn_agent_payload)
+spawn_agent(**record.spawn_agent_args)
 ```
+
+Do not pass `record.spawn_agent_metadata` to `spawn_agent`; it is Main-side bookkeeping for prompt source and lifecycle.
 
 4. Store each returned `agent_id` next to the matching task record.
 5. Wait for spawned agents with `wait_agent`; do not assume a task is complete from chat text alone.
@@ -54,14 +56,16 @@ python adapters/codex/scripts/finalize_native_run.py \
 | `result_json` | Required machine-readable result report |
 | `result_markdown` | Required human-readable result report |
 | `workspace_root` | Expected workspace; subagent must `cd` there first |
-| `spawn_agent_payload` | Ready-to-use Codex App spawn payload |
+| `spawn_agent_args` | Ready-to-use Codex App spawn arguments |
+| `spawn_agent_metadata` | Main-side bookkeeping; do not pass to `spawn_agent` |
+| `spawn_agent_payload` | Deprecated compatibility alias for `spawn_agent_args`; do not use in new docs or code |
 
 ## Lifecycle
 
 Main must track this lifecycle for every record:
 
 ```text
-spawn_agent(record.spawn_agent_payload)
+spawn_agent(record.spawn_agent_args)
   -> save agent_id
 wait_agent(agent_id)
   -> if missing report, send_input(agent_id, repair request) once
@@ -84,7 +88,7 @@ Never leave completed subagents open after collecting their reports. This can ex
 ## Skill Passing
 
 - If `record.may_use_skills` is empty, do not attach skills.
-- If it lists a skill such as `example-review-skill`, `record.spawn_agent_payload.items` includes a skill item for that skill.
+- If it lists a skill such as `example-review-skill`, `record.spawn_agent_args.items` includes a skill item for that skill.
 - If the skill is unavailable inside the subagent, the subagent must report `blocked`.
 - A skill never expands file, shell, network, credential, git, or role permissions.
 - `ssrd` is only an example of a user-requested review skill; this adapter does not implement or depend on it.

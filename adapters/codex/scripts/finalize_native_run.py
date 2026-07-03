@@ -157,21 +157,38 @@ def finalize(state_dir: Path, workspace_root: Path, plan_json: Path | None, skip
 def run_self_check() -> int:
     with tempfile.TemporaryDirectory(prefix="codex-finalize-native-") as tmp:
         tmp_path = Path(tmp)
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        (workspace / "adapters" / "codex").mkdir(parents=True)
+        (workspace / "adapters" / "codex" / "README.md").write_text("# Codex fixture\n", encoding="utf-8")
+        git_init = run(["git", "init", "-q"], cwd=workspace)
+        if git_init.returncode == 0:
+            run(["git", "config", "user.email", "self-check@example.com"], cwd=workspace)
+            run(["git", "config", "user.name", "self-check"], cwd=workspace)
+            run(["git", "add", "-A"], cwd=workspace)
+            run(["git", "commit", "-q", "-m", "init"], cwd=workspace)
         state_dir = tmp_path / ".codex-multi-agent"
+        config = tmp_path / "task.json"
+        config.write_text(
+            json.dumps(
+                {
+                    "task": "Finalize native self-check",
+                    "mode": "implement",
+                    "runtime": "codex",
+                    "modules": [{"name": "codex_adapter", "paths": ["adapters/codex/**"]}],
+                    "reviewers": [],
+                }
+            ),
+            encoding="utf-8",
+        )
         create = run(
             [
                 sys.executable,
                 str(CREATE_TASK_CARDS),
-                "--task",
-                "Finalize native self-check",
-                "--mode",
-                "review",
-                "--modules",
-                "docs",
-                "--runtime",
-                "codex",
+                "--from-json",
+                str(config),
                 "--workspace-root",
-                str(REPO_ROOT),
+                str(workspace),
                 "--out",
                 str(state_dir),
             ]
@@ -183,23 +200,29 @@ def run_self_check() -> int:
         result_dir = state_dir / "results"
         result_dir.mkdir(exist_ok=True)
         for record in plan.get("records", []):
+            files_changed = []
+            if record.get("role") == "Worker":
+                target = workspace / "adapters" / "codex" / "worker-self-check.txt"
+                target.write_text("worker touched allowed path\n", encoding="utf-8")
+                files_changed = ["adapters/codex/worker-self-check.txt"]
+            tools_used = ["test_runner_tool"] if record.get("role") == "Verifier" else ["repo_index_tool"]
             payload = {
                 "task_id": record["task_id"],
                 "session_name": record["session_name"],
                 "role": record["role"],
                 "status": "completed",
-                "workspace_observed": str(REPO_ROOT),
-                "required_paths_checked": ["docs/**"],
+                "workspace_observed": str(workspace),
+                "required_paths_checked": ["adapters/codex/**"],
                 "required_paths_missing": [],
                 "required_paths_verified": True,
-                "files_read": ["README.md"],
-                "tools_used": ["repo_index_tool"],
-                "files_changed": [],
+                "files_read": ["adapters/codex/README.md"],
+                "tools_used": tools_used,
+                "files_changed": files_changed,
             }
             Path(record["result_json"]).write_text(json.dumps(payload, indent=2), encoding="utf-8")
             Path(record["result_markdown"]).write_text(f"# {record['task_id']} result\nstatus: completed\n", encoding="utf-8")
-        payload = finalize(state_dir, REPO_ROOT, None, skip_audit=True)
-        if not payload["ok"]:
+        payload = finalize(state_dir, workspace, None, skip_audit=False)
+        if not payload["ok"] or payload.get("records_count", 0) == 0 or payload.get("scope_audit", {}).get("ok") is not True:
             print(json.dumps({"ok": False, "stage": "finalize", "payload": payload}, indent=2))
             return 1
         print(json.dumps({"ok": True, "adapter": "codex-finalize-native", "records": payload["records_count"]}, indent=2))

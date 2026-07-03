@@ -50,7 +50,7 @@ python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
   --state-dir .codex-multi-agent
 ```
 
-Main reads `plan_path` and `records[]`, then spawns one native Codex subagent per record with the returned `agent_type` and prompt contents.
+Main reads `plan_path` and `records[]`, then spawns one native Codex subagent per record with the returned `spawn_agent_args`. Keep `spawn_agent_metadata` for Main-side lifecycle tracking; do not pass it to `spawn_agent`.
 
 Prepare one spawn prompt for a single task card when needed:
 
@@ -60,7 +60,7 @@ python3 /path/to/codex-multi-agent/scripts/run_multi_agent.py \
   --task-card .codex-multi-agent/tasks/T002-worker-backend.md
 ```
 
-Main reads the returned `prompt_path`, then spawns a native Codex subagent with the returned `agent_type` and prompt contents.
+Main reads the returned `spawn_instruction`, then spawns a native Codex subagent with only that object. Keep `spawn_metadata` for Main-side lifecycle tracking.
 
 Role mapping:
 
