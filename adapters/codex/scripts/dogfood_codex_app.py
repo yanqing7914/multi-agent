@@ -72,6 +72,61 @@ def validate_worker_smoke(state_dir: Path) -> dict:
     }
 
 
+def validate_session_smoke(state_dir: Path) -> dict:
+    """Validate Codex App native subagent evidence written in this repo.
+
+    This is intentionally separate from deterministic self-checks: humans/Main
+    create the evidence by spawning real App subagents, then this verifier checks
+    the on-disk reports.
+    """
+    errors: list[str] = []
+    expected = {
+        "worker": {
+            "path": state_dir / "worker-smoke.json",
+            "role": "Worker",
+            "allowed_prefix": ".codex-multi-agent/session-smoke/",
+        },
+        "reviewer": {
+            "path": state_dir / "reviewer-smoke.json",
+            "role": "Reviewer",
+            "allowed_prefix": ".codex-multi-agent/session-smoke/",
+        },
+    }
+    reports: dict[str, dict] = {}
+    for name, spec in expected.items():
+        path = spec["path"]
+        md_path = path.with_suffix(".md")
+        if not path.is_file():
+            errors.append(f"missing {name} JSON report: {path}")
+            continue
+        if not md_path.is_file():
+            errors.append(f"missing {name} Markdown report: {md_path}")
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            errors.append(f"invalid {name} JSON report: {exc}")
+            continue
+        reports[name] = payload
+        if payload.get("role") != spec["role"]:
+            errors.append(f"{name} role mismatch: {payload.get('role')} != {spec['role']}")
+        if payload.get("status") not in {"completed", "blocked"}:
+            errors.append(f"{name} invalid status: {payload.get('status')}")
+        if payload.get("required_paths_verified") is not True:
+            errors.append(f"{name} required_paths_verified is not true")
+        changed = [str(item).replace("\\", "/") for item in payload.get("files_changed", [])]
+        outside = [item for item in changed if not item.startswith(spec["allowed_prefix"])]
+        if outside:
+            errors.append(f"{name} files_changed outside session-smoke scope: {outside}")
+        if name == "reviewer" and changed:
+            errors.append("reviewer smoke should be read-only and report no files_changed")
+    return {
+        "ok": not errors,
+        "state_dir": str(state_dir),
+        "reports": reports,
+        "errors": errors,
+    }
+
+
 def native_plan_self_check() -> dict:
     with tempfile.TemporaryDirectory(prefix="codex-app-dogfood-") as tmp:
         state_dir = Path(tmp) / ".codex-multi-agent"
@@ -175,6 +230,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--self-check", action="store_true", help="Run deterministic native-plan and parser checks")
     parser.add_argument("--worker-smoke-state", help="Validate an existing Codex App Worker smoke state dir")
+    parser.add_argument("--session-smoke-state", help="Validate real Codex App Worker/Reviewer smoke reports")
     args = parser.parse_args()
 
     checks: list[dict] = []
@@ -182,6 +238,8 @@ def main() -> int:
         checks.extend([native_plan_self_check(), legacy_result_path_self_check()])
     if args.worker_smoke_state:
         checks.append(validate_worker_smoke(Path(args.worker_smoke_state).expanduser().resolve()))
+    if args.session_smoke_state:
+        checks.append(validate_session_smoke(Path(args.session_smoke_state).expanduser().resolve()))
     if not checks:
         parser.error("use --self-check and/or --worker-smoke-state")
 

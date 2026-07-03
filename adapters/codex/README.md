@@ -46,6 +46,7 @@ The installer writes:
 ## Usage: Codex App Native Subagents
 
 The App execution contract lives in [NATIVE_SUBAGENT_CONTRACT.md](NATIVE_SUBAGENT_CONTRACT.md).
+For real App smoke testing, use [APP_NATIVE_ACCEPTANCE.md](APP_NATIVE_ACCEPTANCE.md).
 
 Ask Codex App:
 

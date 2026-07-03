@@ -51,6 +51,11 @@ def check() -> dict:
     worker_smoke_state = REPO_ROOT / ".codex-multi-agent" / "dogfood-worker-smoke"
     worker_smoke_marker = worker_smoke_state / "dogfood" / "worker-smoke.txt"
     worker_smoke_json = worker_smoke_state / "results" / "T900-worker-smoke.json"
+    session_smoke_state = REPO_ROOT / ".codex-multi-agent" / "session-smoke"
+    session_worker_json = session_smoke_state / "worker-smoke.json"
+    session_worker_md = session_smoke_state / "worker-smoke.md"
+    session_reviewer_json = session_smoke_state / "reviewer-smoke.json"
+    session_reviewer_md = session_smoke_state / "reviewer-smoke.md"
 
     root_skill_installed = [str(path) for path in root_skill_paths if exists(path)]
     codex_skill_installed = [str(path) for path in codex_adapter_paths if exists(path)]
@@ -71,6 +76,9 @@ def check() -> dict:
         next_steps.append("Optional: install Codex CLI for scripted bridge mode; Codex App native subagents can still work without it.")
     if not missing_repo_files and len(agent_files) == len(expected_agents):
         next_steps.append("Use multi-agent in Codex; it should take the Codex fast path and spawn Worker/Reviewer roles.")
+
+    session_worker_ready = session_worker_json.is_file() and session_worker_md.is_file()
+    session_reviewer_ready = session_reviewer_json.is_file() and session_reviewer_md.is_file()
 
     return {
         "ok": True,
@@ -93,6 +101,11 @@ def check() -> dict:
         and worker_smoke_json.is_file(),
         "worker_smoke_state": str(worker_smoke_state),
         "worker_smoke_note": "optional dogfood evidence; MISS means not run in this checkout, not that native workers are unavailable",
+        "session_smoke_ready": session_worker_ready and session_reviewer_ready,
+        "session_smoke_state": str(session_smoke_state),
+        "session_worker_smoke_ready": session_worker_ready,
+        "session_reviewer_smoke_ready": session_reviewer_ready,
+        "session_smoke_note": "real Codex App native subagent smoke evidence for this checkout",
         "recommended_runtime_order": ["codex-native-plan", "codex-native", "codex", "codex-desktop"],
         "codex_app_modes": {
             "native_spawn_plan": "scripts/run_multi_agent.py --runtime codex-native-plan --state-dir .codex-multi-agent",
@@ -115,6 +128,7 @@ def render(payload: dict) -> str:
         f"- repo scripts: {mark(payload['repo_files_ready'])}",
         f"- Codex fast path ready: {mark(payload['codex_fast_path_ready'])}",
         f"- Worker smoke evidence: {mark(payload['worker_smoke_ready'])}  ({payload['worker_smoke_note']})",
+        f"- Session native smoke: {mark(payload.get('session_smoke_ready'))}  ({payload.get('session_smoke_note')})",
         "- runtime order: codex-native-plan -> codex-native -> codex -> codex-desktop",
         "- next steps:",
     ]
@@ -132,6 +146,7 @@ def self_check() -> int:
         "repo_files_ready",
         "codex_fast_path_ready",
         "worker_smoke_ready",
+        "session_smoke_ready",
         "recommended_runtime_order",
         "codex_app_modes",
     }
