@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -152,6 +153,20 @@ def _branch_segment(value: str) -> str:
     return safe.strip("-") or "task"
 
 
+def _branch_collision_suffix(task_id: str, session_name: str | None) -> str:
+    # Mirrors tools/worktree_tool.py _collision_suffix so cards and tool agree.
+    raw = f"{task_id or ''}\x00{session_name or ''}"
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:8]
+
+
+def _branch_for(task_id: str, session_name: str | None) -> str:
+    parts = [_branch_segment(task_id)]
+    if session_name:
+        parts.append(_branch_segment(session_name))
+    parts.append(_branch_collision_suffix(task_id, session_name))
+    return "multi-agent/" + "-".join(parts)
+
+
 def worktree_plan_for_tasks(
     tasks: list[dict],
     workspace_root: Path,
@@ -183,7 +198,7 @@ def worktree_plan_for_tasks(
     for task in workers:
         tid = task["task_id"]
         session = task["session_name"]
-        branch = f"multi-agent/{_branch_segment(tid)}-{_branch_segment(session)}"
+        branch = _branch_for(tid, session)
         path = worktrees_root / branch.replace("/", "-")
         plan[tid] = {
             "task_id": tid,

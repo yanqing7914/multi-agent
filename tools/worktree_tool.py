@@ -23,6 +23,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 import subprocess
@@ -70,10 +71,24 @@ def sanitize_segment(value: str) -> str:
     return safe.strip("-") or "task"
 
 
+def _collision_suffix(task_id: str, session_name: str | None) -> str:
+    """Short deterministic hash of the RAW inputs.
+
+    sanitize_segment collapses '/', spaces, etc. all to '-', so distinct logical
+    Workers (e.g. session "worker/backend" vs "worker-backend") would otherwise
+    produce the same branch AND the same worktree path — silently defeating the
+    physical isolation this tool exists to provide. Hashing the raw inputs keeps
+    the branch/path unique and stable.
+    """
+    raw = f"{task_id or ''}\x00{session_name or ''}"
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:8]
+
+
 def branch_for(task_id: str, session_name: str | None = None) -> str:
     parts = [sanitize_segment(task_id)]
     if session_name:
         parts.append(sanitize_segment(session_name))
+    parts.append(_collision_suffix(task_id, session_name))
     return f"{BRANCH_PREFIX}/" + "-".join(parts)
 
 

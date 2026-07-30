@@ -105,15 +105,23 @@ def to_yaml_block(server: dict) -> str:
     return "\n".join(lines)
 
 
+class ConfigParseError(Exception):
+    """Existing config file could not be parsed; refuse to overwrite it."""
+
+
 def merge_json_config(existing_text: str | None, rendered: dict) -> dict:
     base: dict = {}
-    if existing_text:
+    if existing_text and existing_text.strip():
         try:
             loaded = json.loads(existing_text)
-            if isinstance(loaded, dict):
-                base = loaded
-        except json.JSONDecodeError:
-            base = {}
+        except json.JSONDecodeError as exc:
+            # Do NOT silently fall back to {} — writing that would clobber the
+            # user's entire config with only our server. Signal the caller to
+            # abort the write and report the problem instead.
+            raise ConfigParseError(str(exc)) from exc
+        if not isinstance(loaded, dict):
+            raise ConfigParseError("existing config is not a JSON object")
+        base = loaded
     servers = base.setdefault("mcpServers", {})
     servers[SERVER_KEY] = rendered["mcpServers"][SERVER_KEY]
     return base
@@ -163,11 +171,24 @@ def configure_client(
         return result
 
     existing = dest.read_text(encoding="utf-8") if dest.is_file() else None
-    merged = merge_json_config(existing, rendered)
+    try:
+        merged = merge_json_config(existing, rendered)
+    except ConfigParseError as exc:
+        # Existing config is malformed (e.g. hand-edited trailing comma). Never
+        # overwrite it — report and skip so the user can fix it by hand.
+        result["ok"] = False
+        result["written"] = False
+        result["error"] = f"existing config is not valid JSON, refusing to overwrite: {exc}"
+        result["hint"] = "Fix the JSON at the target path by hand, then re-run."
+        return result
+
     result["merged"] = merged
+    # Reuse the parsed base rather than re-parsing raw text (which would crash on
+    # the same malformed input handled above).
+    preexisting = merged.get("mcpServers", {})
     result["preexisting_servers"] = sorted(
-        (json.loads(existing).get("mcpServers", {}) if existing else {}).keys()
-    ) if existing else []
+        k for k in preexisting.keys() if k != SERVER_KEY
+    )
 
     if write:
         dest.parent.mkdir(parents=True, exist_ok=True)

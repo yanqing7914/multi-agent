@@ -162,12 +162,43 @@ def tee_run(cmd: list[str], log_path: Path, cwd: Path | None = None) -> int:
         return proc.wait()
 
 
+def _iter_balanced_json_objects(text: str):
+    """Yield substrings that are balanced { ... } blocks, honoring string
+    literals and escapes so that nested objects are not truncated.
+
+    The previous non-greedy regex ``\\{[\\s\\S]*?\\}`` stopped at the FIRST
+    closing brace, so any result report containing a nested object (the common
+    case) was cut into an unparseable fragment and silently dropped.
+    """
+    starts: list[int] = []
+    in_string = False
+    escaped = False
+    for i, ch in enumerate(text):
+        if in_string:
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == '"':
+                in_string = False
+            continue
+        if ch == '"':
+            in_string = True
+        elif ch == "{":
+            starts.append(i)
+        elif ch == "}":
+            if starts:
+                start = starts.pop()
+                if not starts:  # closed a top-level object
+                    yield text[start : i + 1]
+
+
 def try_extract_json_from_log(log_text: str, json_path: Path) -> bool:
     """Best-effort: extract a JSON object from worker log into result sidecar."""
     if json_path.exists():
         return True
-    matches = re.findall(r"\{[\s\S]*?\}", log_text)
-    for candidate in reversed(matches):
+    candidates = list(_iter_balanced_json_objects(log_text))
+    for candidate in reversed(candidates):
         try:
             payload = json.loads(candidate)
         except json.JSONDecodeError:

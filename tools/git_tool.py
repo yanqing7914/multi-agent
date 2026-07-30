@@ -146,8 +146,20 @@ def main() -> int:
     if args.self_check:
         return run_self_check()
 
-    if args.json_in is not None or not sys.stdin.isatty():
+    flags_provided = any(
+        [args.action != "status", args.repo_root, args.paths, args.allowed_paths]
+    )
+
+    if args.json_in is not None:
         payload = load_json_input(args.json_in)
+        result = invoke(payload)
+        emit_json(result)
+        return 0 if result.get("ok") else 1
+
+    # Only read stdin when no CLI flags were supplied; a non-TTY stdin alone
+    # (subprocess pipe) must not override explicit flags.
+    if not flags_provided and not sys.stdin.isatty():
+        payload = load_json_input(None)
         result = invoke(payload)
         emit_json(result)
         return 0 if result.get("ok") else 1

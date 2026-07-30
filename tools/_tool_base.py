@@ -41,6 +41,17 @@ def normalize_path(path: str) -> str:
 def _segment_glob_match(path: str, pattern: str) -> bool:
     if pattern == "**":
         return True
+    # "**/<mid>/**" must be handled before the "/**" suffix branch, else a
+    # pattern like "**/secrets/**" is read as the literal prefix "**/secrets"
+    # and never matches, silently disabling blocked/secret path protection.
+    if pattern.startswith("**/") and pattern.endswith("/**"):
+        mid = pattern[3:-3]
+        if not mid:
+            return True
+        for segment in path.split("/"):
+            if fnmatch.fnmatch(segment, mid):
+                return True
+        return fnmatch.fnmatch(path.split("/")[-1], mid)
     if pattern.endswith("/**"):
         base = pattern[:-3]
         return path == base or path.startswith(base + "/")
@@ -58,11 +69,24 @@ def _segment_glob_match(path: str, pattern: str) -> bool:
 
 def path_matches(path: str, patterns: list[str]) -> bool:
     path = normalize_path(path)
+    # Also compare against a home-expanded absolute form so that "~/..." patterns
+    # (e.g. ~/.ssh/**, ~/.codex/auth.json) are actually enforced instead of skipped.
+    abs_path = normalize_path(str(Path(path).expanduser()))
     for pattern in patterns:
         pattern = normalize_path(pattern)
         if pattern.startswith("~/"):
+            # Match the home-anchored absolute pattern, and also the bare
+            # remainder (e.g. ".ssh/id_rsa") so relative inputs are caught too.
+            expanded = normalize_path(str(Path(pattern).expanduser()))
+            remainder = pattern[2:]
+            if (
+                _segment_glob_match(abs_path, expanded)
+                or _segment_glob_match(path, expanded)
+                or _segment_glob_match(path, remainder)
+            ):
+                return True
             continue
-        if _segment_glob_match(path, pattern):
+        if _segment_glob_match(path, pattern) or _segment_glob_match(abs_path, pattern):
             return True
     return False
 
@@ -99,20 +123,73 @@ def validate_path_scope(
     return True, "ok"
 
 
+_SHELL_SEPARATORS = ("&&", "||", "|", ";", "\n")
+
+
+def _split_subcommands(command: str) -> list[str]:
+    """Split a command line into sub-commands on shell separators.
+
+    This is intentionally conservative: it does not fully parse quoting, but it
+    prevents "allowed prefix + chained dangerous command" from slipping past the
+    allow/deny checks (e.g. "echo hi && rm -rf /").
+    """
+    parts = [command]
+    for sep in _SHELL_SEPARATORS:
+        parts = [seg for chunk in parts for seg in chunk.split(sep)]
+    return [" ".join(p.strip().lower().split()) for p in parts if p.strip()]
+
+
+def _is_ordered_subsequence(needles: list[str], haystack: list[str]) -> bool:
+    """True if every token in needles appears in haystack in order (gaps allowed)."""
+    it = iter(haystack)
+    return all(n in it for n in needles)
+
+
+def _blocked_phrase_matches(tokens: list[str], phrase: list[str]) -> bool:
+    """Match a blocked command phrase against a sub-command's tokens.
+
+    - Single keyword (e.g. "deploy") matches only as a whole token.
+    - Multi-word phrase (e.g. "git push") matches when its first word appears as
+      a token and the remaining words follow in order, tolerating interleaved
+      global flags like "git -C /repo push" or "git reset --hard HEAD".
+    """
+    if not phrase:
+        return False
+    if len(phrase) == 1:
+        return phrase[0] in tokens
+    for i, tok in enumerate(tokens):
+        if tok == phrase[0] and _is_ordered_subsequence(phrase[1:], tokens[i + 1 :]):
+            return True
+    return False
+
+
 def command_is_blocked(command: str, blocked_commands: list[str] | None = None) -> bool:
     blocked = blocked_commands or DEFAULT_BLOCKED_COMMANDS
-    normalized = " ".join(command.strip().lower().split())
-    for item in blocked:
-        if item.lower() in normalized:
-            return True
+    # Check every sub-command so chaining/flags (e.g. "git -C /repo push") cannot
+    # hide a blocked command behind an allowed-looking prefix.
+    for sub in _split_subcommands(command):
+        tokens = sub.split()
+        for item in blocked:
+            if _blocked_phrase_matches(tokens, item.lower().split()):
+                return True
     return False
 
 
 def command_is_allowed(command: str, allowed_commands: list[str] | None = None) -> bool:
     if not allowed_commands:
         return True
-    normalized = " ".join(command.strip().lower().split())
-    return any(token.lower() in normalized for token in allowed_commands)
+    allowed = [a.lower().split() for a in allowed_commands if a.split()]
+    subs = _split_subcommands(command)
+    if not subs:
+        return False
+    # Every sub-command must START with an allowed command; a single disallowed
+    # segment (e.g. the "rm -rf ..." in "echo hi && rm -rf /") fails the whole
+    # command. Anchoring at the start prevents "rm echo" from looking allowed.
+    for sub in subs:
+        tokens = sub.split()
+        if not any(tokens[: len(phrase)] == phrase for phrase in allowed):
+            return False
+    return True
 
 
 def load_json_input(payload: str | None = None) -> dict:
