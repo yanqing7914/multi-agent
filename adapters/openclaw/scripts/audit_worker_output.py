@@ -48,7 +48,7 @@ def mission_control_exempt(path: str, state_dir: str | None) -> bool:
     """Paths under mission-control state dirs must not count toward Worker ownership."""
     path = normalize(path)
     first = path.split("/")[0] if path else ""
-    if first.startswith(".codex-multi-agent"):
+    if first == ".codex-multi-agent":
         return True
     if state_dir:
         state_norm = normalize(str(state_dir)).rstrip("/")
@@ -60,6 +60,18 @@ def mission_control_exempt(path: str, state_dir: str | None) -> bool:
 def _segment_glob_match(path: str, pattern: str) -> bool:
     if pattern == "**":
         return True
+    # Both-ended "**/<mid>/**" must be checked before the "/**" suffix branch,
+    # otherwise "**/secrets/**" is treated as the literal prefix "**/secrets"
+    # and never matches (silently disabling secret/blocked-path protection).
+    if pattern.startswith("**/") and pattern.endswith("/**"):
+        mid = pattern[3:-3]
+        if not mid:
+            return True
+        for segment in path.split("/"):
+            if fnmatch.fnmatch(segment, mid):
+                return True
+        # also allow the directory itself to be the final path component
+        return fnmatch.fnmatch(path.split("/")[-1], mid)
     if pattern.endswith("/**"):
         base = pattern[:-3]
         return path == base or path.startswith(base + "/")
@@ -287,7 +299,12 @@ def audit(ownership: dict, result_changes: dict[str, dict], global_changed: list
             if not loaded:
                 continue
             for k, v in loaded.items():
-                if k not in merged or merged.get(k) in (None, [], '', False):
+                # JSON is processed first (sorted above). Only fill a key from a
+                # later source when the current value is genuinely absent/empty.
+                # NOTE: `False` must NOT be treated as empty, otherwise a Markdown
+                # `true` would overwrite an honest JSON `false` (e.g.
+                # required_paths_verified) and bypass the false-completion gate.
+                if k not in merged or merged.get(k) in (None, [], ''):
                     merged[k] = v
         if merged:
             # Worktree-isolated Workers legitimately observe their own worktree path.

@@ -99,8 +99,18 @@ def main() -> int:
     if args.self_check:
         return run_self_check()
 
-    if args.json_in is not None or not sys.stdin.isatty():
+    flags_provided = args.command is not None
+
+    if args.json_in is not None:
         result = run_shell(load_json_input(args.json_in))
+        emit_json(result)
+        return 0 if result.get("ok") else 1
+
+    # Only fall back to stdin when no CLI flags were given. Checking isatty()
+    # alone is wrong: when invoked as a subprocess stdin is a pipe (not a tty),
+    # which previously caused CLI flags to be ignored in favor of empty stdin.
+    if not flags_provided and not sys.stdin.isatty():
+        result = run_shell(load_json_input(None))
         emit_json(result)
         return 0 if result.get("ok") else 1
 

@@ -59,3 +59,11 @@ exclude = [
     "bench",
     "terminals",
 ]
+
+# Restrict default test collection to the real unit-test suite. The bench/ and
+# examples/ trees contain standalone sample repos whose tests do `from src...`
+# and are meant to run inside their own directories; collecting them from the
+# repo root previously caused ModuleNotFoundError during `pytest`.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = ["bench", "examples", ".git", "dist", "*.worktrees"]

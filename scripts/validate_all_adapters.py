@@ -29,6 +29,8 @@ ADAPTER_CHECKS = [
         [],
     ),
     ("mcp-coordinator", REPO_ROOT / "mcp" / "multi-agent-coordinator" / "scripts" / "self_check.py", []),
+    ("gated-merge", REPO_ROOT / "adapters" / "openclaw" / "scripts" / "gated_merge.py", ["--self-check"]),
+    ("gate-hook", REPO_ROOT / "adapters" / "openclaw" / "scripts" / "install_gate_hook.py", ["--self-check"]),
     ("ide-panel", REPO_ROOT / "ide" / "multi-agent-panel" / "scripts" / "self_check.py", []),
     ("panel-launcher", REPO_ROOT / "ide" / "multi-agent-panel" / "scripts" / "open_panel.py", ["--self-check"]),
     ("bench", REPO_ROOT / "bench" / "run_bench.py", ["--self-check", "--dry-runtime"]),
